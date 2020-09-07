@@ -83,10 +83,12 @@
   * @{
   */
 uint8_t sector[512];
+/*
 FATFS fs;
 FILINFO fno;
 DIR dir;
 FIL F;
+*/
 const uint8_t SlidesCheck[2] =
   {
     0x42, 0x4D
@@ -128,7 +130,7 @@ uint32_t Storage_Init(void)
   * @param  FileLen: the File lenght
   * @retval err: Error status (0=> success, 1=> fail)
   */
-uint32_t Storage_CheckRAWFile(char ** BmpName, uint32_t *FileLen)
+uint32_t Storage_CheckPLBFile(char (* BmpName)[12], uint32_t *FileLen)
 {
   return 0;
 }
@@ -138,10 +140,10 @@ uint32_t Storage_CheckRAWFile(char ** BmpName, uint32_t *FileLen)
   * @param  None
   * @retval The number of the found files
   */
-uint32_t Storage_GetDirectoryRAWFiles (char ** dir_name, size_t len_name, char* Files[])
+uint32_t Storage_GetDirectoryPLBFiles (char (* dir_name)[12], size_t len_name, char* Files[])
 {
     file_descriptor file;
-    char name[11];
+    char name[12];
     file_descriptor dir;
     uint32_t counter = 0, index = 0;
     uint32_t res;
@@ -159,7 +161,7 @@ uint32_t Storage_GetDirectoryRAWFiles (char ** dir_name, size_t len_name, char* 
             if (name[0] == '.')
                 continue;
 
-            BSP_LCD_DisplayStringAt(0, 152, (uint8_t*)name, 0);
+            //BSP_LCD_DisplayStringAt(0, 152, (uint8_t*)name, 0);
 
             if (!file.is_dir)
             {
@@ -167,17 +169,17 @@ uint32_t Storage_GetDirectoryRAWFiles (char ** dir_name, size_t len_name, char* 
 
                 if (index < MAX_BMP_FILES)
                 {
-                    if (((name[counter + 1] == 'R') && 
-                         (name[counter + 2] == 'A') && 
-                         (name[counter + 3] == 'W')) ||
-                        ((name[counter + 1] == 'r') && 
-                         (name[counter + 2] == 'a') && 
-                         (name[counter + 3] == 'w')))
+                    if (((name[counter + 1] == 'P') && 
+                         (name[counter + 2] == 'L') && 
+                         (name[counter + 3] == 'B')) ||
+                        ((name[counter + 1] == 'p') && 
+                         (name[counter + 2] == 'l') && 
+                         (name[counter + 3] == 'b')))
                     {
-                        BSP_LCD_DisplayStringAt(0, 182, (uint8_t*)"find raw file", 0);
+                        //BSP_LCD_DisplayStringAt(0, 182, (uint8_t*)"find raw file", 0);
                         if(sizeof(name) <= (MAX_BMP_FILE_NAME + 2))
                         {
-                            BSP_LCD_DisplayStringAt(0, 192, (uint8_t*)"find raw file OK", 0);
+                            //BSP_LCD_DisplayStringAt(0, 192, (uint8_t*)"find raw file OK", 0);
                             sprintf (Files[index], "%s", name);
                             index++;
                         }

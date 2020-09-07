@@ -57,7 +57,7 @@
 #include "fatfs_storage.h"
 
 /* FatFs includes component */
-#include "ff_gen_drv.h"
+//#include "ff_gen_drv.h"
 #include "sd_diskio.h"
 
 /* Exported types ------------------------------------------------------------*/

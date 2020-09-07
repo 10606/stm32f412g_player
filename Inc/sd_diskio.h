@@ -49,11 +49,19 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include  "stm32412g_discovery_sd.h"
+#include <stdint.h>
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
-extern const Diskio_drvTypeDef  SD_Driver;
-
+//extern const Diskio_drvTypeDef  SD_Driver;
+typedef uint32_t DSTATUS;
+typedef uint32_t DRESULT;
+typedef char BYTE;
+typedef uint32_t DWORD;
+typedef uint32_t UINT;
+#define RES_OK 0
+#define RES_ERROR 188
+#define STA_NOINIT 113;
 #endif /* __SD_DISKIO_H */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

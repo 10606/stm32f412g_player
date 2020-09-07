@@ -55,7 +55,7 @@ extern "C"
 /* Includes ------------------------------------------------------------------*/
 #include <string.h>
 #include <stdio.h>
-#include "ff.h"
+//#include "ff.h"
 #include "stm32f4xx_hal.h"
 #include "stm32412g_discovery_sd.h"
 
@@ -93,8 +93,8 @@ extern "C"
   */
 uint32_t Storage_Init (void);
 //uint32_t Storage_OpenReadFile(uint8_t *Address, const char* BmpName);
-uint32_t Storage_GetDirectoryRAWFiles (char ** dir_name, size_t len_name, char* Files[]);
-uint32_t Storage_CheckRAWFile (char ** BmpName, uint32_t *FileLen);
+uint32_t Storage_GetDirectoryPLBFiles (char (* dir_name)[12], size_t len_name, char* Files[]);
+uint32_t Storage_CheckPLBFile (char (* BmpName)[12], uint32_t *FileLen);
 uint8_t Buffercmp (uint8_t* pBuffer1, uint8_t* pBuffer2, uint16_t BufferLength);
 
 #define MAX_BMP_FILES 25

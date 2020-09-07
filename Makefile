@@ -43,6 +43,11 @@ Src/sd_diskio.c  \
 Src/diskio.c \
 Src/stm32f4xx_it.c  \
 Src/system_stm32f4xx.c \
+Src/display_playlist.c \
+Src/playlist/light_playlist.c \
+Src/playlist/playlist.c \
+Src/playlist/playlist_common.c \
+Src/playlist/playlist_view.c \
 ../../BSP/f412g_disco/stm32412g_discovery.c \
 ../../BSP/f412g_disco/stm32412g_discovery_lcd.c \
 ../../BSP/f412g_disco/stm32412g_discovery_sd.c \
@@ -79,11 +84,12 @@ Src/system_stm32f4xx.c \
 ../../../libs/STM32CubeF4/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim_ex.c \
 ../../../libs/STM32CubeF4/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_uart.c  \
 ../../BSP/f412g_disco/stm32412g_discovery_audio.c \
-../../../FAT32_driver__c_ver/src/init/init.c \
-../../../FAT32_driver__c_ver/src/load_FAT/load_FAT.c \
-../../../FAT32_driver__c_ver/src/open/open.c \
-../../../FAT32_driver__c_ver/src/read/read.c \
-../../../FAT32_driver__c_ver/src/read_file_info/read_file_info.c 
+../../../FAT32_driver_char11/src/init/init.c \
+../../../FAT32_driver_char11/src/load_FAT/load_FAT.c \
+../../../FAT32_driver_char11/src/open/open.c \
+../../../FAT32_driver_char11/src/read/read.c \
+../../../FAT32_driver_char11/src/read_file_info/read_file_info.c  \
+../../../FAT32_driver_char11/src/file_descriptor/file_descriptor.c
 #../../../libs/STM32CubeF4/Middlewares/Third_Party/FatFS/src/option/ccsbcs.c \
 #../../BSP/f412g_disco/stm32412g_discovery_eeprom.c \
 #../../BSP/f412g_disco/stm32412g_discovery_qspi.c \
@@ -158,6 +164,7 @@ AS_INCLUDES =
 # C includes
 C_INCLUDES =  \
 -IInc \
+-ISrc/playlist \
 -I../../BSP \
 -I../../BSP/f412g_disco \
 -I../../BSP/Components \
@@ -168,7 +175,7 @@ C_INCLUDES =  \
 -I../../../libs/STM32CubeF4/Drivers/STM32F4xx_HAL_Driver/Inc \
 -I../../../libs/STM32CubeF4/Drivers/CMSIS/Device/ST/STM32F4xx/Include/ \
 -I../../../libs/STM32CubeF4/Drivers/CMSIS/Include/ \
--I../../../FAT32_driver__c_ver/src/ \
+-I../../../FAT32_driver_char11/src/ \
 -I../../../Utilities/Fonts/ \
 -I../../../Middlewares/Third_Party/FatFS/src
 #-IDrivers/STM32F4xx_HAL_Driver/Inc \

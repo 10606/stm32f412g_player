@@ -227,4 +227,43 @@ void DMA2_Stream3_IRQHandler(void)
   */ 
 
 
+/*
+    HAL_GPIO_WritePin(GPIOE, GPIO_PIN_2, GPIO_PIN_SET);
+    HAL_Delay(50);
+    HAL_GPIO_WritePin(GPIOE, GPIO_PIN_2, GPIO_PIN_RESET);
+    HAL_Delay(50);
+*/
+joystick_state_t joystick_state;
+
+void TIM2_IRQHandler (void)
+{
+    for (uint8_t i = 0; i != joystick_states_cnt; ++i)
+    {
+        if (joystick_state.pressed[i])
+        {
+            joystick_state.process[i]++;
+            joystick_state.pressed[i] = 0;
+        }
+    }
+    
+    if (HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_2) == GPIO_PIN_RESET)
+    {
+        HAL_GPIO_WritePin(GPIOE, GPIO_PIN_2, GPIO_PIN_SET);
+        //HAL_Delay(50);
+        //HAL_GPIO_WritePin(GPIOE, GPIO_PIN_2, GPIO_PIN_RESET);
+        //HAL_Delay(50);
+    }
+    else
+    {
+        HAL_GPIO_WritePin(GPIOE, GPIO_PIN_2, GPIO_PIN_RESET);
+    }
+    //TIM2->CNT = 0;
+    //TIM2->SR &= ~TIM_IT_CC1;
+    TIM2->SR &= ~TIM_SR_UIF;
+    //TIM_ClearITPendingBit(TIM2, TIM_IT_CC1);
+    //TIM2->IT &= ~TIM_IT_CC1;
+    //TIM_ClearITPendingBit(TIM2, TIM_IT_CC1);
+}
+
+
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

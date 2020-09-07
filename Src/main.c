@@ -44,6 +44,7 @@
   */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "play.h"
 #include "FAT.h"
 
 /** @addtogroup STM32F4xx_HAL_Applications
@@ -58,7 +59,7 @@
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-FATFS SD_FatFs;  /* File system object for SD card logical drive */
+//FATFS SD_FatFs;  /* File system object for SD card logical drive */
 char SD_Path[4]; /* SD card logical drive path */
 char* pDirectoryFiles[MAX_BMP_FILES];
 uint8_t  ubNumberOfFiles = 0;
@@ -71,7 +72,7 @@ uint8_t uwInternelBuffer[LCD_SCREEN_WIDTH*LCD_SCREEN_HEIGHT*RGB565_BYTE_PER_PIXE
 static void SystemClock_Config(void);
 static void Error_Handler(void);
 void audio_init ();
-void AudioPlay_demo (char ** file_name, size_t len);
+void AudioPlay_demo (playlist_view * plv, playlist * _pl);
 void audio_destruct ();
 DSTATUS SD_initialize (BYTE);
 
@@ -93,8 +94,8 @@ DSTATUS SD_initialize (BYTE);
 int main(void)
 {
     uint32_t counter = 0;
-    char str[10][11] = {"MEDIA      "};
-    char * path[10] = {str[0]};
+    char path[10][12] = {"MEDIA      "};
+    //char * path[10] = {str[0]};
   
   /* STM32F4xx HAL library initialization:
        - Configure the Flash prefetch
@@ -107,13 +108,27 @@ int main(void)
        - Low Level Initialization
    */
 
-  GPIO_InitTypeDef GPIO_InitStruct = {0};
+    
+    
+   
+  {
+      GPIO_InitTypeDef GPIO_InitStruct = {0};
+      GPIO_InitStruct.Pin = JOY_UP_Pin|JOY_DOWN_Pin;
+      GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+      GPIO_InitStruct.Pull = GPIO_NOPULL;
+      HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
+  }
 
-  GPIO_InitStruct.Pin = JOY_UP_Pin|JOY_DOWN_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
+  {
+      GPIO_InitTypeDef GPIO_InitStruct = {0};
+      GPIO_InitStruct.Pin = GPIO_PIN_2;
+      GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+      GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+      GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+      HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+  }
   HAL_Init();
+
 
   /* Configure the system clock to 100 MHz */
   SystemClock_Config();
@@ -127,7 +142,7 @@ int main(void)
   BSP_LCD_Init();
   
   /* Clear the LCD */
-  BSP_LCD_Clear(LCD_COLOR_WHITE);
+  //BSP_LCD_Clear(LCD_COLOR_WHITE);
   
   /* Configure Key Button */
   BSP_PB_Init(BUTTON_WAKEUP, BUTTON_MODE_GPIO);
@@ -148,7 +163,7 @@ int main(void)
   }
 
   /* Clear the LCD */
-  BSP_LCD_Clear(LCD_COLOR_WHITE);
+  //BSP_LCD_Clear(LCD_COLOR_WHITE);
 
   /*##-2- Link the SD Card disk I/O driver ###################################*/
   if (!SD_initialize((BYTE)0))
@@ -167,14 +182,14 @@ int main(void)
 
     /* Open filesystem */
     global_info.sector_size = 512;
-    if(init_fatfs())
+    if (init_fatfs())
     {
         BSP_LCD_DisplayStringAt(0, 152, (uint8_t*)"Not initialized...", 0);
         return 0;
     }
 
     /* Get the BMP file names on root directory */
-    ubNumberOfFiles = Storage_GetDirectoryRAWFiles(path, 1, pDirectoryFiles);
+    ubNumberOfFiles = Storage_GetDirectoryPLBFiles(path, 1, pDirectoryFiles);
 
     if (ubNumberOfFiles == 0)
     {
@@ -183,7 +198,7 @@ int main(void)
             free(pDirectoryFiles[counter]);
         }
 
-        BSP_LCD_DisplayStringAt(0, 112, (uint8_t*)"No RAW files...", CENTER_MODE);
+        BSP_LCD_DisplayStringAt(0, 112, (uint8_t*)"No PLB files...", CENTER_MODE);
         Error_Handler();
     }
   }
@@ -195,27 +210,48 @@ int main(void)
   
   audio_init();
 
+  memcpy(path[1], pDirectoryFiles[0], 12);
+  file_descriptor fd_plv;
+  playlist_view plv;
+  open(&fd_plv, path, 2);
+  init_playlist_view(&plv, &fd_plv);
+  
+  file_descriptor fd_pl;
+  playlist pl;
+  open(&fd_pl, path, 2);
+  init_playlist(&pl, &fd_pl);
+
+    {
+        RCC->APB1ENR |= RCC_APB1ENR_TIM2EN;
+        TIM2->SMCR &= ~TIM_SMCR_SMS;
+        TIM2->PSC = 359;//719;
+        TIM2->ARR = 24999;
+        TIM2->DIER |= TIM_DIER_UIE;
+        NVIC_EnableIRQ(TIM2_IRQn);
+        TIM2->CR1 |= TIM_CR1_CEN;
+    }
+    
   /* Main infinite loop */
   while (1)
   {
     counter = 0;
-
     while (counter < ubNumberOfFiles)
     {
       /* Format the string */
-      BSP_LCD_DisplayStringAt(0, 60, (uint8_t *)pDirectoryFiles[counter], CENTER_MODE);
+      //BSP_LCD_DisplayStringAt(0, 60, (uint8_t *)pDirectoryFiles[counter], CENTER_MODE);
       //sprintf ((char*)str, "Media/%-30.30s", pDirectoryFiles[counter]);
       //sprintf ((char*)str, "Media/%-100.100s", pDirectoryFiles[counter]);
-      path[1] = pDirectoryFiles[counter];
+      memcpy(path[1], pDirectoryFiles[counter], 12);
+      open_playlist(&plv, path, 2);
 
-      if (Storage_CheckRAWFile(path, &uwBmplen) == 0)
+      if (Storage_CheckPLBFile(path, &uwBmplen) == 0)
       {
         /* Open a file and copy its content to an internal buffer */
-        audio_init();
-        AudioPlay_demo(path, 2);
+        //audio_init();
+        AudioPlay_demo(&plv, &pl);
         audio_destruct();
 
-        BSP_LCD_Clear(LCD_COLOR_BLACK);
+        //BSP_LCD_Clear(LCD_COLOR_BLACK);
         counter++;
       }
     }

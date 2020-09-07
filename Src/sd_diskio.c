@@ -44,7 +44,7 @@
   */
 
 /* Includes ------------------------------------------------------------------*/
-#include "ff_gen_drv.h"
+//#include "ff_gen_drv.h"
 #include "FAT.h"
 #include "sd_diskio.h"
 
@@ -86,6 +86,7 @@ DRESULT SD_read (BYTE, BYTE*, DWORD, UINT);
   DRESULT SD_ioctl (BYTE, BYTE, void*);
 #endif  /* _USE_IOCTL == 1 */
 
+/*
 const Diskio_drvTypeDef  SD_Driver =
 {
   SD_initialize,
@@ -93,12 +94,13 @@ const Diskio_drvTypeDef  SD_Driver =
   SD_read,
 #if  _USE_WRITE == 1
   SD_write,
-#endif /* _USE_WRITE == 1 */
+#endif // _USE_WRITE == 1 
 
 #if  _USE_IOCTL == 1
   SD_ioctl,
-#endif /* _USE_IOCTL == 1 */
+#endif // _USE_IOCTL == 1 
 };
+*/
 
 /* Private functions ---------------------------------------------------------*/
 static DSTATUS SD_CheckStatus(BYTE lun)
