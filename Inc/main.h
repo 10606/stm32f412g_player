@@ -42,45 +42,28 @@
   *
   ******************************************************************************
   */  
-/* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __MAIN_H
 #define __MAIN_H
 
-/* Includes ------------------------------------------------------------------*/
 #include "stm32412g_discovery.h"
 #include "stm32412g_discovery_lcd.h"
 #include "stm32412g_discovery_sd.h"
-//#include "stm32412g_discovery_eeprom.h"
-//#include "stm32f4xx_hal_i2s.h"
 #include "stm32412g_discovery_audio.h"
 #include <stdlib.h>
 #include "fatfs_storage.h"
 
-/* FatFs includes component */
-//#include "ff_gen_drv.h"
 #include "sd_diskio.h"
 
-/* Exported types ------------------------------------------------------------*/
 typedef enum {
-  AUDIO_ERROR_NONE = 0,
-  AUDIO_ERROR_NOTREADY,
-  AUDIO_ERROR_IO,
-  AUDIO_ERROR_EOF,
-}AUDIO_ErrorTypeDef;
+    AUDIO_ERROR_NONE = 0,
+    AUDIO_ERROR_NOTREADY,
+    AUDIO_ERROR_IO,
+    AUDIO_ERROR_EOF,
+} AUDIO_ErrorTypeDef;
 
-/* Exported constants --------------------------------------------------------*/
 #define LCD_SCREEN_WIDTH              240
 #define LCD_SCREEN_HEIGHT             240
 #define RGB565_BYTE_PER_PIXEL         2
 
-/* Exported macro ------------------------------------------------------------*/
-#define FLASH_CODE_ADDRESS         0x08000000
-#define FLASH_DATA_ADDRESS         0x08060000
-
-
-/* Exported functions ------------------------------------------------------- */
-
-
 #endif /* __MAIN_H */
 
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

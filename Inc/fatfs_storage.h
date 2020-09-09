@@ -43,7 +43,6 @@
   *
   ******************************************************************************
   */
-/* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __FAT_FS_STORAGE_H
 #define __FAT_FS_STORAGE_H
 
@@ -52,69 +51,22 @@ extern "C"
 {
 #endif
 
-/* Includes ------------------------------------------------------------------*/
 #include <string.h>
 #include <stdio.h>
-//#include "ff.h"
+#include <stdint.h>
 #include "stm32f4xx_hal.h"
 #include "stm32412g_discovery_sd.h"
 
-/** @addtogroup STM32412G-DISCOVERY_FAT_FS
-  * @{
-  */
+#define MAX_PLB_FILES 25
+#define MAX_PLB_FILE_NAME 12
 
-/** @addtogroup FAT_FS_STORAGE
-  * @{
-  */
-
-/** @defgroup FAT_FS_STORAGE_Exported_Types
-  * @{
-  */
-/**
-  * @}
-  */
-
-/** @defgroup FAT_FS_STORAGE_Exported_Constants
-  * @{
-  */
-/**
-  * @}
-  */
-
-/** @defgroup FAT_FS_STORAGE_Exported_Macros
-  * @{
-  */
-/**
-  * @}
-  */
-
-/** @defgroup FAT_FS_STORAGE_Exported_Functions
-  * @{
-  */
 uint32_t Storage_Init (void);
-//uint32_t Storage_OpenReadFile(uint8_t *Address, const char* BmpName);
-uint32_t Storage_GetDirectoryPLBFiles (char (* dir_name)[12], size_t len_name, char* Files[]);
-uint32_t Storage_CheckPLBFile (char (* BmpName)[12], uint32_t *FileLen);
-uint8_t Buffercmp (uint8_t* pBuffer1, uint8_t* pBuffer2, uint16_t BufferLength);
-
-#define MAX_BMP_FILES 25
-#define MAX_BMP_FILE_NAME 170
+uint32_t Storage_GetDirectoryPLBFiles (char (* dir_name)[12], size_t len_name, char (* Files)[MAX_PLB_FILE_NAME]);
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif /* __FAT_FS_STORAGE_H */
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

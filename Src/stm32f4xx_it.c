@@ -35,171 +35,80 @@
   ******************************************************************************
   */
 
-/* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "stm32f4xx_it.h"
 
-/** @addtogroup STM32F4xx_HAL_Applications
-  * @{
-  */
-
-/** @addtogroup LCD_PicturesFromSDCard
-  * @{
-  */
-
-/* Private typedef -----------------------------------------------------------*/
-/* Private define ------------------------------------------------------------*/
-/* Private macro -------------------------------------------------------------*/
-/* Private variables ---------------------------------------------------------*/
 /* uSD handler declared in "stm32412g_discovery_sd.c" file */
 extern I2S_HandleTypeDef haudio_i2s;
 extern SD_HandleTypeDef uSdHandle;
-/* Private function prototypes -----------------------------------------------*/
-/* Private functions ---------------------------------------------------------*/
 
 /******************************************************************************/
 /*            Cortex-M4 Processor Exceptions Handlers                         */
 /******************************************************************************/
 
-/**
-  * @brief  This function handles NMI exception.
-  * @param  None
-  * @retval None
-  */
-void NMI_Handler(void)
+void NMI_Handler (void)
 {
 }
 
-/**
-  * @brief  This function handles Hard Fault exception.
-  * @param  None
-  * @retval None
-  */
-void HardFault_Handler(void)
+void HardFault_Handler (void)
 {
-  /* Go to infinite loop when Hard Fault exception occurs */
-  while (1)
-  {
-  }
+    while (1)
+    {}
 }
 
-/**
-  * @brief  This function handles Memory Manage exception.
-  * @param  None
-  * @retval None
-  */
-void MemManage_Handler(void)
+void MemManage_Handler (void)
 {
-  /* Go to infinite loop when Memory Manage exception occurs */
-  while (1)
-  {
-  }
+    while (1)
+    {}
 }
 
-/**
-  * @brief  This function handles Bus Fault exception.
-  * @param  None
-  * @retval None
-  */
-void BusFault_Handler(void)
+void BusFault_Handler (void)
 {
-  /* Go to infinite loop when Bus Fault exception occurs */
-  while (1)
-  {
-  }
+    while (1)
+    {}
 }
 
-/**
-  * @brief  This function handles Usage Fault exception.
-  * @param  None
-  * @retval None
-  */
-void UsageFault_Handler(void)
+void UsageFault_Handler (void)
 {
-  /* Go to infinite loop when Usage Fault exception occurs */
-  while (1)
-  {
-  }
+    while (1)
+    {}
 }
 
-/**
-  * @brief  This function handles SVCall exception.
-  * @param  None
-  * @retval None
-  */
-void SVC_Handler(void)
+void SVC_Handler (void)
 {
 }
 
-/**
-  * @brief  This function handles Debug Monitor exception.
-  * @param  None
-  * @retval None
-  */
-void DebugMon_Handler(void)
+void DebugMon_Handler (void)
 {
 }
 
-/**
-  * @brief  This function handles PendSVC exception.
-  * @param  None
-  * @retval None
-  */
-void PendSV_Handler(void)
+void PendSV_Handler (void)
 {
 }
 
-/**
-  * @brief  This function handles SysTick Handler.
-  * @param  None
-  * @retval None
-  */
-void SysTick_Handler(void)
+void SysTick_Handler (void)
 {
-  HAL_IncTick();
+    HAL_IncTick();
 }
 
-
-/**
-    200   * @brief  This function handles DMA1 Stream5 interrupt request.
-    201   * @retval None
-    202   */
-void AUDIO_OUT_I2Sx_DMAx_IRQHandler(void)
+void AUDIO_OUT_I2Sx_DMAx_IRQHandler (void)
 {
-  HAL_DMA_IRQHandler(haudio_i2s.hdmatx);
+    HAL_DMA_IRQHandler(haudio_i2s.hdmatx);
 }
 
-/**
-    209   * @brief  This function handles DMA1 Stream 0 interrupt request.
-    210   * @retval None
-    211   */
-void AUDIO_IN_I2Sx_DMAx_IRQHandler(void)
+void AUDIO_IN_I2Sx_DMAx_IRQHandler (void)
 {
-  HAL_DMA_IRQHandler(haudio_i2s.hdmarx);
+    HAL_DMA_IRQHandler(haudio_i2s.hdmarx);
 }
 
-
-
-
-/**
-  * @brief  This function handles SDIO global interrupt request.
-  * @param  None
-  * @retval None
-  */
-void SDIO_IRQHandler(void)
+void SDIO_IRQHandler (void)
 {
-  /* Process All SDIO Interrupt Sources */
-  HAL_SD_IRQHandler(&uSdHandle);
+    HAL_SD_IRQHandler(&uSdHandle);
 }
 
-/**
-* @brief  This function handles DMA2 Stream 3 interrupt request.
-* @param  None
-* @retval None
-*/
-void DMA2_Stream3_IRQHandler(void)
+void DMA2_Stream3_IRQHandler (void)
 {
-  HAL_DMA_IRQHandler(uSdHandle.hdmarx);
+    HAL_DMA_IRQHandler(uSdHandle.hdmarx);
 }
 
 /******************************************************************************/
@@ -209,30 +118,6 @@ void DMA2_Stream3_IRQHandler(void)
 /*  file (startup_stm32f40xx.s/startup_stm32f427x.s/startup_stm32f429x.s).    */
 /******************************************************************************/
 
-/**
-  * @brief  This function handles PPP interrupt request.
-  * @param  None
-  * @retval None
-  */
-/*void PPP_IRQHandler(void)
-{
-}*/
-
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */ 
-
-
-/*
-    HAL_GPIO_WritePin(GPIOE, GPIO_PIN_2, GPIO_PIN_SET);
-    HAL_Delay(50);
-    HAL_GPIO_WritePin(GPIOE, GPIO_PIN_2, GPIO_PIN_RESET);
-    HAL_Delay(50);
-*/
 joystick_state_t joystick_state;
 
 void TIM2_IRQHandler (void)
@@ -247,23 +132,9 @@ void TIM2_IRQHandler (void)
     }
     
     if (HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_2) == GPIO_PIN_RESET)
-    {
         HAL_GPIO_WritePin(GPIOE, GPIO_PIN_2, GPIO_PIN_SET);
-        //HAL_Delay(50);
-        //HAL_GPIO_WritePin(GPIOE, GPIO_PIN_2, GPIO_PIN_RESET);
-        //HAL_Delay(50);
-    }
     else
-    {
         HAL_GPIO_WritePin(GPIOE, GPIO_PIN_2, GPIO_PIN_RESET);
-    }
-    //TIM2->CNT = 0;
-    //TIM2->SR &= ~TIM_IT_CC1;
     TIM2->SR &= ~TIM_SR_UIF;
-    //TIM_ClearITPendingBit(TIM2, TIM_IT_CC1);
-    //TIM2->IT &= ~TIM_IT_CC1;
-    //TIM_ClearITPendingBit(TIM2, TIM_IT_CC1);
 }
 
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
