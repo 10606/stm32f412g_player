@@ -44,10 +44,13 @@ Src/diskio.c \
 Src/stm32f4xx_it.c  \
 Src/system_stm32f4xx.c \
 Src/display_playlist.c \
+Src/display_pl_list.c \
 Src/playlist/light_playlist.c \
 Src/playlist/playlist.c \
 Src/playlist/playlist_common.c \
 Src/playlist/playlist_view.c \
+Src/view/view.c \
+Src/pl_list/pl_list.c \
 ../../BSP/f412g_disco/stm32412g_discovery.c \
 ../../BSP/f412g_disco/stm32412g_discovery_lcd.c \
 ../../BSP/f412g_disco/stm32412g_discovery_sd.c \
@@ -165,6 +168,8 @@ AS_INCLUDES =
 C_INCLUDES =  \
 -IInc \
 -ISrc/playlist \
+-ISrc/view \
+-ISrc/pl_list \
 -I../../BSP \
 -I../../BSP/f412g_disco \
 -I../../BSP/Components \

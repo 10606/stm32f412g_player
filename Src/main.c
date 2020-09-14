@@ -43,21 +43,17 @@
   ******************************************************************************
   */
 #include "main.h"
+#include "audio.h"
 #include "play.h"
+#include "view.h"
 #include "FAT.h"
 
-char pDirectoryFiles[MAX_PLB_FILES][MAX_PLB_FILE_NAME];
-uint8_t ubNumberOfFiles = 0;
-
-file_descriptor fd_plv;
-playlist_view plv;
-file_descriptor fd_pl;
-playlist pl;
+view viewer;
 
 static void SystemClock_Config (void);
 static void Error_Handler (void);
 void audio_init ();
-void AudioPlay_demo (playlist_view * plv, playlist * _pl);
+void AudioPlay_demo ();
 void audio_destruct ();
 DSTATUS SD_initialize (BYTE);
 
@@ -121,14 +117,6 @@ void init_fs (char (* path)[12], uint32_t len)
             BSP_LCD_DisplayStringAt(0, 152, (uint8_t*)"Not initialized...", 0);
             Error_Handler();
         }
-
-        /* Get the .PLB file names on root directory */
-        ubNumberOfFiles = Storage_GetDirectoryPLBFiles(path, len, pDirectoryFiles);
-        if (ubNumberOfFiles == 0)
-        {
-            BSP_LCD_DisplayStringAt(0, 112, (uint8_t*)"No PLB files...", CENTER_MODE);
-            Error_Handler();
-        }
     }
     else
     {
@@ -136,16 +124,26 @@ void init_fs (char (* path)[12], uint32_t len)
     }
 }
 
-void init_audio (char (* path)[12], uint32_t len, uint32_t index)
+void init_audio (char (* path)[12], uint32_t len)
 {
     audio_init();
 
+    /* Get the .PLB file names on root directory */
+    uint32_t ret = init_view(&viewer, path, len, &buffer_ctl);
+    if (ret)
+    {
+        BSP_LCD_DisplayStringAt(0, 112, (uint8_t*)"No PLB files...", CENTER_MODE);
+        Error_Handler();
+    }
+    
+    /*
     memcpy(path[len - 1], pDirectoryFiles[index], 12);
     open(&fd_plv, path, len);
     init_playlist_view(&plv, &fd_plv);
   
     open(&fd_pl, path, len);
     init_playlist(&pl, &fd_pl);
+    */
 }
 
 void init_timer ()
@@ -163,7 +161,7 @@ void init (char (* path)[12], uint32_t len, uint32_t index)
 {
     init_base();
     init_fs(path, len);
-    init_audio(path, len + 1, index);
+    init_audio(path, len);
     init_timer();
 }
 
@@ -176,14 +174,15 @@ int main (void)
     while (1)
     {
         counter = 0;
+        /*
         while (counter < ubNumberOfFiles)
         {
             memcpy(path[1], pDirectoryFiles[counter], 12);
             open_playlist(&plv, path, 2);
-
-            AudioPlay_demo(&plv, &pl);
+        */
+            AudioPlay_demo();
             counter++;
-        }
+        //}
     }
     audio_destruct();
 }

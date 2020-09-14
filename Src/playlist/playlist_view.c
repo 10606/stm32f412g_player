@@ -40,7 +40,7 @@ static void _pn_common (playlist_view * plv, size_t ins_pos)
     plv->name_song[ins_pos][song_name_sz] = 0;
 }
 
-void down (playlist_view * plv)
+void down (playlist_view * plv) //TODO exception
 {
     if (plv->lpl.header.cnt_songs <= view_cnt)
     {
@@ -76,7 +76,7 @@ void down (playlist_view * plv)
     
 }
 
-void up (playlist_view * plv)
+void up (playlist_view * plv) //TODO exception
 {
     if (plv->lpl.header.cnt_songs <= view_cnt)
     {
@@ -111,7 +111,7 @@ void up (playlist_view * plv)
     }
 }
 
-void play (playlist_view * plv, playlist * pl)
+void play (playlist_view * plv, playlist * pl) //TODO exception
 {
     copy_file_descriptor_seek_0(pl->fd, plv->lpl.fd);
     init_playlist(pl, pl->fd);

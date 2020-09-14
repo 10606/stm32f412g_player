@@ -54,43 +54,4 @@ uint32_t Storage_Init(void)
     return 0;
 }
 
-uint32_t Storage_GetDirectoryPLBFiles (char (* dir_name)[12], size_t len_name, char (* Files)[MAX_PLB_FILE_NAME])
-{
-    file_descriptor file;
-    char name[12];
-    file_descriptor dir;
-    uint32_t index = 0;
-    uint32_t res;
-
-    res = open(&dir, dir_name, len_name);
-  
-    if (res != 0)
-    {
-        BSP_LCD_DisplayStringAt(0, 152, (uint8_t*)"No directory Media...", 0);
-        return 0;
-    }
-    for (;;)
-    {
-        res = read_dir(&dir, &file, name);
-        if (res != 0 || name[0] == 0)
-            break;
-        if (name[0] == '.')
-            continue;
-
-        if (!file.is_dir)
-        {
-            if (index < MAX_PLB_FILES)
-            {
-                if ((name[8]  == 'P') && 
-                    (name[9]  == 'L') && 
-                    (name[10] == 'B'))
-                {
-                    memcpy(Files[index], name, sizeof(name));
-                    index++;
-                }
-            }
-        }
-    }
-    return index;
-}
 

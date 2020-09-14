@@ -34,50 +34,22 @@
   *
   ******************************************************************************
   */
-
+#include "view.h"
+#include "audio.h"
 #include "main.h"
 #include "FAT.h"
 #include "stm32412g_discovery_audio.h"
 #include "display_playlist.h"
 #include <stdio.h>
+#include <stdint.h>
 #include "stm32f4xx_it.h"
 
 #define str_time_size 100
+uint32_t audio_freq[8] = {8000 ,11025, 16000, 22050, 32000, 44100, 48000, 96000};
 
-//#define AUDIO_BUFFER_SIZE       8192  * 2
-#define AUDIO_BUFFER_SIZE       12288 
-#define AUDIO_DEFAULT_VOLUME    70
-#define HEADBAND_HEIGHT         72
+extern view viewer;
+audio_ctl  buffer_ctl;
 
-typedef enum {
-    AUDIO_STATE_IDLE = 0,
-    AUDIO_STATE_INIT,    
-    AUDIO_STATE_PLAYING,  
-} AUDIO_PLAYBACK_StateTypeDef;
-
-typedef enum {
-    BUFFER_OFFSET_NONE = 0,  
-    BUFFER_OFFSET_HALF,  
-    BUFFER_OFFSET_FULL,     
-} BUFFER_StateTypeDef;
-
-typedef struct {
-    uint8_t buff[AUDIO_BUFFER_SIZE];
-    uint32_t fptr;  
-    BUFFER_StateTypeDef state;
-} AUDIO_BufferTypeDef;
-
-static AUDIO_BufferTypeDef  buffer_ctl;
-static AUDIO_PLAYBACK_StateTypeDef  audio_state;
-file_descriptor file;
-playlist * pl_p;
-playlist_view * plv_p;
-static uint32_t  AudioFileSize;
-__IO uint32_t uwVolume = 20;
-__IO uint32_t uwPauseEnabledStatus = 0;
-
-static uint32_t AudioFreq[8] = {8000 ,11025, 16000, 22050, 32000, 44100, 48000, 96000};
-static uint32_t *AudioFreq_ptr;
 static JOYState_TypeDef JoyState = JOY_NONE;
 
 static void Audio_SetHint (void);
@@ -90,10 +62,10 @@ uint8_t AUDIO_Process (void);
 
 void audio_init ()
 {
-    AudioFreq_ptr = AudioFreq + 5; /*AF_44K*/
+    buffer_ctl.audio_freq_ptr = audio_freq + 5; /*AF_44K*/
     uint8_t status = 0;
-    uwPauseEnabledStatus = 0; /* 0 when audio is running, 1 when Pause is on */
-    uwVolume = AUDIO_DEFAULT_VOLUME;
+    buffer_ctl.pause_status = 0; /* 0 when audio is running, 1 when Pause is on */
+    buffer_ctl.volume = AUDIO_DEFAULT_VOLUME;
   
     Audio_SetHint();
   
@@ -107,7 +79,7 @@ void audio_init ()
         BSP_LCD_DisplayStringAt(0, BSP_LCD_GetYSize()- 85, (uint8_t *)"Joystick init error", CENTER_MODE);
     }
   
-    if (BSP_AUDIO_OUT_Init(OUTPUT_DEVICE_HEADPHONE, uwVolume, *AudioFreq_ptr) != 0)
+    if (BSP_AUDIO_OUT_Init(OUTPUT_DEVICE_HEADPHONE, buffer_ctl.volume, *buffer_ctl.audio_freq_ptr) != 0)
     {
         BSP_LCD_SetBackColor(LCD_COLOR_WHITE);
         BSP_LCD_SetTextColor(LCD_COLOR_RED);
@@ -122,12 +94,10 @@ void audio_destruct ()
 }
 
 
-void AudioPlay_demo (playlist_view * _plv, playlist * _pl)
+void AudioPlay_demo ()
 { 
-    plv_p = _plv;
-    pl_p = _pl;
-    BSP_LCD_DisplayStringAt(0, BSP_LCD_GetYSize()- 150, (uint8_t *)pl_p->song.song_name, LEFT_MODE);
-    AudioFreq_ptr = AudioFreq + 5; /*AF_48K*/
+    //BSP_LCD_DisplayStringAt(0, BSP_LCD_GetYSize()- 150, (uint8_t *)viewer.pl.song.song_name, LEFT_MODE);
+    buffer_ctl.audio_freq_ptr = audio_freq + 5; /*AF_44K*/
 
     BSP_LCD_SetTextColor(LCD_COLOR_RED);
     BSP_LCD_SetBackColor(LCD_COLOR_WHITE); 
@@ -136,9 +106,9 @@ void AudioPlay_demo (playlist_view * _plv, playlist * _pl)
         BSP_LCD_DisplayStringAt(0, BSP_LCD_GetYSize()- 125, (uint8_t *)"       ERROR READ    ", CENTER_MODE);
     }
   
-    char need_redraw = 0;
-    display_playlist(plv_p, pl_p);
-    while(1)
+    uint8_t need_redraw = 0;
+    display_view(&viewer);
+    while (1)
     {
         AUDIO_Process();
         JoyState = BSP_JOY_GetState();
@@ -157,59 +127,40 @@ void AudioPlay_demo (playlist_view * _plv, playlist * _pl)
             joystick_state.pressed[joy_button_right] = 1;
             break;
 
+        case JOY_LEFT:
+            joystick_state.pressed[joy_button_left] = 1;
+            break;
+
         default:
             break;
         }
       
         if (need_redraw)
         {
-            display_playlist(plv_p, pl_p);
+            display_view(&viewer);
             need_redraw = 0;
         }
-        if (joystick_state.process[joy_button_up] > 1)
-        {
-            joystick_state.process[joy_button_up] = 0;
-            up(plv_p);
-            need_redraw = 1;
-        }
-        if (joystick_state.process[joy_button_down] > 1)
-        {
-            joystick_state.process[joy_button_down] = 0;
-            down(plv_p);
-            need_redraw = 1;
-        }
-        if (joystick_state.process[joy_button_right] > 1)
-        {
-            joystick_state.process[joy_button_right] = 0;
-            play(plv_p, pl_p);
-            if (open_song(pl_p, &file))
-            {
-                BSP_LCD_DisplayStringAt(0, 152, (uint8_t*)"Not opened...", 0);
-            }
-            AudioFileSize = file.size;
-            buffer_ctl.fptr = 0;
-            need_redraw = 1;
-        }
-      
+        process_view(&viewer, &need_redraw);
+        
         /*
-        BSP_AUDIO_OUT_SetVolume(uwVolume);
-        BSP_AUDIO_OUT_SetFrequency(*AudioFreq_ptr);
+        BSP_AUDIO_OUT_SetVolume(buffer_ctl.volume);
+        BSP_AUDIO_OUT_SetFrequency(*buffer_ctl.audio_freq_ptr);
         
         case JOY_SEL:
             // Set Pause / Resume or Exit 
             HAL_Delay(200);
             if (BSP_JOY_GetState() == JOY_SEL)  // Long press on joystick selection button : Pause/Resume 
             {
-                if (uwPauseEnabledStatus == 1)
+                if (buffer_ctl.pause_status == 1)
                 { // Pause is enabled, call Resume 
                     BSP_AUDIO_OUT_Resume();
-                    uwPauseEnabledStatus = 0;
+                    buffer_ctl.pause_status = 0;
                     BSP_LCD_DisplayStringAt(0, BSP_LCD_GetYSize()- 85, (uint8_t *)"       PLAYING...     ", CENTER_MODE);
                 } 
                 else
                 { // Pause the playback 
                     BSP_AUDIO_OUT_Pause();
-                    uwPauseEnabledStatus = 1;
+                    buffer_ctl.pause_status = 1;
                     BSP_LCD_DisplayStringAt(0, BSP_LCD_GetYSize()- 85, (uint8_t *)"       PAUSE  ...     ", CENTER_MODE);
                 }
                 BSP_LCD_DisplayStringAt(0, LINE(14), (uint8_t *)"                      ", CENTER_MODE);
@@ -242,21 +193,21 @@ AUDIO_ErrorTypeDef AUDIO_Start ()
 {
     uint32_t bytesread;
 
-    if (open_song(pl_p, &file))
+    if (open_song(&viewer.pl, &buffer_ctl.audio_file))
     {
         BSP_LCD_DisplayStringAt(0, 152, (uint8_t*)"Not opened...", 0);
         return AUDIO_ERROR_IO;
     }
-    AudioFileSize = file.size;
+    buffer_ctl.audio_file_size = buffer_ctl.audio_file.size;
 
     buffer_ctl.state = BUFFER_OFFSET_NONE;
-    bytesread = get_all_data(&file,
+    bytesread = get_all_data(&buffer_ctl.audio_file,
                       &buffer_ctl.buff[0],
                       AUDIO_BUFFER_SIZE);
     if (bytesread > 0)
     {
         BSP_AUDIO_OUT_Play((uint16_t*)&buffer_ctl.buff[0], AUDIO_BUFFER_SIZE);
-        audio_state = AUDIO_STATE_PLAYING;      
+        buffer_ctl.audio_state = AUDIO_STATE_PLAYING;      
         buffer_ctl.fptr = bytesread;
         return AUDIO_ERROR_NONE;
     }
@@ -272,7 +223,7 @@ typedef struct tik_t
 
 void byte_to_time (tik_t * time, uint32_t value)
 {
-    uint32_t divider = *AudioFreq_ptr;
+    uint32_t divider = *buffer_ctl.audio_freq_ptr;
     value = value / 2 / 2; // 16 bit (2 bytes)   2 channels
     time->min = (value / divider) / 60;
     time->sec = (value / divider) % 60;
@@ -284,7 +235,7 @@ uint8_t AUDIO_Process(void)
     uint32_t bytesread;
     AUDIO_ErrorTypeDef error_state = AUDIO_ERROR_NONE;  
   
-    switch (audio_state)
+    switch (buffer_ctl.audio_state)
     {
         case AUDIO_STATE_PLAYING:
         {
@@ -292,7 +243,7 @@ uint8_t AUDIO_Process(void)
             tik_t total_time;
       
             byte_to_time(&cur_time, buffer_ctl.fptr);
-            byte_to_time(&total_time, AudioFileSize);
+            byte_to_time(&total_time, buffer_ctl.audio_file_size);
 
             char str[str_time_size];
             snprintf
@@ -313,25 +264,25 @@ uint8_t AUDIO_Process(void)
             BSP_LCD_DisplayStringAt(0, BSP_LCD_GetYSize()- 180, (uint8_t *)str, CENTER_MODE);
         }
 
-        if (buffer_ctl.fptr >= AudioFileSize)
+        if (buffer_ctl.fptr >= buffer_ctl.audio_file_size)
         {
             /* Play audio sample again ... */
             buffer_ctl.fptr = 0; 
-            next_playlist(pl_p);
-            if (open_song(pl_p, &file))
+            next_playlist(&viewer.pl);
+            if (open_song(&viewer.pl, &buffer_ctl.audio_file))
             {
                 BSP_LCD_DisplayStringAt(0, 152, (uint8_t*)"Not opened...", 0);
             }
-            AudioFileSize = file.size;
+            buffer_ctl.audio_file_size = buffer_ctl.audio_file.size;
             //f_seek(&file, 0); //TODO repeat mode
             error_state = AUDIO_ERROR_EOF;
-            display_playlist(plv_p, pl_p);
+            display_view(&viewer);
         }
 
         /* 1st half buffer played; so fill it and continue playing from bottom*/
         if (buffer_ctl.state == BUFFER_OFFSET_HALF)
         {
-            bytesread = get_all_data(&file,
+            bytesread = get_all_data(&buffer_ctl.audio_file,
                           &buffer_ctl.buff[0],
                           AUDIO_BUFFER_SIZE /2);
       
@@ -344,7 +295,7 @@ uint8_t AUDIO_Process(void)
         /* 2nd half buffer played; so fill it and continue playing from top */    
         if (buffer_ctl.state == BUFFER_OFFSET_FULL)
         {
-            bytesread = get_all_data(&file,
+            bytesread = get_all_data(&buffer_ctl.audio_file,
                           &buffer_ctl.buff[AUDIO_BUFFER_SIZE /2],
                           AUDIO_BUFFER_SIZE /2);
             if (bytesread > 0)
@@ -394,7 +345,7 @@ static uint32_t get_all_data (file_descriptor * _file, uint8_t *pbuf, uint32_t N
 
 void BSP_AUDIO_OUT_TransferComplete_CallBack(void)
 {
-    if (audio_state == AUDIO_STATE_PLAYING)
+    if (buffer_ctl.audio_state == AUDIO_STATE_PLAYING)
     {
         buffer_ctl.state = BUFFER_OFFSET_FULL;
     }
@@ -402,7 +353,7 @@ void BSP_AUDIO_OUT_TransferComplete_CallBack(void)
 
 void BSP_AUDIO_OUT_HalfTransfer_CallBack(void)
 {
-    if (audio_state == AUDIO_STATE_PLAYING)
+    if (buffer_ctl.audio_state == AUDIO_STATE_PLAYING)
     {
         buffer_ctl.state = BUFFER_OFFSET_HALF;
     }

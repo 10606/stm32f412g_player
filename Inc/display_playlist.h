@@ -7,6 +7,7 @@
 #include "stm32412g_discovery_audio.h"
 #include <stdint.h>
 
+void display_cur_song (playlist * pl_p);
 void display_playlist (playlist_view * plv, playlist * pl_p);
 
 #endif

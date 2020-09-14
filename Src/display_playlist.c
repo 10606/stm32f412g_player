@@ -7,7 +7,7 @@
 
 void AUDIO_Process(void);
 
-void display_playlist (playlist_view * plv, playlist * pl_p)
+void display_cur_song (playlist * pl_p)
 {
     char cur_song_name[song_name_sz + 1];
     char cur_group_name[group_name_sz + 1];
@@ -26,7 +26,11 @@ void display_playlist (playlist_view * plv, playlist * pl_p)
     BSP_LCD_DisplayStringAt(5, 40, (uint8_t *)cur_song_name, LEFT_MODE);
     AUDIO_Process();
     BSP_LCD_SetFont(&Font12);
+}
 
+void display_playlist (playlist_view * plv, playlist * pl_p)
+{
+    display_cur_song(pl_p);
     
     char song_name[view_cnt][song_name_sz + 1];
     char group_name[view_cnt][group_name_sz + 1];

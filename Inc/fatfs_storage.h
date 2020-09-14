@@ -57,11 +57,7 @@ extern "C"
 #include "stm32f4xx_hal.h"
 #include "stm32412g_discovery_sd.h"
 
-#define MAX_PLB_FILES 25
-#define MAX_PLB_FILE_NAME 12
-
 uint32_t Storage_Init (void);
-uint32_t Storage_GetDirectoryPLBFiles (char (* dir_name)[12], size_t len_name, char (* Files)[MAX_PLB_FILE_NAME]);
 
 #ifdef __cplusplus
 }
