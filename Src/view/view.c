@@ -4,7 +4,7 @@
 
 uint32_t no_plb_files = 401;
 
-#define seek_value (1024 * 256)
+uint32_t seek_value = (1024 * 256);
 
 uint32_t init_view (view * vv, char (* path)[12], uint32_t len, audio_ctl * buffer_ctl)
 {
