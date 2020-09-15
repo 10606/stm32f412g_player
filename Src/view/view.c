@@ -4,7 +4,7 @@
 
 uint32_t no_plb_files = 401;
 
-#define seek_value (1024 * 64)
+#define seek_value (1024 * 256)
 
 uint32_t init_view (view * vv, char (* path)[12], uint32_t len, audio_ctl * buffer_ctl)
 {
@@ -57,7 +57,7 @@ void display_view (view * vv)
 
 uint32_t process_view_up (view * vv, uint8_t * need_redraw)
 {
-    uint32_t ret;
+    uint32_t ret, new_pos;
     switch (vv->state)
     {
     case D_PL_LIST:
@@ -82,15 +82,17 @@ uint32_t process_view_up (view * vv, uint8_t * need_redraw)
             break;
             
         case S_SEEK:
-            uint32_t new_pos = vv->buffer_ctl->fpos;
-            if (new_pos < seek_value)
-                new_pos = 0;
+            new_pos = vv->buffer_ctl->fptr;
+            if ((vv->buffer_ctl->audio_file_size < seek_value) ||
+                (new_pos > vv->buffer_ctl->audio_file_size - seek_value))
+                new_pos = vv->buffer_ctl->audio_file_size;
             else
-                new_pos -= seek_value;
+                new_pos += seek_value;
             if ((ret = f_seek(&vv->buffer_ctl->audio_file, new_pos)))
             {
                 return ret;
             }
+            vv->buffer_ctl->fptr = new_pos;
             break;
 
         case S_NEXT_PREV:
@@ -100,13 +102,14 @@ uint32_t process_view_up (view * vv, uint8_t * need_redraw)
             }
             else
             {
-                vv->buffer_ctl.fptr = 0; 
+                vv->buffer_ctl->fptr = 0; 
                 if (open_song(&vv->pl, &vv->buffer_ctl->audio_file))
                 {
                     return ret;
                 }
                 vv->buffer_ctl->audio_file_size = vv->buffer_ctl->audio_file.size;
             }
+            *need_redraw = 1;
             break;
         }
         break;
@@ -116,7 +119,7 @@ uint32_t process_view_up (view * vv, uint8_t * need_redraw)
 
 uint32_t process_view_down (view * vv, uint8_t * need_redraw)
 {
-    uint32_t ret;
+    uint32_t ret, new_pos;
     switch (vv->state)
     {
     case D_PL_LIST:
@@ -142,16 +145,16 @@ uint32_t process_view_down (view * vv, uint8_t * need_redraw)
             break;
             
         case S_SEEK:
-            uint32_t new_pos = vv->buffer_ctl.fpos;
-            if ((vv->buffer_ctl.audio_file_size < seek_value) ||
-                (new_pos > vv->buffer_ctl.audio_file_size - seek_value))
-                new_pos = vv->buffer_ctl.audio_file_size;
+            new_pos = vv->buffer_ctl->fptr;
+            if (new_pos < seek_value)
+                new_pos = 0;
             else
-                new_pos += seek_value;
-            if ((ret = f_seek(&vv->buffer_ctl.audio_file, new_pos)))
+                new_pos -= seek_value;
+            if ((ret = f_seek(&vv->buffer_ctl->audio_file, new_pos)))
             {
                 return ret;
             }
+            vv->buffer_ctl->fptr = new_pos;
             break;
 
         case S_NEXT_PREV:
@@ -161,13 +164,14 @@ uint32_t process_view_down (view * vv, uint8_t * need_redraw)
             }
             else
             {
-                vv->buffer_ctl.fptr = 0; 
+                vv->buffer_ctl->fptr = 0; 
                 if (open_song(&vv->pl, &vv->buffer_ctl->audio_file))
                 {
                     return ret;
                 }
                 vv->buffer_ctl->audio_file_size = vv->buffer_ctl->audio_file.size;
             }
+            *need_redraw = 1;
             break;
         }
         break;

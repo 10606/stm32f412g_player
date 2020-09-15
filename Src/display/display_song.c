@@ -22,6 +22,10 @@ void display_song_volume (playlist * pl, audio_ctl * actl, state_song_view_t * s
     case S_SEEK:
         c_state = 's';
         break;
+    
+    case S_NEXT_PREV:
+        c_state = 'n';
+        break;
     }
     
     char s_volume[25];
