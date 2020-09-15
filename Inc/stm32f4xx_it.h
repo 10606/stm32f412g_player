@@ -70,10 +70,11 @@ enum joystick_buttons
     joy_button_up = 0,
     joy_button_down = 1,
     joy_button_left = 2,
-    joy_button_right = 3
+    joy_button_right = 3,
+    joy_button_center = 4
 };
 
-#define joystick_states_cnt 4
+#define joystick_states_cnt 5
 
 typedef struct joystick_state_t
 {

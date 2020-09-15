@@ -31,6 +31,7 @@ typedef struct audio_ctl {
     uint32_t volume;
     uint32_t pause_status;
     uint32_t *audio_freq_ptr;
+    char repeat_mode;
 } audio_ctl;
 
 extern audio_ctl  buffer_ctl;

@@ -20,7 +20,11 @@ typedef struct playlist_view
 void init_playlist_view (playlist_view * plv, file_descriptor * fd); //set fd and read playlist
 void down (playlist_view * plv);
 void up (playlist_view * plv);
+void seek_playlist_view (playlist_view * plv, uint32_t pos);
 void play (playlist_view * plv, playlist * pl);
+char compare (light_playlist * a, playlist * b);
+
+char check_near (playlist_view * plv, playlist * playing_pl);
 
 void print_playlist_view
 (

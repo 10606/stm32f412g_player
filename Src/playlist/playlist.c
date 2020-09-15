@@ -65,6 +65,18 @@ uint32_t next_playlist (playlist * pl)
     }
 }
     
+uint32_t prev_playlist (playlist * pl)
+{
+    if (pl->pos == 0)
+    {
+        return seek_playlist(pl, pl->header.cnt_songs - 1);
+    }
+    else
+    {
+        return seek_playlist(pl, pl->pos - 1);
+    }
+}
+    
 uint32_t init_playlist (playlist * pl, file_descriptor * fd)
 {
     pl->fd = fd;

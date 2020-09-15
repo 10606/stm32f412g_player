@@ -25,6 +25,7 @@ uint32_t init_pl_list (pl_list * pll, char (* dir_name)[12], size_t len_name);
 void destroy_pl_list (pl_list * pll);
 void up_pl_list (pl_list * pll);
 void down_pl_list (pl_list * pll);
+void seek_pl_list (pl_list * pll, uint32_t pos);
 uint32_t open_selected_pl_list (pl_list * pll, playlist_view * plv, uint32_t * selected_pl);
 
 uint32_t print_pl_list 

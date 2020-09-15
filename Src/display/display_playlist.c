@@ -1,11 +1,9 @@
-#include "display_playlist.h"
+#include "display.h"
 
 #define in_line_offset 11
 #define line_offset 23
 #define list_offset 75
 #define name_offset 5
-
-void AUDIO_Process(void);
 
 void display_cur_song (playlist * pl_p)
 {

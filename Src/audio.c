@@ -39,7 +39,7 @@
 #include "main.h"
 #include "FAT.h"
 #include "stm32412g_discovery_audio.h"
-#include "display_playlist.h"
+#include "display.h"
 #include <stdio.h>
 #include <stdint.h>
 #include "stm32f4xx_it.h"
@@ -62,6 +62,7 @@ uint8_t AUDIO_Process (void);
 
 void audio_init ()
 {
+    buffer_ctl.repeat_mode = 0;
     buffer_ctl.audio_freq_ptr = audio_freq + 5; /*AF_44K*/
     uint8_t status = 0;
     buffer_ctl.pause_status = 0; /* 0 when audio is running, 1 when Pause is on */
@@ -129,6 +130,10 @@ void AudioPlay_demo ()
 
         case JOY_LEFT:
             joystick_state.pressed[joy_button_left] = 1;
+            break;
+
+        case JOY_SEL:
+            joystick_state.pressed[joy_button_center] = 1;
             break;
 
         default:
@@ -268,13 +273,22 @@ uint8_t AUDIO_Process(void)
         {
             /* Play audio sample again ... */
             buffer_ctl.fptr = 0; 
-            next_playlist(&viewer.pl);
-            if (open_song(&viewer.pl, &buffer_ctl.audio_file))
+            if (buffer_ctl.repeat_mode)
             {
-                BSP_LCD_DisplayStringAt(0, 152, (uint8_t*)"Not opened...", 0);
+                if (f_seek(&buffer_ctl.audio_file, 0)) //TODO repeat mode
+                {
+                    BSP_LCD_DisplayStringAt(0, 152, (uint8_t*)"Not seeked...", 0);
+                }
             }
-            buffer_ctl.audio_file_size = buffer_ctl.audio_file.size;
-            //f_seek(&file, 0); //TODO repeat mode
+            else
+            {
+                next_playlist(&viewer.pl);
+                if (open_song(&viewer.pl, &buffer_ctl.audio_file))
+                {
+                    BSP_LCD_DisplayStringAt(0, 152, (uint8_t*)"Not opened...", 0);
+                }
+                buffer_ctl.audio_file_size = buffer_ctl.audio_file.size;
+            }
             error_state = AUDIO_ERROR_EOF;
             display_view(&viewer);
         }

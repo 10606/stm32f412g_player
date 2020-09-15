@@ -40,11 +40,11 @@ Src/main.c \
 Src/audio.c \
 Src/fatfs_storage.c \
 Src/sd_diskio.c  \
-Src/diskio.c \
 Src/stm32f4xx_it.c  \
 Src/system_stm32f4xx.c \
-Src/display_playlist.c \
-Src/display_pl_list.c \
+Src/display/display_playlist.c \
+Src/display/display_pl_list.c \
+Src/display/display_song.c \
 Src/playlist/light_playlist.c \
 Src/playlist/playlist.c \
 Src/playlist/playlist_common.c \
@@ -170,6 +170,7 @@ C_INCLUDES =  \
 -ISrc/playlist \
 -ISrc/view \
 -ISrc/pl_list \
+-ISrc/display \
 -I../../BSP \
 -I../../BSP/f412g_disco \
 -I../../BSP/Components \

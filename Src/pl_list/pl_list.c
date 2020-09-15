@@ -107,6 +107,11 @@ void down_pl_list (pl_list * pll)
     pll->current_pos = (pll->current_pos + pll->cnt - 1) % pll->cnt;
 }
 
+void seek_pl_list (pl_list * pll, uint32_t pos)
+{
+    pll->current_pos = pos % pll->cnt;
+}
+
 uint32_t open_selected_pl_list (pl_list * pll, playlist_view * plv, uint32_t * selected_pl)
 {
     if (*selected_pl == pll->current_pos)

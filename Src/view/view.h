@@ -9,18 +9,25 @@
 
 extern uint32_t no_plb_files;
 
-void display_pl_list (pl_list * pll, uint32_t playing_pl, playlist * pl_p);
-void display_playlist (playlist_view * plv, playlist * pl_p);
+typedef enum state_song_view_t
+{
+    S_VOLUME = 0,
+    S_SEEK = 1,
+    S_NEXT_PREV = 2
+} state_song_view_t;
+#define state_song_view_cnt 3
 
 typedef enum state_t
 {
     D_PL_LIST,
-    D_PLAYLIST
+    D_PLAYLIST,
+    D_SONG
 } state_t;
 
 typedef struct view
 {
     state_t state;
+    state_song_view_t state_song_view;
     uint32_t playing_playlist;
     uint32_t selected_playlist;
 
