@@ -2,6 +2,9 @@
 #include "stm32412g_discovery_audio.h"
 #include "view.h"
 
+const int32_t offset_limit = 15;
+const int32_t offset_add = 15;
+const int32_t offset_add_speed = 5;
 
 void touch_region (int32_t x, int32_t y, view * vv, uint8_t * need_redraw)
 {
@@ -26,13 +29,13 @@ int32_t move_left
     view * vv, 
     uint8_t * need_redraw)
 {
-    if (!speed && offset < 20)
+    if (!speed && offset < offset_limit)
         return 0;
     process_view_right(vv, need_redraw);
     if (speed)
-        return 5;
+        return offset_add_speed;
     else
-        return 20;
+        return offset_add;
 }
 
 int32_t move_right 
@@ -44,13 +47,13 @@ int32_t move_right
     uint8_t * need_redraw
 )
 {
-    if (!speed && offset < 20)
+    if (!speed && offset < offset_limit)
         return 0;
     process_view_left(vv, need_redraw);
     if (speed)
-        return 5;
+        return offset_add_speed;
     else
-        return 20;
+        return offset_add;
 }
 
 int32_t move_up 
@@ -63,13 +66,13 @@ int32_t move_up
     uint8_t * need_redraw
 )
 {
-    if (!speed && offset < 20)
+    if (!speed && offset < offset_limit)
         return 0;
     process_view_down(vv, need_redraw);
     if (speed)
-        return 5;
+        return offset_add_speed;
     else
-        return 20;
+        return offset_add;
 }
 
 int32_t move_down 
@@ -82,13 +85,13 @@ int32_t move_down
     uint8_t * need_redraw
 )
 {
-    if (!speed && offset < 20)
+    if (!speed && offset < offset_limit)
         return 0;
     process_view_up(vv, need_redraw);
     if (speed)
-        return 5;
+        return offset_add_speed;
     else
-        return 20;
+        return offset_add;
 }
 
 
