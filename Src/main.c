@@ -94,6 +94,7 @@ void init_base () //joystick, led, LCD
     BSP_LCD_Init();
     BSP_LCD_Clear(LCD_COLOR_WHITE);
     BSP_PB_Init(BUTTON_WAKEUP, BUTTON_MODE_GPIO);
+    BSP_TS_Init(BSP_LCD_GetXSize(), BSP_LCD_GetYSize());
 }
 
 void init_fs (char (* path)[12], uint32_t len)

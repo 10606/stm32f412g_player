@@ -40,6 +40,7 @@
 #include "FAT.h"
 #include "stm32412g_discovery_audio.h"
 #include "display.h"
+#include "touchscreen.h"
 #include <stdio.h>
 #include <stdint.h>
 #include "stm32f4xx_it.h"
@@ -48,6 +49,7 @@
 uint32_t audio_freq[8] = {8000 ,11025, 16000, 22050, 32000, 44100, 48000, 96000};
 
 extern view viewer;
+old_touch_state touch_state = {0};
 audio_ctl  buffer_ctl;
 
 static JOYState_TypeDef JoyState = JOY_NONE;
@@ -146,6 +148,7 @@ void AudioPlay_demo ()
             need_redraw = 0;
         }
         process_view(&viewer, &need_redraw);
+        touch_check (&touch_state, &viewer, &need_redraw);
         
         /*
         BSP_AUDIO_OUT_SetVolume(buffer_ctl.volume);
@@ -186,7 +189,7 @@ void AudioPlay_demo ()
     }
 }
 
-static void Audio_SetHint(void)
+static void Audio_SetHint (void)
 {
     BSP_LCD_Clear(LCD_COLOR_WHITE);
     BSP_LCD_SetTextColor(LCD_COLOR_BLUE);
@@ -235,7 +238,7 @@ void byte_to_time (tik_t * time, uint32_t value)
     time->ms = (value % divider) * 1000 / divider;
 }
 
-uint8_t AUDIO_Process(void)
+uint8_t AUDIO_Process (void)
 {
     uint32_t bytesread;
     AUDIO_ErrorTypeDef error_state = AUDIO_ERROR_NONE;  

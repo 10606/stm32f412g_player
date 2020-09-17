@@ -47,5 +47,11 @@ uint32_t destroy_view (view * vv);
 uint32_t process_view (view * vv, uint8_t * need_redraw);
 void display_view (view * vv);
 
+uint32_t process_view_up (view * vv, uint8_t * need_redraw);
+uint32_t process_view_down (view * vv, uint8_t * need_redraw);
+uint32_t process_view_left (view * vv, uint8_t * need_redraw);
+uint32_t process_view_right (view * vv, uint8_t * need_redraw);
+uint32_t process_view_center (view * vv, uint8_t * need_redraw);
+
 #endif
 

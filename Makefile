@@ -50,10 +50,13 @@ Src/playlist/playlist.c \
 Src/playlist/playlist_common.c \
 Src/playlist/playlist_view.c \
 Src/view/view.c \
+Src/touch/touchscreen.c \
+Src/touch/moving.c \
 Src/pl_list/pl_list.c \
 ../../BSP/f412g_disco/stm32412g_discovery.c \
 ../../BSP/f412g_disco/stm32412g_discovery_lcd.c \
 ../../BSP/f412g_disco/stm32412g_discovery_sd.c \
+../../BSP/f412g_disco/stm32412g_discovery_ts.c \
 ../../BSP/Components/ls016b8uy/ls016b8uy.c \
 ../../BSP/Components/st7789h2/st7789h2.c \
 ../../BSP/Components/wm8994/wm8994.c \
@@ -171,6 +174,7 @@ C_INCLUDES =  \
 -ISrc/view \
 -ISrc/pl_list \
 -ISrc/display \
+-ISrc/touch \
 -I../../BSP \
 -I../../BSP/f412g_disco \
 -I../../BSP/Components \
