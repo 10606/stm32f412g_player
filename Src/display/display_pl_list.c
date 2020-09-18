@@ -58,7 +58,6 @@ void display_pl_list (pl_list * pll, uint32_t playing_pl, playlist * pl_p)
 
         color_t c_group = {text_color_group, back_color_group};
         display_string(4, list_offset + line_offset * i, (uint8_t *)s_playlist, &Font12, &c_group);
-        AUDIO_Process();
         color_t c_song = {text_color_song, back_color_song};
         display_string(4, list_offset + in_line_offset + line_offset * i, (uint8_t *)empty, &Font12, &c_song);
         AUDIO_Process();
