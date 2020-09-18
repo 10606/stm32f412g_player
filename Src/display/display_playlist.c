@@ -14,7 +14,6 @@ void display_cur_song (playlist * pl_p)
     display_string(5, 20, (uint8_t *)cur_group_name, &Font16, &yb);
     display_string(5, 40, (uint8_t *)cur_song_name, &Font16, &yb);
     AUDIO_Process();
-    BSP_LCD_SetFont(&Font12);
 }
 
 void display_playlist (playlist_view * plv, playlist * pl_p)
