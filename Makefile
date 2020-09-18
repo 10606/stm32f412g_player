@@ -95,7 +95,13 @@ Src/pl_list/pl_list.c \
 ../../../FAT32_driver_char11/src/open/open.c \
 ../../../FAT32_driver_char11/src/read/read.c \
 ../../../FAT32_driver_char11/src/read_file_info/read_file_info.c  \
-../../../FAT32_driver_char11/src/file_descriptor/file_descriptor.c
+../../../FAT32_driver_char11/src/file_descriptor/file_descriptor.c \
+../../../LCD_display/display_string.c \
+../../../Utilities/Fonts/font24.c \
+../../../Utilities/Fonts/font20.c \
+../../../Utilities/Fonts/font16.c \
+../../../Utilities/Fonts/font12.c \
+../../../Utilities/Fonts/font8.c 
 #../../../libs/STM32CubeF4/Middlewares/Third_Party/FatFS/src/option/ccsbcs.c \
 #../../BSP/f412g_disco/stm32412g_discovery_eeprom.c \
 #../../BSP/f412g_disco/stm32412g_discovery_qspi.c \
@@ -175,6 +181,7 @@ C_INCLUDES =  \
 -ISrc/pl_list \
 -ISrc/display \
 -ISrc/touch \
+-I../../../Utilities \
 -I../../BSP \
 -I../../BSP/f412g_disco \
 -I../../BSP/Components \
@@ -186,6 +193,7 @@ C_INCLUDES =  \
 -I../../../libs/STM32CubeF4/Drivers/CMSIS/Device/ST/STM32F4xx/Include/ \
 -I../../../libs/STM32CubeF4/Drivers/CMSIS/Include/ \
 -I../../../FAT32_driver_char11/src/ \
+-I../../../LCD_display/ \
 -I../../../Utilities/Fonts/ \
 -I../../../Middlewares/Third_Party/FatFS/src
 #-IDrivers/STM32F4xx_HAL_Driver/Inc \

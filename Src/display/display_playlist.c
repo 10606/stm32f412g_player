@@ -1,4 +1,6 @@
+
 #include "display.h"
+#include "display_string.h"
 
 void display_cur_song (playlist * pl_p)
 {
@@ -8,15 +10,10 @@ void display_cur_song (playlist * pl_p)
     cur_song_name[song_name_sz] = 0;
     memcpy(cur_group_name, pl_p->song.group_name, group_name_sz);
     cur_group_name[group_name_sz] = 0;
-    BSP_LCD_SetBackColor(LCD_COLOR_BLUE);
-    BSP_LCD_SetTextColor(LCD_COLOR_YELLOW);
-    BSP_LCD_SetFont(&Font16);
-    BSP_LCD_DisplayStringAt(5, 20, (uint8_t *)cur_group_name, LEFT_MODE);
+    color_t yb = {LCD_COLOR_YELLOW, LCD_COLOR_BLUE};
+    display_string(5, 20, (uint8_t *)cur_group_name, &Font16, &yb);
     AUDIO_Process();
-    BSP_LCD_SetBackColor(LCD_COLOR_BLUE);
-    BSP_LCD_SetTextColor(LCD_COLOR_YELLOW);
-    BSP_LCD_SetFont(&Font16);
-    BSP_LCD_DisplayStringAt(5, 40, (uint8_t *)cur_song_name, LEFT_MODE);
+    display_string(5, 40, (uint8_t *)cur_song_name, &Font16, &yb);
     AUDIO_Process();
     BSP_LCD_SetFont(&Font12);
 }
@@ -73,13 +70,11 @@ void display_playlist (playlist_view * plv, playlist * pl_p)
                 text_color_song = text_color_group = LCD_COLOR_BLUE;
         }
 
-        BSP_LCD_SetBackColor(back_color_group);
-        BSP_LCD_SetTextColor(text_color_group);
-        BSP_LCD_DisplayStringAt(4, list_offset + line_offset * i, (uint8_t *)s_group, LEFT_MODE);
+        color_t c_group = {text_color_group, back_color_group};
+        display_string(4, list_offset + line_offset * i, (uint8_t *)s_group, &Font12, &c_group);
         AUDIO_Process();
-        BSP_LCD_SetBackColor(back_color_song);
-        BSP_LCD_SetTextColor(text_color_song);
-        BSP_LCD_DisplayStringAt(4, list_offset + in_line_offset + line_offset * i, (uint8_t *)s_song, LEFT_MODE);
+        color_t c_song = {text_color_song, back_color_song};
+        display_string(4, list_offset + in_line_offset + line_offset * i, (uint8_t *)s_song, &Font12, &c_song);
         AUDIO_Process();
     }
 }
