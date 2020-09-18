@@ -1,10 +1,5 @@
 #include "display.h"
 
-#define in_line_offset 11
-#define line_offset 23
-#define list_offset 75
-#define name_limit 11
-
 inline uint32_t min (uint32_t a, uint32_t b)
 {
     return (a < b)? a : b;

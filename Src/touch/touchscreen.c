@@ -84,28 +84,28 @@ void touch_check (old_touch_state * ots, view * vv, uint8_t * need_redraw)
             switch (direction)
             {
             case UP_DIRECTION:
-                offset = move_up(ots->start_x, ots->start_y, ots->old_y - y1, 0, vv, need_redraw);
+                offset = move_up(ots->start_x, ots->start_y, ots->old_y - y1, 0, &ots->mask, vv, need_redraw);
                 ots->old_x = x1;
                 ots->old_y -= offset;
                 ots->dolg_x = 0;
                 ots->dolg_y = y1 - ots->old_y;
                 break;
             case DOWN_DIRECTION:
-                offset = move_down(ots->start_x, ots->start_y, y1 - ots->old_y, 0, vv, need_redraw);
+                offset = move_down(ots->start_x, ots->start_y, y1 - ots->old_y, 0, &ots->mask, vv, need_redraw);
                 ots->old_x = x1;
                 ots->old_y += offset;
                 ots->dolg_x = 0;
                 ots->dolg_y = y1 - ots->old_y;
                 break;
             case LEFT_DIRECTION:
-                offset = move_left(ots->start_x, ots->start_y, ots->old_x - x1, 0, vv, need_redraw);
+                offset = move_left(ots->start_x, ots->start_y, ots->old_x - x1, 0, &ots->mask, vv, need_redraw);
                 ots->old_x -= offset;
                 ots->old_y = y1;
                 ots->dolg_x = x1 - ots->old_x;
                 ots->dolg_y = 0;
                 break;
             case RIGHT_DIRECTION:
-                offset = move_right(ots->start_x, ots->start_y, x1 - ots->old_x, 0, vv, need_redraw);
+                offset = move_right(ots->start_x, ots->start_y, x1 - ots->old_x, 0, &ots->mask, vv, need_redraw);
                 ots->old_x += offset;
                 ots->old_y = y1;
                 ots->dolg_x = x1 - ots->old_x;
@@ -125,6 +125,7 @@ void touch_check (old_touch_state * ots, view * vv, uint8_t * need_redraw)
             ots->old_y = y1;
             ots->dolg_x = 0;
             ots->dolg_y = 0;
+            ots->mask = 0;
             ots->pressed = 1;
         }
     }
@@ -132,7 +133,7 @@ void touch_check (old_touch_state * ots, view * vv, uint8_t * need_redraw)
     {
         if (ots->pressed && !ots->moved)
         {
-            touch_region(ots->start_x, ots->start_y, vv, need_redraw);
+            touch_region(ots->start_x, ots->start_y, &ots->mask, vv, need_redraw);
             //  pause/resume
         }
         ots->pressed = 0;
@@ -141,23 +142,23 @@ void touch_check (old_touch_state * ots, view * vv, uint8_t * need_redraw)
         uint32_t offset;
         if (ots->dolg_x > e_x_offset)
         {
-            offset = move_right(ots->start_x, ots->start_y, ots->dolg_x, 1, vv, need_redraw);
+            offset = move_right(ots->start_x, ots->start_y, ots->dolg_x, 1, &ots->mask, vv, need_redraw);
             ots->dolg_x -= e_x_offset;
         }
         else if (ots->dolg_x < -e_x_offset)
         {
-            offset = move_left(ots->start_x, ots->start_y, -ots->dolg_x, 1, vv, need_redraw);
+            offset = move_left(ots->start_x, ots->start_y, -ots->dolg_x, 1, &ots->mask, vv, need_redraw);
             ots->dolg_x += offset;
         }
 
         if (ots->dolg_y > e_y_offset)
         {
-            offset = move_down(ots->start_x, ots->start_y, ots->dolg_y, 1, vv, need_redraw);
+            offset = move_down(ots->start_x, ots->start_y, ots->dolg_y, 1, &ots->mask, vv, need_redraw);
             ots->dolg_y -= offset;
         }
         else if (ots->dolg_y < -e_y_offset)
         {
-            offset = move_up(ots->start_x, ots->start_y, -ots->dolg_y, 1, vv, need_redraw);
+            offset = move_up(ots->start_x, ots->start_y, -ots->dolg_y, 1, &ots->mask, vv, need_redraw);
             ots->dolg_y += offset;
         }
     }

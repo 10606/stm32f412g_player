@@ -18,5 +18,13 @@ void display_playlist (playlist_view * plv, playlist * pl_p);
 void display_song (playlist * pl, audio_ctl * actl, state_song_view_t * state);
 void display_song_volume (playlist * pl, audio_ctl * actl, state_song_view_t * state);
 
+
+#define in_line_offset 11
+#define line_offset 23
+#define list_offset 75
+#define name_offset 5
+#define count_offset 30
+#define name_limit 11
+
 #endif
 

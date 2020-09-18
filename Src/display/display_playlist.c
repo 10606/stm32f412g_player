@@ -1,10 +1,5 @@
 #include "display.h"
 
-#define in_line_offset 11
-#define line_offset 23
-#define list_offset 75
-#define name_offset 5
-
 void display_cur_song (playlist * pl_p)
 {
     char cur_song_name[song_name_sz + 1];

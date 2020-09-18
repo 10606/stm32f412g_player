@@ -56,6 +56,7 @@ Src/pl_list/pl_list.c \
 ../../BSP/f412g_disco/stm32412g_discovery.c \
 ../../BSP/f412g_disco/stm32412g_discovery_lcd.c \
 ../../BSP/f412g_disco/stm32412g_discovery_sd.c \
+../../BSP/f412g_disco/stm32412g_discovery_audio.c \
 ../../BSP/f412g_disco/stm32412g_discovery_ts.c \
 ../../BSP/Components/ls016b8uy/ls016b8uy.c \
 ../../BSP/Components/st7789h2/st7789h2.c \
@@ -89,7 +90,6 @@ Src/pl_list/pl_list.c \
 ../../../libs/STM32CubeF4/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim.c \
 ../../../libs/STM32CubeF4/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim_ex.c \
 ../../../libs/STM32CubeF4/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_uart.c  \
-../../BSP/f412g_disco/stm32412g_discovery_audio.c \
 ../../../FAT32_driver_char11/src/init/init.c \
 ../../../FAT32_driver_char11/src/load_FAT/load_FAT.c \
 ../../../FAT32_driver_char11/src/open/open.c \

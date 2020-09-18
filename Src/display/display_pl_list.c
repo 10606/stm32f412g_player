@@ -3,12 +3,6 @@
 #include "pl_list.h"
 #include <stdint.h>
 
-#define in_line_offset 11
-#define line_offset 23
-#define list_offset 75
-#define name_offset 5
-#define count_offset 30
-
 void display_pl_list (pl_list * pll, uint32_t playing_pl, playlist * pl_p)
 {
     display_cur_song(pl_p);
