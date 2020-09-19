@@ -5,7 +5,8 @@
 #include <stdint.h>
 
 //#define AUDIO_BUFFER_SIZE       8192  * 2
-#define AUDIO_BUFFER_SIZE       12288 
+//#define AUDIO_BUFFER_SIZE       12288 
+#define AUDIO_BUFFER_SIZE       8192
 #define AUDIO_DEFAULT_VOLUME    70
 #define HEADBAND_HEIGHT         72
 
