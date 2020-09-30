@@ -1,4 +1,5 @@
 #include "stm32f4xx_it.h"
+#include "stm32412g_discovery_audio.h"
 #include "view.h"
 #include "display.h"
 
@@ -55,9 +56,71 @@ void display_view (view * vv)
     }
 }
 
-uint32_t process_view_up (view * vv, uint8_t * need_redraw)
+uint32_t process_view_play_pause (view * vv, uint8_t * need_redraw)
+{
+    if (vv->buffer_ctl->pause_status == 1)
+    { // Pause is enabled, call Resume
+        BSP_AUDIO_OUT_Resume();
+        vv->buffer_ctl->pause_status = 0;
+    }
+    else
+    { // Pause the playback
+        BSP_AUDIO_OUT_Pause();
+        vv->buffer_ctl->pause_status = 1;
+    }
+    *need_redraw = 1;
+    return 0;
+}
+
+uint32_t process_view_inc_volume (view * vv, uint8_t * need_redraw)
+{
+    vv->buffer_ctl->volume += 1;
+    if (vv->buffer_ctl->volume > 100)
+        vv->buffer_ctl->volume = 100;
+    BSP_AUDIO_OUT_SetVolume(vv->buffer_ctl->volume);
+    display_song_volume(&vv->pl, vv->buffer_ctl, &vv->state_song_view);
+    return 0;
+}
+
+uint32_t process_view_seek_forward (view * vv, uint8_t * need_redraw)
 {
     uint32_t ret, new_pos;
+    new_pos = vv->buffer_ctl->fptr;
+    if ((vv->buffer_ctl->audio_file_size < seek_value) ||
+        (new_pos > vv->buffer_ctl->audio_file_size - seek_value))
+        new_pos = vv->buffer_ctl->audio_file_size;
+    else
+        new_pos += seek_value;
+    if ((ret = f_seek(&vv->buffer_ctl->audio_file, new_pos)))
+    {
+        return ret;
+    }
+    vv->buffer_ctl->fptr = new_pos;
+    return 0;
+}
+
+uint32_t process_view_prev_song (view * vv, uint8_t * need_redraw)
+{
+    uint32_t ret;
+    if ((ret = prev_playlist(&vv->pl)))
+    {
+        return ret;
+    }
+    else
+    {
+        vv->buffer_ctl->fptr = 0; 
+        if (open_song(&vv->pl, &vv->buffer_ctl->audio_file))
+        {
+            return ret;
+        }
+        vv->buffer_ctl->audio_file_size = vv->buffer_ctl->audio_file.size;
+    }
+    *need_redraw = 1;
+    return 0;
+}
+
+uint32_t process_view_up (view * vv, uint8_t * need_redraw)
+{
     switch (vv->state)
     {
     case D_PL_LIST:
@@ -74,52 +137,68 @@ uint32_t process_view_up (view * vv, uint8_t * need_redraw)
         switch (vv->state_song_view)
         {
         case S_VOLUME:
-            vv->buffer_ctl->volume += 1;
-            if (vv->buffer_ctl->volume > 100)
-                vv->buffer_ctl->volume = 100;
-            BSP_AUDIO_OUT_SetVolume(vv->buffer_ctl->volume);
-            display_song_volume(&vv->pl, vv->buffer_ctl, &vv->state_song_view);
-            break;
+            return process_view_inc_volume(vv, need_redraw);
             
         case S_SEEK:
-            new_pos = vv->buffer_ctl->fptr;
-            if ((vv->buffer_ctl->audio_file_size < seek_value) ||
-                (new_pos > vv->buffer_ctl->audio_file_size - seek_value))
-                new_pos = vv->buffer_ctl->audio_file_size;
-            else
-                new_pos += seek_value;
-            if ((ret = f_seek(&vv->buffer_ctl->audio_file, new_pos)))
-            {
-                return ret;
-            }
-            vv->buffer_ctl->fptr = new_pos;
-            break;
+            return process_view_seek_forward(vv, need_redraw);
 
         case S_NEXT_PREV:
-            if ((ret = prev_playlist(&vv->pl)))
-            {
-                return ret;
-            }
-            else
-            {
-                vv->buffer_ctl->fptr = 0; 
-                if (open_song(&vv->pl, &vv->buffer_ctl->audio_file))
-                {
-                    return ret;
-                }
-                vv->buffer_ctl->audio_file_size = vv->buffer_ctl->audio_file.size;
-            }
-            *need_redraw = 1;
-            break;
+            return process_view_prev_song(vv, need_redraw);
         }
         break;
     }
     return 0;
 }
 
-uint32_t process_view_down (view * vv, uint8_t * need_redraw)
+uint32_t process_view_dec_volume (view * vv, uint8_t * need_redraw)
+{
+    if (vv->buffer_ctl->volume < 1)
+        vv->buffer_ctl->volume = 0;
+    else
+        vv->buffer_ctl->volume -= 1;
+    BSP_AUDIO_OUT_SetVolume(vv->buffer_ctl->volume);
+    display_song_volume(&vv->pl, vv->buffer_ctl, &vv->state_song_view);
+    return 0;
+}
+
+uint32_t process_view_seek_backward (view * vv, uint8_t * need_redraw)
 {
     uint32_t ret, new_pos;
+    new_pos = vv->buffer_ctl->fptr;
+    if (new_pos < seek_value)
+        new_pos = 0;
+    else
+        new_pos -= seek_value;
+    if ((ret = f_seek(&vv->buffer_ctl->audio_file, new_pos)))
+    {
+        return ret;
+    }
+    vv->buffer_ctl->fptr = new_pos;
+    return 0;
+}
+
+uint32_t process_view_next_song (view * vv, uint8_t * need_redraw)
+{
+    uint32_t ret;
+    if ((ret = next_playlist(&vv->pl)))
+    {
+        return ret;
+    }
+    else
+    {
+        vv->buffer_ctl->fptr = 0; 
+        if (open_song(&vv->pl, &vv->buffer_ctl->audio_file))
+        {
+            return ret;
+        }
+        vv->buffer_ctl->audio_file_size = vv->buffer_ctl->audio_file.size;
+    }
+    *need_redraw = 1;
+    return 0;
+}
+
+uint32_t process_view_down (view * vv, uint8_t * need_redraw)
+{
     switch (vv->state)
     {
     case D_PL_LIST:
@@ -136,43 +215,13 @@ uint32_t process_view_down (view * vv, uint8_t * need_redraw)
         switch (vv->state_song_view)
         {
         case S_VOLUME:
-            if (vv->buffer_ctl->volume < 1)
-                vv->buffer_ctl->volume = 0;
-            else
-                vv->buffer_ctl->volume -= 1;
-            BSP_AUDIO_OUT_SetVolume(vv->buffer_ctl->volume);
-            display_song_volume(&vv->pl, vv->buffer_ctl, &vv->state_song_view);
-            break;
+            return process_view_dec_volume(vv, need_redraw);
             
         case S_SEEK:
-            new_pos = vv->buffer_ctl->fptr;
-            if (new_pos < seek_value)
-                new_pos = 0;
-            else
-                new_pos -= seek_value;
-            if ((ret = f_seek(&vv->buffer_ctl->audio_file, new_pos)))
-            {
-                return ret;
-            }
-            vv->buffer_ctl->fptr = new_pos;
-            break;
+            return process_view_seek_backward(vv, need_redraw);
 
         case S_NEXT_PREV:
-            if ((ret = next_playlist(&vv->pl)))
-            {
-                return ret;
-            }
-            else
-            {
-                vv->buffer_ctl->fptr = 0; 
-                if (open_song(&vv->pl, &vv->buffer_ctl->audio_file))
-                {
-                    return ret;
-                }
-                vv->buffer_ctl->audio_file_size = vv->buffer_ctl->audio_file.size;
-            }
-            *need_redraw = 1;
-            break;
+            return process_view_next_song(vv, need_redraw);
         }
         break;
     }

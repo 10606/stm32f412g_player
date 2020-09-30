@@ -9,16 +9,7 @@ const int32_t offset_add_speed = 10;
 
 void touch_region (int32_t x, int32_t y, uint32_t * mask, view * vv, uint8_t * need_redraw)
 {
-    if (vv->buffer_ctl->pause_status == 1)
-    { // Pause is enabled, call Resume 
-        BSP_AUDIO_OUT_Resume();
-        vv->buffer_ctl->pause_status = 0;
-    } 
-    else
-    { // Pause the playback 
-        BSP_AUDIO_OUT_Pause();
-        vv->buffer_ctl->pause_status = 1;
-    }
+    process_view_play_pause (vv, need_redraw);
 }
 
 int32_t move_left 
@@ -29,7 +20,8 @@ int32_t move_left
     char speed, 
     uint32_t * mask,
     view * vv, 
-    uint8_t * need_redraw)
+    uint8_t * need_redraw
+)
 {
     if ((*mask & (1 << LEFT_DIRECTION)) || 
         (!speed && (offset < offset_limit)) ||

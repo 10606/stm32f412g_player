@@ -59,6 +59,7 @@ static uint32_t GetData (file_descriptor * file, uint8_t *pbuf, uint32_t NbrOfDa
 static uint32_t get_all_data (file_descriptor * _file, uint8_t *pbuf, uint32_t NbrOfData);
 AUDIO_ErrorTypeDef AUDIO_Start ();
 uint8_t AUDIO_Process (void);
+uint8_t need_redraw = 0;
 
 
 
@@ -109,7 +110,7 @@ void AudioPlay_demo ()
         BSP_LCD_DisplayStringAt(0, BSP_LCD_GetYSize()- 125, (uint8_t *)"       ERROR READ    ", CENTER_MODE);
     }
   
-    uint8_t need_redraw = 0;
+    need_redraw = 0;
     display_view(&viewer);
     while (1)
     {

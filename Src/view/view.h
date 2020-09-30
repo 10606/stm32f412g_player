@@ -53,5 +53,16 @@ uint32_t process_view_left (view * vv, uint8_t * need_redraw);
 uint32_t process_view_right (view * vv, uint8_t * need_redraw);
 uint32_t process_view_center (view * vv, uint8_t * need_redraw);
 
+
+uint32_t process_view_play_pause (view * vv, uint8_t * need_redraw);
+uint32_t process_view_inc_volume (view * vv, uint8_t * need_redraw);
+uint32_t process_view_seek_forward (view * vv, uint8_t * need_redraw);
+uint32_t process_view_prev_song (view * vv, uint8_t * need_redraw);
+
+uint32_t process_view_dec_volume (view * vv, uint8_t * need_redraw);
+uint32_t process_view_seek_backward (view * vv, uint8_t * need_redraw);
+uint32_t process_view_next_song (view * vv, uint8_t * need_redraw);
+
+
 #endif
 
