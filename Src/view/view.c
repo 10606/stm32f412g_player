@@ -18,12 +18,14 @@ uint32_t init_view (view * vv, char (* path)[12], uint32_t len, audio_ctl * buff
     bind_playlist_view(&vv->plv, &vv->fd_plv);
     
     uint32_t ret;
-    if ((ret = init_pl_list(&vv->pll, path, len)))
+    ret = init_pl_list(&vv->pll, path, len);
+    if (ret)
         return ret;
-    if ((vv->pll.cnt == 0))
+    if (vv->pll.cnt == 0)
         return no_plb_files;
     
-    if ((ret = open_selected_pl_list(&vv->pll, &vv->plv, &vv->selected_playlist)))
+    ret = open_selected_pl_list(&vv->pll, &vv->plv, &vv->selected_playlist);
+    if (ret)
         return ret;
     
     play(&vv->plv, &vv->pl);
@@ -78,7 +80,8 @@ uint32_t process_view_inc_volume (view * vv, uint8_t * need_redraw)
     if (vv->buffer_ctl->volume > 100)
         vv->buffer_ctl->volume = 100;
     BSP_AUDIO_OUT_SetVolume(vv->buffer_ctl->volume);
-    display_song_volume(&vv->pl, vv->buffer_ctl, &vv->state_song_view);
+    if (vv->state == D_SONG)
+        display_song_volume(&vv->pl, vv->buffer_ctl, &vv->state_song_view);
     return 0;
 }
 
@@ -91,7 +94,8 @@ uint32_t process_view_seek_forward (view * vv, uint8_t * need_redraw)
         new_pos = vv->buffer_ctl->audio_file_size;
     else
         new_pos += seek_value;
-    if ((ret = f_seek(&vv->buffer_ctl->audio_file, new_pos)))
+    ret = f_seek(&vv->buffer_ctl->audio_file, new_pos);
+    if (ret)
     {
         return ret;
     }
@@ -102,7 +106,8 @@ uint32_t process_view_seek_forward (view * vv, uint8_t * need_redraw)
 uint32_t process_view_prev_song (view * vv, uint8_t * need_redraw)
 {
     uint32_t ret;
-    if ((ret = prev_playlist(&vv->pl)))
+    ret = prev_playlist(&vv->pl);
+    if (ret)
     {
         return ret;
     }
@@ -157,7 +162,8 @@ uint32_t process_view_dec_volume (view * vv, uint8_t * need_redraw)
     else
         vv->buffer_ctl->volume -= 1;
     BSP_AUDIO_OUT_SetVolume(vv->buffer_ctl->volume);
-    display_song_volume(&vv->pl, vv->buffer_ctl, &vv->state_song_view);
+    if (vv->state == D_SONG)
+        display_song_volume(&vv->pl, vv->buffer_ctl, &vv->state_song_view);
     return 0;
 }
 
@@ -169,7 +175,8 @@ uint32_t process_view_seek_backward (view * vv, uint8_t * need_redraw)
         new_pos = 0;
     else
         new_pos -= seek_value;
-    if ((ret = f_seek(&vv->buffer_ctl->audio_file, new_pos)))
+    ret = f_seek(&vv->buffer_ctl->audio_file, new_pos);
+    if (ret)
     {
         return ret;
     }
@@ -180,7 +187,8 @@ uint32_t process_view_seek_backward (view * vv, uint8_t * need_redraw)
 uint32_t process_view_next_song (view * vv, uint8_t * need_redraw)
 {
     uint32_t ret;
-    if ((ret = next_playlist(&vv->pl)))
+    ret = next_playlist(&vv->pl);
+    if (ret)
     {
         return ret;
     }
@@ -255,7 +263,8 @@ uint32_t process_view_right (view * vv, uint8_t * need_redraw)
     {
     case D_PL_LIST:
         vv->state = D_PLAYLIST;
-        if ((ret = open_selected_pl_list(&vv->pll, &vv->plv, &vv->selected_playlist)))
+        ret = open_selected_pl_list(&vv->pll, &vv->plv, &vv->selected_playlist);
+        if (ret)
             return ret;
         *need_redraw = 1;
         break;
@@ -263,7 +272,8 @@ uint32_t process_view_right (view * vv, uint8_t * need_redraw)
     case D_PLAYLIST:
         play(&vv->plv, &vv->pl);
         vv->playing_playlist = vv->selected_playlist;
-        if ((ret = open_song(&vv->pl, &vv->buffer_ctl->audio_file)))
+        ret = open_song(&vv->pl, &vv->buffer_ctl->audio_file);
+        if (ret)
             return ret;
         vv->buffer_ctl->audio_file_size = vv->buffer_ctl->audio_file.size;
         vv->buffer_ctl->fptr = 0;
@@ -286,7 +296,8 @@ uint32_t process_view_center (view * vv, uint8_t * need_redraw)
     case D_PL_LIST:
         seek_pl_list(&vv->pll, vv->playing_playlist);
         vv->state = D_PLAYLIST;
-        if ((ret = open_selected_pl_list(&vv->pll, &vv->plv, &vv->selected_playlist)))
+        ret = open_selected_pl_list(&vv->pll, &vv->plv, &vv->selected_playlist);
+        if (ret)
             return ret;
         *need_redraw = 1;
         break;

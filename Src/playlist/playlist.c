@@ -9,11 +9,13 @@ uint32_t seek_playlist (playlist * pl, uint32_t pos)
     pl->pos = pos;
     uint32_t ret;
     {
-        if ((ret = f_seek(pl->fd, sizeof(playlist_header) + pl->pos * sizeof(song_header))))
+        ret = f_seek(pl->fd, sizeof(playlist_header) + pl->pos * sizeof(song_header));
+        if (ret)
         {
             return ret;
         }
-        if ((ret = read_song(&pl->song, pl->fd)))
+        ret = read_song(&pl->song, pl->fd);
+        if (ret)
         {
             return ret;
         }
@@ -21,21 +23,23 @@ uint32_t seek_playlist (playlist * pl, uint32_t pos)
 
     if (pl->song.path_len > pl->path_sz)
     {
+        char (* tmp)[12] = (char (*)[12])malloc(pl->song.path_len * sizeof(char[12]));
+        if (!tmp)
+        {
+            return memory_limit;
+        }
+        
         if (pl->path)
         {
             free(pl->path);
         }
-        pl->path = (char (*)[12])malloc(pl->song.path_len * sizeof(char[12]));
-        if (!pl->path)
-        {
-            pl->path_sz = 0;
-            return memory_limit;
-        }
+        pl->path = tmp;
         pl->path_sz = pl->song.path_len;
     }
     
     {
-        if ((ret = f_seek(pl->fd, pl->song.path_offset)))
+        ret = f_seek(pl->fd, pl->song.path_offset);
+        if (ret)
         {
             return ret;
         }
@@ -43,7 +47,8 @@ uint32_t seek_playlist (playlist * pl, uint32_t pos)
         uint32_t rd;
         while (rd_sum != pl->song.path_len * sizeof(char[12]))
         {
-            if ((ret = f_read(pl->fd, (char *)pl->path + rd_sum, pl->song.path_len * sizeof(char[12]) - rd_sum, &rd)))
+            ret = f_read(pl->fd, (char *)pl->path + rd_sum, pl->song.path_len * sizeof(char[12]) - rd_sum, &rd);
+            if (ret)
             {
                 return ret;
             }
@@ -83,11 +88,13 @@ uint32_t init_playlist (playlist * pl, file_descriptor * fd)
     pl->path = 0;
     pl->path_sz = 0;
     uint32_t ret;
-    if ((ret = f_seek(pl->fd, 0)))
+    ret = f_seek(pl->fd, 0);
+    if (ret)
     {
         return ret;
     }
-    if ((ret = read_header(&pl->header, pl->fd)))
+    ret = read_header(&pl->header, pl->fd);
+    if (ret)
     {
         return ret;
     }

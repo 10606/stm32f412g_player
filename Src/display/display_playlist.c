@@ -18,6 +18,9 @@ void display_cur_song (playlist * pl_p)
 
 void display_playlist (playlist_view * plv, playlist * pl_p)
 {
+    uint32_t y_pos = list_offset + line_offset * view_plb_cnt;
+    BSP_LCD_SetTextColor(LCD_COLOR_WHITE);
+    BSP_LCD_FillRect(0, y_pos, BSP_LCD_GetXSize(), BSP_LCD_GetYSize() - y_pos);
     display_cur_song(pl_p);
     
     char song_name[view_cnt][song_name_sz + 1];

@@ -48,10 +48,13 @@
 #include "view.h"
 #include "FAT.h"
 
+#include "usb_device.h"
+#include "usbd_cdc_if.h"
+
 view viewer;
 
-static void SystemClock_Config (void);
-static void Error_Handler (void);
+void SystemClock_Config (void);
+void Error_Handler (void);
 void audio_init ();
 void AudioPlay_demo ();
 void audio_destruct ();
@@ -72,6 +75,7 @@ void init_base () //joystick, led, LCD
     
     //joystick init
     {
+        __HAL_RCC_GPIOG_CLK_ENABLE();
         GPIO_InitTypeDef GPIO_InitStruct = {0};
         GPIO_InitStruct.Pin = JOY_UP_Pin|JOY_DOWN_Pin;
         GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
@@ -158,12 +162,36 @@ void init_timer ()
     TIM2->CR1 |= TIM_CR1_CEN;
 }
 
+void init_usb ()
+{
+    HAL_GPIO_WritePin(USB_OTGFS_PPWR_EN_GPIO_Port, USB_OTGFS_PPWR_EN_Pin, GPIO_PIN_SET);
+
+    /*Configure GPIO pin : USB_OTGFS_PPWR_EN_Pin */
+    GPIO_InitTypeDef GPIO_InitStruct = {0};
+    GPIO_InitStruct.Pin = USB_OTGFS_PPWR_EN_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    HAL_GPIO_Init(USB_OTGFS_PPWR_EN_GPIO_Port, &GPIO_InitStruct);
+    
+    /*Configure GPIO pins : USB_OTGFS_OVRCR_Pin */
+    GPIO_InitStruct.Pin = USB_OTGFS_OVRCR_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
+   
+    MX_USB_DEVICE_Init();
+
+    NVIC_SetPriority(OTG_FS_IRQn, 1);
+}
+
 void init (char (* path)[12], uint32_t len, uint32_t index)
 {
     init_base();
     init_fs(path, len);
     init_audio(path, len);
     init_timer();
+    init_usb();
 }
 
 int main (void)
@@ -188,14 +216,15 @@ int main (void)
     audio_destruct();
 }
 
-static void Error_Handler (void)
+void Error_Handler (void)
 {
     BSP_LED_On(LED3);
     while(1)
     {}
 }
 
-static void SystemClock_Config (void)
+/*
+void SystemClock_Config (void)
 {
     RCC_ClkInitTypeDef RCC_ClkInitStruct;
     RCC_OscInitTypeDef RCC_OscInitStruct;
@@ -231,6 +260,58 @@ static void SystemClock_Config (void)
         while (1) {}
     }
 }
+*/
+
+void SystemClock_Config(void)
+{
+    RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+    RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+    RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
+
+    __HAL_RCC_PWR_CLK_ENABLE();
+    __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
+    RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_HSE;
+    RCC_OscInitStruct.HSEState = RCC_HSE_BYPASS;
+    RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+    RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+    RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+    RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+    RCC_OscInitStruct.PLL.PLLM = 4;
+    RCC_OscInitStruct.PLL.PLLN = 72;
+    RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
+    RCC_OscInitStruct.PLL.PLLQ = 3;
+    RCC_OscInitStruct.PLL.PLLR = 2;
+    if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+    {
+        Error_Handler();
+    }
+    RCC_ClkInitStruct.ClockType = 
+        RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
+    RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+    RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+    RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
+    RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+
+    if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
+    {
+        Error_Handler();
+    }
+    PeriphClkInitStruct.PeriphClockSelection = 
+        RCC_PERIPHCLK_I2S_APB1 | RCC_PERIPHCLK_SDIO | RCC_PERIPHCLK_CLK48;
+    PeriphClkInitStruct.PLLI2S.PLLI2SN = 50;
+    PeriphClkInitStruct.PLLI2S.PLLI2SM = 4;
+    PeriphClkInitStruct.PLLI2S.PLLI2SR = 2;
+    PeriphClkInitStruct.PLLI2S.PLLI2SQ = 2;
+    PeriphClkInitStruct.Clk48ClockSelection = RCC_CLK48CLKSOURCE_PLLQ;
+    PeriphClkInitStruct.SdioClockSelection = RCC_SDIOCLKSOURCE_CLK48;
+    PeriphClkInitStruct.PLLI2SSelection = RCC_PLLI2SCLKSOURCE_PLLSRC;
+    PeriphClkInitStruct.I2sApb1ClockSelection = RCC_I2SAPB1CLKSOURCE_PLLI2S;
+    if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
+    {
+        Error_Handler();
+    }
+    HAL_RCC_MCOConfig(RCC_MCO1, RCC_MCO1SOURCE_HSI, RCC_MCODIV_1);
+}
 
 void HAL_GPIO_EXTI_Callback (uint16_t GPIO_Pin)
 {
@@ -246,6 +327,11 @@ void HAL_GPIO_EXTI_Callback (uint16_t GPIO_Pin)
     }
     else if (GPIO_Pin == SD_DETECT_PIN)
     {}
+
+    if (GPIO_Pin == GPIO_PIN_9)
+    {
+        HAL_PCDEx_BCD_VBUSDetect(&hpcd_USB_OTG_FS);
+    }
 }
 
 #ifdef  USE_FULL_ASSERT

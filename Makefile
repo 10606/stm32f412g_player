@@ -53,6 +53,11 @@ Src/view/view.c \
 Src/touch/touchscreen.c \
 Src/touch/moving.c \
 Src/pl_list/pl_list.c \
+Src/usb/usb_command_process.c \
+Src/usb/usbd_cdc_if.c \
+Src/usb/usbd_conf.c \
+Src/usb/usbd_desc.c \
+Src/usb/usb_device.c \
 ../../BSP/f412g_disco/stm32412g_discovery.c \
 ../../BSP/f412g_disco/stm32412g_discovery_lcd.c \
 ../../BSP/f412g_disco/stm32412g_discovery_sd.c \
@@ -62,6 +67,8 @@ Src/pl_list/pl_list.c \
 ../../BSP/Components/st7789h2/st7789h2.c \
 ../../BSP/Components/wm8994/wm8994.c \
 ../../BSP/Components/ft6x06/ft6x06.c  \
+../../../libs/STM32CubeF4/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pcd.c \
+../../../libs/STM32CubeF4/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pcd_ex.c \
 ../../../libs/STM32CubeF4/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dfsdm.c \
 ../../../libs/STM32CubeF4/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.c \
 ../../../libs/STM32CubeF4/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_hcd.c \
@@ -101,7 +108,11 @@ Src/pl_list/pl_list.c \
 ../../../Utilities/Fonts/font20.c \
 ../../../Utilities/Fonts/font16.c \
 ../../../Utilities/Fonts/font12.c \
-../../../Utilities/Fonts/font8.c 
+../../../Utilities/Fonts/font8.c  \
+../../STM32CubeF4/Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_core.c \
+../../STM32CubeF4/Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_ctlreq.c \
+../../STM32CubeF4/Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_ioreq.c \
+../../STM32CubeF4/Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Src/usbd_cdc.c
 #../../../libs/STM32CubeF4/Middlewares/Third_Party/FatFS/src/option/ccsbcs.c \
 #../../BSP/f412g_disco/stm32412g_discovery_eeprom.c \
 #../../BSP/f412g_disco/stm32412g_discovery_qspi.c \
@@ -181,6 +192,9 @@ C_INCLUDES =  \
 -ISrc/pl_list \
 -ISrc/display \
 -ISrc/touch \
+-ISrc/usb \
+-I../../STM32CubeF4/Middlewares/ST/STM32_USB_Device_Library/Core/Inc \
+-I../../STM32CubeF4/Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc \
 -I../../../Utilities \
 -I../../BSP \
 -I../../BSP/f412g_disco \

@@ -26,5 +26,7 @@ void display_song_volume (playlist * pl, audio_ctl * actl, state_song_view_t * s
 #define count_offset 30
 #define name_limit 11
 
+#define picture_offset 95
+#define picture_address 0x08080000
 #endif
 

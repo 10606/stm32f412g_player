@@ -87,11 +87,13 @@
 /* #define HAL_SMARTCARD_MODULE_ENABLED  */
 /* #define HAL_WWDG_MODULE_ENABLED   */
 #define HAL_CORTEX_MODULE_ENABLED
-/* #define HAL_PCD_MODULE_ENABLED */
+#define HAL_PCD_MODULE_ENABLED 
 /* #define HAL_HCD_MODULE_ENABLED */
 /* #define HAL_FMPI2C_MODULE_ENABLED */
 /* #define HAL_SPDIFRX_MODULE_ENABLED */
 #define HAL_DFSDM_MODULE_ENABLED
+#define HAL_EXTI_MODULE_ENABLED
+
 /* #define HAL_LPTIM_MODULE_ENABLED */
 
 /* ########################## HSE/HSI Values adaptation ##################### */
@@ -181,7 +183,7 @@
 #define  USE_HAL_NAND_REGISTER_CALLBACKS        0U /* NAND register callback disabled      */
 #define  USE_HAL_NOR_REGISTER_CALLBACKS         0U /* NOR register callback disabled       */
 #define  USE_HAL_PCCARD_REGISTER_CALLBACKS      0U /* PCCARD register callback disabled    */
-#define  USE_HAL_PCD_REGISTER_CALLBACKS         0U /* PCD register callback disabled       */
+#define  USE_HAL_PCD_REGISTER_CALLBACKS         1U /* PCD register callback disabled       */
 #define  USE_HAL_QSPI_REGISTER_CALLBACKS        0U /* QSPI register callback disabled      */
 #define  USE_HAL_RNG_REGISTER_CALLBACKS         0U /* RNG register callback disabled       */
 #define  USE_HAL_RTC_REGISTER_CALLBACKS         0U /* RTC register callback disabled       */
@@ -213,11 +215,14 @@
 */
 
 #define USE_SPI_CRC                     1U
-
 /* Includes ------------------------------------------------------------------*/
 /**
   * @brief Include module's header file 
   */
+
+#ifdef HAL_EXTI_MODULE_ENABLED
+  #include "stm32f4xx_hal_exti.h"
+#endif /* HAL_EXTI_MODULE_ENABLED */
 
 #ifdef HAL_RCC_MODULE_ENABLED
   #include "stm32f4xx_hal_rcc.h"

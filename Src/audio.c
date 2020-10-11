@@ -44,6 +44,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include "stm32f4xx_it.h"
+#include "usb_command_process.h"
 
 #define str_time_size 100
 uint32_t audio_freq[8] = {8000 ,11025, 16000, 22050, 32000, 44100, 48000, 96000};
@@ -145,11 +146,12 @@ void AudioPlay_demo ()
       
         if (need_redraw)
         {
-            display_view(&viewer);
             need_redraw = 0;
+            display_view(&viewer);
         }
         process_view(&viewer, &need_redraw);
-        touch_check (&touch_state, &viewer, &need_redraw);
+        usb_process();
+        touch_check(&touch_state, &viewer, &need_redraw);
         
         /*
         BSP_AUDIO_OUT_SetVolume(buffer_ctl.volume);

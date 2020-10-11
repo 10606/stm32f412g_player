@@ -42,6 +42,8 @@
 /* uSD handler declared in "stm32412g_discovery_sd.c" file */
 extern I2S_HandleTypeDef haudio_i2s;
 extern SD_HandleTypeDef uSdHandle;
+extern PCD_HandleTypeDef hpcd_USB_OTG_FS;
+
 
 /******************************************************************************/
 /*            Cortex-M4 Processor Exceptions Handlers                         */
@@ -138,4 +140,10 @@ void TIM2_IRQHandler (void)
         HAL_GPIO_WritePin(GPIOE, GPIO_PIN_2, GPIO_PIN_RESET);
     TIM2->SR &= ~TIM_SR_UIF;
 }
+
+void OTG_FS_IRQHandler(void)
+{
+    HAL_PCD_IRQHandler(&hpcd_USB_OTG_FS);
+}
+
 

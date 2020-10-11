@@ -64,6 +64,8 @@ void AUDIO_IN_I2Sx_DMAx_IRQHandler(void); /* I2S rx */
 void DMA2_Stream3_IRQHandler(void);
 void SDIO_IRQHandler(void);
 void TIM2_IRQHandler(void);
+void OTG_FS_IRQHandler(void);
+
 
 enum joystick_buttons
 {
