@@ -181,13 +181,14 @@ uint32_t read_sector (uint32_t sector_number, void * buffer)
                         (uint32_t) (sector_number),
                         1, SD_TIMEOUT) == MSD_OK)
     {
-      /* wait until the read operation is finished */
-      while (BSP_SD_GetCardState()!= MSD_OK)
-      {
-      }
-      res = RES_OK;
+        uint32_t tried = 20;
+        /* wait until the read operation is finished */
+        while ((BSP_SD_GetCardState() != MSD_OK) && tried)
+        {
+            --tried;
+        }
+        res = RES_OK;
     }
-
     return res;
 }
 

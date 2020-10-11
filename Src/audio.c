@@ -189,6 +189,10 @@ void AudioPlay_demo ()
             break;
         }
         */
+        if (BSP_SD_IsDetected() != SD_PRESENT)
+        {
+            break;
+        }
     }
 }
 
@@ -337,12 +341,14 @@ static uint32_t GetData (file_descriptor * _file, uint8_t * pbuf, uint32_t NbrOf
 {
     uint32_t BytesRead = 0;
     uint32_t ret;
-    while ((ret = f_read(_file, pbuf, NbrOfData, &BytesRead)))
+    uint32_t tried = 10;
+    while ((ret = f_read(_file, pbuf, NbrOfData, &BytesRead)) && (tried))
     {
         if (ret == eof_file)
         {
             return 0;
         }
+        --tried;
         BSP_LCD_DisplayStringAt(0, BSP_LCD_GetYSize() - 120, (uint8_t *)"       ERR READ", CENTER_MODE);
     }
     return BytesRead;

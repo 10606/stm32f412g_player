@@ -112,6 +112,8 @@ void init_fs (char (* path)[12], uint32_t len)
         BSP_LCD_DisplayStringAt(0, 112, (uint8_t*)"Please insert SD Card", CENTER_MODE);
     }
 
+    while (SD_initialize((BYTE)0))
+    {}
     if (!SD_initialize((BYTE)0))
     {
         Storage_Init();
@@ -125,7 +127,7 @@ void init_fs (char (* path)[12], uint32_t len)
     }
     else
     {
-        Error_Handler();
+        //Error_Handler();
     }
 }
 
@@ -187,7 +189,7 @@ void init_usb ()
 
 void init (char (* path)[12], uint32_t len, uint32_t index)
 {
-    init_base();
+    //init_base();
     init_fs(path, len);
     init_audio(path, len);
     init_timer();
@@ -196,24 +198,21 @@ void init (char (* path)[12], uint32_t len, uint32_t index)
 
 int main (void)
 {
-    char path[10][12] = {"MEDIA      "};
-    init(path, 1, 0);
-
+    init_base();
     uint32_t counter = 0;
     while (1)
     {
+        char path[10][12] = {"MEDIA      "};
+        init(path, 1, 0);
+
         counter = 0;
-        /*
-        while (counter < ubNumberOfFiles)
-        {
-            memcpy(path[1], pDirectoryFiles[counter], 12);
-            open_playlist(&plv, path, 2);
-        */
-            AudioPlay_demo();
-            counter++;
-        //}
+        AudioPlay_demo();
+        counter++;
+
+        audio_destruct();
+        destroy_view(&viewer);
+        BSP_LCD_Clear(LCD_COLOR_WHITE);
     }
-    audio_destruct();
 }
 
 void Error_Handler (void)
