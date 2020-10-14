@@ -17,11 +17,11 @@ typedef struct playlist_view
     char name_song[view_cnt][song_name_sz + 1];
 } playlist_view;
 
-void init_playlist_view (playlist_view * plv, file_descriptor * fd); //set fd and read playlist
-void down (playlist_view * plv);
-void up (playlist_view * plv);
-void seek_playlist_view (playlist_view * plv, uint32_t pos);
-void play (playlist_view * plv, playlist * pl);
+uint32_t init_playlist_view (playlist_view * plv, file_descriptor * fd); //set fd and read playlist
+uint32_t down (playlist_view * plv);
+uint32_t up (playlist_view * plv);
+uint32_t seek_playlist_view (playlist_view * plv, uint32_t pos);
+uint32_t play (playlist_view * plv, playlist * pl);
 char compare (light_playlist * a, playlist * b);
 
 char check_near (playlist_view * plv, playlist * playing_pl);

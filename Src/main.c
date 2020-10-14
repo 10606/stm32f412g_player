@@ -43,6 +43,7 @@
   ******************************************************************************
   */
 #include "main.h"
+#include "display/display.h"
 #include "audio.h"
 #include "play.h"
 #include "view.h"
@@ -96,12 +97,13 @@ void init_base () //joystick, led, LCD
     }
     
     BSP_LCD_Init();
-    BSP_LCD_Clear(LCD_COLOR_WHITE);
+    //BSP_LCD_Clear(LCD_COLOR_WHITE);
+    display_err();
     BSP_PB_Init(BUTTON_WAKEUP, BUTTON_MODE_GPIO);
     BSP_TS_Init(BSP_LCD_GetXSize(), BSP_LCD_GetYSize());
 }
 
-void init_fs (char (* path)[12], uint32_t len)
+uint32_t init_fs (char (* path)[12], uint32_t len)
 {
     BSP_LCD_SetFont(&Font16);
     BSP_LCD_SetTextColor(LCD_COLOR_RED);
@@ -109,29 +111,32 @@ void init_fs (char (* path)[12], uint32_t len)
 
     while (BSP_SD_IsDetected() != SD_PRESENT)
     {
-        BSP_LCD_DisplayStringAt(0, 112, (uint8_t*)"Please insert SD Card", CENTER_MODE);
+        //BSP_LCD_DisplayStringAt(0, 112, (uint8_t*)"Please insert SD Card", CENTER_MODE);
+        display_err();
     }
 
     while (SD_initialize((BYTE)0))
     {}
     if (!SD_initialize((BYTE)0))
     {
-        Storage_Init();
+        if (Storage_Init())
+            return 1;
         /* Open filesystem */
         global_info.sector_size = 512;
         if (init_fatfs())
         {
             BSP_LCD_DisplayStringAt(0, 152, (uint8_t*)"Not initialized...", 0);
-            Error_Handler();
+            return 2;
         }
     }
     else
     {
-        //Error_Handler();
+        return 3;
     }
+    return 0;
 }
 
-void init_audio (char (* path)[12], uint32_t len)
+uint32_t init_audio (char (* path)[12], uint32_t len)
 {
     audio_init();
 
@@ -140,7 +145,9 @@ void init_audio (char (* path)[12], uint32_t len)
     if (ret)
     {
         BSP_LCD_DisplayStringAt(0, 112, (uint8_t*)"No PLB files...", CENTER_MODE);
-        Error_Handler();
+        audio_destruct();
+        destroy_view(&viewer);
+        return ret;
     }
     
     /*
@@ -151,6 +158,7 @@ void init_audio (char (* path)[12], uint32_t len)
     open(&fd_pl, path, len);
     init_playlist(&pl, &fd_pl);
     */
+    return 0;
 }
 
 void init_timer ()
@@ -187,13 +195,19 @@ void init_usb ()
     NVIC_SetPriority(OTG_FS_IRQn, 1);
 }
 
-void init (char (* path)[12], uint32_t len, uint32_t index)
+uint32_t init (char (* path)[12], uint32_t len, uint32_t index)
 {
+    uint32_t ret;
     //init_base();
-    init_fs(path, len);
-    init_audio(path, len);
+    ret = init_fs(path, len);
+    if (ret)
+        return ret;
+    ret = init_audio(path, len);
+    if (ret)
+        return ret;
     init_timer();
     init_usb();
+    return 0;
 }
 
 int main (void)
@@ -203,7 +217,10 @@ int main (void)
     while (1)
     {
         char path[10][12] = {"MEDIA      "};
-        init(path, 1, 0);
+        if (init(path, 1, 0))
+        {
+            continue;
+        }
 
         counter = 0;
         AudioPlay_demo();
@@ -211,7 +228,7 @@ int main (void)
 
         audio_destruct();
         destroy_view(&viewer);
-        BSP_LCD_Clear(LCD_COLOR_WHITE);
+        //BSP_LCD_Clear(LCD_COLOR_WHITE);
     }
 }
 

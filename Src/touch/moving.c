@@ -9,7 +9,10 @@ const int32_t offset_add_speed = 10;
 
 void touch_region (int32_t x, int32_t y, uint32_t * mask, view * vv, uint8_t * need_redraw)
 {
-    process_view_play_pause (vv, need_redraw);
+    if (y < list_offset)
+        process_view_play_pause (vv, need_redraw);
+    else
+        process_view_right(vv, need_redraw);
 }
 
 int32_t move_left 
@@ -28,7 +31,7 @@ int32_t move_left
         (speed && (offset < offset_add_speed)))
         return 0;
     *mask = 1 << LEFT_DIRECTION;
-    process_view_right(vv, need_redraw);
+    process_view_center(vv, need_redraw);
     if (speed)
         return offset_add_speed;
     else

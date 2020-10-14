@@ -2,7 +2,7 @@
 
 #include <stdio.h>
 
-static void fill_names (playlist_view * plv)
+static uint32_t fill_names (playlist_view * plv)
 {
     for (size_t i = 0; i != view_cnt; ++i)
     {
@@ -14,16 +14,26 @@ static void fill_names (playlist_view * plv)
         {
             break;
         }
-        next_light_playlist(&plv->lpl); 
+        uint32_t ret;
+        ret = next_light_playlist(&plv->lpl); 
+        if (ret)
+            return ret;
     }
+    return 0;
 }
 
-void init_playlist_view (playlist_view * plv, file_descriptor * fd)
+uint32_t init_playlist_view (playlist_view * plv, file_descriptor * fd)
 {
-    init_light_playlist(&plv->lpl, fd);
+    uint32_t ret;
+    ret = init_light_playlist(&plv->lpl, fd);
+    if (ret)
+        return ret;
     plv->pos_begin = 0;
     plv->pos_selected = 0;
-    fill_names(plv);
+    ret = fill_names(plv);
+    if (ret)
+        return ret;
+    return 0;
 }
 
 static void _pn_common (playlist_view * plv, size_t ins_pos)
@@ -40,54 +50,66 @@ static void _pn_common (playlist_view * plv, size_t ins_pos)
     plv->name_song[ins_pos][song_name_sz] = 0;
 }
 
-void seek_playlist_view (playlist_view * plv, uint32_t pos)
+uint32_t seek_playlist_view (playlist_view * plv, uint32_t pos)
 {
     pos = pos % plv->lpl.header.cnt_songs;
 
     if (plv->lpl.header.cnt_songs <= view_cnt)
     {
         plv->pos_selected = pos;
-        return;
+        return 0;
     }
     
+    uint32_t ret;
     if (pos < view_border)
     {
-        seek_light_playlist(&plv->lpl, 0); 
-        fill_names(plv);
+        if ((ret = seek_light_playlist(&plv->lpl, 0)))
+            return ret;
+        if ((ret = fill_names(plv)))
+            return ret;
         plv->pos_begin = 0;
         plv->pos_selected = pos;
     }
     else if (pos + view_border >= plv->lpl.header.cnt_songs)
     {
-        seek_light_playlist(&plv->lpl, plv->lpl.header.cnt_songs - view_cnt); 
-        fill_names(plv);
+        if ((ret = seek_light_playlist(&plv->lpl, plv->lpl.header.cnt_songs - view_cnt)))
+            return ret;
+        if ((ret = fill_names(plv)))
+            return ret;
         plv->pos_begin = 0;
         plv->pos_selected = pos;
     }
     else
     {
-        seek_light_playlist(&plv->lpl, pos - view_border); 
-        fill_names(plv);
+        if ((ret = seek_light_playlist(&plv->lpl, pos - view_border)))
+            return ret;
+        if ((ret = fill_names(plv)))
+            return ret;
         plv->pos_begin = 0;
         plv->pos_selected = pos;
     }
+    
+    return 0;
 }
 
-void down (playlist_view * plv) //TODO exception
+uint32_t down (playlist_view * plv) //TODO exception
 {
     if (plv->lpl.header.cnt_songs <= view_cnt)
     {
         plv->pos_selected = (plv->pos_selected + 1) % plv->lpl.header.cnt_songs;
-        return;
+        return 0;
     }
     
+    uint32_t ret;
     if (plv->pos_selected + 1 == plv->lpl.header.cnt_songs) //overflow
     {
         plv->pos_selected = 0;
         plv->pos_begin = 0;
-        seek_light_playlist(&plv->lpl, 0); 
-        fill_names(plv);
-        return;
+        if ((ret = seek_light_playlist(&plv->lpl, 0)))
+            return ret;
+        if ((ret = fill_names(plv)))
+            return ret;
+        return 0;
     }
     
     if (plv->pos_selected < view_border)
@@ -100,30 +122,35 @@ void down (playlist_view * plv) //TODO exception
     }
     else
     {
-        seek_light_playlist(&plv->lpl, plv->pos_selected + view_border + 1); 
+        if ((ret = seek_light_playlist(&plv->lpl, plv->pos_selected + view_border + 1)))
+            return ret;
         plv->pos_selected++;
         plv->pos_begin++;
         size_t ins_pos = plv->pos_begin + view_cnt - 1;
         _pn_common(plv, ins_pos);
     }
     
+    return 0;
 }
 
-void up (playlist_view * plv) //TODO exception
+uint32_t up (playlist_view * plv) //TODO exception
 {
     if (plv->lpl.header.cnt_songs <= view_cnt)
     {
         plv->pos_selected = (plv->pos_selected + plv->lpl.header.cnt_songs - 1) % plv->lpl.header.cnt_songs;
-        return;
+        return 0;
     }
     
+    uint32_t ret;
     if (plv->pos_selected == 0)
     {
         plv->pos_selected = plv->lpl.header.cnt_songs - 1;
         plv->pos_begin = 0;
-        seek_light_playlist(&plv->lpl, plv->lpl.header.cnt_songs - view_cnt);
-        fill_names(plv);
-        return;
+        if ((ret = seek_light_playlist(&plv->lpl, plv->lpl.header.cnt_songs - view_cnt)))
+            return ret;
+        if ((ret = fill_names(plv)))
+            return ret;
+        return 0;
     }
     
     if (plv->pos_selected <= view_border)
@@ -136,19 +163,26 @@ void up (playlist_view * plv) //TODO exception
     }
     else
     {
-        seek_light_playlist(&plv->lpl, plv->pos_selected - view_border - 1); 
+        if ((ret = seek_light_playlist(&plv->lpl, plv->pos_selected - view_border - 1)))
+            return ret;
         plv->pos_begin = plv->pos_begin + view_cnt - 1;
         plv->pos_selected--;
         size_t ins_pos = plv->pos_begin;
         _pn_common(plv, ins_pos);
     }
+    
+    return 0;
 }
 
-void play (playlist_view * plv, playlist * pl) //TODO exception
+uint32_t play (playlist_view * plv, playlist * pl) //TODO exception
 {
+    uint32_t ret;
     copy_file_descriptor_seek_0(pl->fd, plv->lpl.fd);
-    init_playlist(pl, pl->fd);
-    seek_playlist(pl, plv->pos_selected);
+    if ((ret = init_playlist(pl, pl->fd)))
+        return ret;
+    if ((ret = seek_playlist(pl, plv->pos_selected)))
+        return ret;
+    return 0;
 }
 
 char compare (light_playlist * a, playlist * b)
@@ -283,7 +317,8 @@ uint32_t open_playlist
     {
         return ret;
     }
-    init_playlist_view(plv, plv->lpl.fd);
+    if ((ret = init_playlist_view(plv, plv->lpl.fd)))
+        return ret;
     return 0;
 }
 

@@ -101,15 +101,12 @@ void audio_destruct ()
 
 void AudioPlay_demo ()
 { 
-    //BSP_LCD_DisplayStringAt(0, BSP_LCD_GetYSize()- 150, (uint8_t *)viewer.pl.song.song_name, LEFT_MODE);
     buffer_ctl.audio_freq_ptr = audio_freq + 5; /*AF_44K*/
 
     BSP_LCD_SetTextColor(LCD_COLOR_RED);
     BSP_LCD_SetBackColor(LCD_COLOR_WHITE); 
     if (AUDIO_Start() == AUDIO_ERROR_IO)
-    {
-        BSP_LCD_DisplayStringAt(0, BSP_LCD_GetYSize()- 125, (uint8_t *)"       ERROR READ    ", CENTER_MODE);
-    }
+        return;
   
     need_redraw = 0;
     display_view(&viewer);
@@ -341,7 +338,7 @@ static uint32_t GetData (file_descriptor * _file, uint8_t * pbuf, uint32_t NbrOf
 {
     uint32_t BytesRead = 0;
     uint32_t ret;
-    uint32_t tried = 10;
+    uint32_t tried = 2;
     while ((ret = f_read(_file, pbuf, NbrOfData, &BytesRead)) && (tried))
     {
         if (ret == eof_file)
@@ -391,7 +388,7 @@ void BSP_AUDIO_OUT_Error_CallBack(void)
     BSP_LCD_DisplayStringAt(0, LINE(14), (uint8_t *)"       DMA  ERROR     ", CENTER_MODE);
     BSP_LCD_SetBackColor(LCD_COLOR_WHITE);
 
-    while (BSP_PB_GetState(BUTTON_WAKEUP) != RESET)
+    if (BSP_PB_GetState(BUTTON_WAKEUP) != RESET)
         return;
 }
 

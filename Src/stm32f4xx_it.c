@@ -67,14 +67,14 @@ void MemManage_Handler (void)
 
 void BusFault_Handler (void)
 {
-    while (1)
-    {}
+    //while (1)
+    //{}
 }
 
 void UsageFault_Handler (void)
 {
-    while (1)
-    {}
+    //while (1)
+    //{}
 }
 
 void SVC_Handler (void)

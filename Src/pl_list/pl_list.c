@@ -17,6 +17,7 @@ void destroy_pl_list (pl_list * pll)
 
 uint32_t init_pl_list (pl_list * pll, char (* dir_name)[12], size_t len_name)
 {
+    pll->cnt = 0;
     pll->current_pos = 0;
     pll->path_len = 0;
     pll->root_path = (char (*)[12])malloc((len_name + 1) * 12);
@@ -44,7 +45,7 @@ uint32_t init_pl_list (pl_list * pll, char (* dir_name)[12], size_t len_name)
     for (;;)
     {
         res = read_dir(&dir, &file, name);
-        if (res != 0 || name[0] == 0)
+        if ((res != 0) || (name[0] == 0))
             break;
         if (name[0] == '.')
             continue;
@@ -59,6 +60,7 @@ uint32_t init_pl_list (pl_list * pll, char (* dir_name)[12], size_t len_name)
                 {
                     memcpy(pll->pl_path[index], name, sizeof(name));
                     index++;
+                    pll->cnt = index;
                 }
             }
         }

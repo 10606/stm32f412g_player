@@ -50,8 +50,7 @@
 
 uint32_t Storage_Init(void)
 {
-    BSP_SD_Init();
-    return 0;
+    return BSP_SD_Init();
 }
 
 

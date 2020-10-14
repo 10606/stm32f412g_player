@@ -17,18 +17,24 @@ uint32_t init_view (view * vv, char (* path)[12], uint32_t len, audio_ctl * buff
     vv->pl.fd = &vv->fd_pl;
     bind_playlist_view(&vv->plv, &vv->fd_plv);
     
+    //BSP_LCD_DisplayStringAt(0, 100, (uint8_t *)"bind plv", LEFT_MODE);
     uint32_t ret;
     ret = init_pl_list(&vv->pll, path, len);
     if (ret)
         return ret;
+    //BSP_LCD_DisplayStringAt(0, 100, (uint8_t *)"init pl_list", LEFT_MODE);
     if (vv->pll.cnt == 0)
         return no_plb_files;
     
     ret = open_selected_pl_list(&vv->pll, &vv->plv, &vv->selected_playlist);
     if (ret)
         return ret;
+    //BSP_LCD_DisplayStringAt(0, 100, (uint8_t *)"open pl_list", LEFT_MODE);
     
-    play(&vv->plv, &vv->pl);
+    ret = play(&vv->plv, &vv->pl);
+    if (ret)
+        return ret;
+    //BSP_LCD_DisplayStringAt(0, 100, (uint8_t *)"play plv", LEFT_MODE);
     vv->playing_playlist = vv->selected_playlist;
     return 0;
 }

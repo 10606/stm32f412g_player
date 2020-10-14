@@ -17,6 +17,7 @@ void display_pl_list (pl_list * pll, uint32_t playing_pl, playlist * pl_p);
 void display_playlist (playlist_view * plv, playlist * pl_p);
 void display_song (playlist * pl, audio_ctl * actl, state_song_view_t * state);
 void display_song_volume (playlist * pl, audio_ctl * actl, state_song_view_t * state);
+void display_err ();
 
 
 #define in_line_offset 11
@@ -27,6 +28,7 @@ void display_song_volume (playlist * pl, audio_ctl * actl, state_song_view_t * s
 #define name_limit 11
 
 #define picture_offset 95
-#define picture_address 0x08080000
+#define song_picture_address (void *)0x08080000
+#define err_picture_address (void *)0x080c0000
 #endif
 

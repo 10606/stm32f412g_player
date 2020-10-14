@@ -8,6 +8,11 @@ inline uint32_t min (uint32_t a, uint32_t b)
     return (a < b)? a : b;
 }
 
+void display_err ()
+{
+    ST7789H2_DrawRGBImage(0, 0, 240, 240, err_picture_address);
+}
+
 void display_song_volume (playlist * pl, audio_ctl * actl, state_song_view_t * state) //TODO
 {
     char c_state = ' ';
@@ -44,7 +49,7 @@ void display_picture ()
     {
         if (part + 1 == parts)
             p_size = (240 - picture_offset) - (parts - 1) * p_old_size;
-        ST7789H2_DrawRGBImage(0, picture_offset + p_old_size * part, 240, p_size, picture_address + 2 * 240 * part * p_old_size);
+        ST7789H2_DrawRGBImage(0, picture_offset + p_old_size * part, 240, p_size, song_picture_address + 2 * 240 * part * p_old_size);
         AUDIO_Process();
     }
 }
