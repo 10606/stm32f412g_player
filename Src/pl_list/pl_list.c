@@ -20,6 +20,7 @@ uint32_t init_pl_list (pl_list * pll, char (* dir_name)[12], size_t len_name)
     pll->cnt = 0;
     pll->current_pos = 0;
     pll->path_len = 0;
+    pll->root_path = 0;
     pll->root_path = (char (*)[12])malloc((len_name + 1) * 12);
     if (!pll->root_path)
         return memory_limit;

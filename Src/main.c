@@ -44,6 +44,8 @@
   */
 #include "main.h"
 #include "display/display.h"
+#include "display_string.h"
+#include "display_init.h"
 #include "audio.h"
 #include "play.h"
 #include "view.h"
@@ -96,22 +98,18 @@ void init_base () //joystick, led, LCD
         HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
     }
     
-    BSP_LCD_Init();
+    //BSP_LCD_Init();
+    display_init();
     //BSP_LCD_Clear(LCD_COLOR_WHITE);
     display_err();
     BSP_PB_Init(BUTTON_WAKEUP, BUTTON_MODE_GPIO);
-    BSP_TS_Init(BSP_LCD_GetXSize(), BSP_LCD_GetYSize());
+    BSP_TS_Init(240, 240);
 }
 
 uint32_t init_fs (char (* path)[12], uint32_t len)
 {
-    BSP_LCD_SetFont(&Font16);
-    BSP_LCD_SetTextColor(LCD_COLOR_RED);
-    BSP_LCD_SetBackColor(LCD_COLOR_WHITE);
-
     while (BSP_SD_IsDetected() != SD_PRESENT)
     {
-        //BSP_LCD_DisplayStringAt(0, 112, (uint8_t*)"Please insert SD Card", CENTER_MODE);
         display_err();
     }
 
@@ -125,7 +123,7 @@ uint32_t init_fs (char (* path)[12], uint32_t len)
         global_info.sector_size = 512;
         if (init_fatfs())
         {
-            BSP_LCD_DisplayStringAt(0, 152, (uint8_t*)"Not initialized...", 0);
+            display_string_c(0, 152, (uint8_t*)"Not initialized...", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
             return 2;
         }
     }
@@ -144,7 +142,7 @@ uint32_t init_audio (char (* path)[12], uint32_t len)
     uint32_t ret = init_view(&viewer, path, len, &buffer_ctl);
     if (ret)
     {
-        BSP_LCD_DisplayStringAt(0, 112, (uint8_t*)"No PLB files...", CENTER_MODE);
+        display_string_c(0, 112, (uint8_t*)"No PLB files...", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED); //TODO center
         audio_destruct();
         destroy_view(&viewer);
         return ret;
@@ -228,7 +226,6 @@ int main (void)
 
         audio_destruct();
         destroy_view(&viewer);
-        //BSP_LCD_Clear(LCD_COLOR_WHITE);
     }
 }
 

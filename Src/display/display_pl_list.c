@@ -7,8 +7,7 @@
 void display_pl_list (pl_list * pll, uint32_t playing_pl, playlist * pl_p)
 {
     uint32_t y_pos = list_offset + line_offset * view_plb_cnt;
-    BSP_LCD_SetTextColor(LCD_COLOR_WHITE);
-    BSP_LCD_FillRect(0, y_pos, BSP_LCD_GetXSize(), BSP_LCD_GetYSize() - y_pos);
+    fill_rect(0, y_pos, 240, 240 - y_pos, LCD_COLOR_WHITE);
     display_cur_song(pl_p);
     
     char playlist_name[max_plb_files][pl_name_sz + 1];

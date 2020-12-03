@@ -263,12 +263,12 @@ static int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length)
   * @retval Result of the operation: USBD_OK if all operations are OK else USBD_FAIL
   */
 
-buffer_t rx_buffer = {0};
+volatile buffer_t rx_buffer = {0};
 
-void memcpy_s (void * _dst, void * _src, uint32_t sz)
+void memcpy_s (volatile void * _dst, volatile void * _src, uint32_t sz)
 {
-    uint8_t * dst = _dst;
-    uint8_t * src = _src;
+    volatile uint8_t * dst = _dst;
+    volatile uint8_t * src = _src;
     for (uint32_t i = 0; i != sz; ++i)
     {
         dst[i] = src[i];
@@ -301,16 +301,22 @@ uint32_t trunk_0xa (uint8_t * dst, uint8_t * src, uint32_t len)
 int8_t CDC_Receive_FS (uint8_t * Buf, uint32_t * Len)
 {
     //uint32_t len = trunk_0xa(rx_buffer.buffer + rx_buffer.pos, Buf, *Len);
-    memcpy(rx_buffer.buffer + rx_buffer.pos, Buf, *Len);
+    memcpy((uint8_t *)rx_buffer.buffer + rx_buffer.pos, Buf, *Len);
     uint32_t len = *Len;
-    rx_buffer.pos += len;
-    while (rx_buffer.pos >= call_rx_size)
+    rx_buffer.size += len;
+    while (rx_buffer.size >= call_rx_size)
     {
-        uint32_t n = receive_callback(rx_buffer.buffer, rx_buffer.pos);
-        memcpy_s(rx_buffer.buffer, rx_buffer.buffer + n, rx_buffer.pos - n);
-        rx_buffer.pos -= n;
+        uint32_t n = receive_callback(rx_buffer.buffer + rx_buffer.pos, rx_buffer.size);
+        rx_buffer.size -= n;
+        rx_buffer.pos += n;
+    }
+    if (rx_buffer.pos >= max_rx_size)
+    {
+        memcpy_s(rx_buffer.buffer, rx_buffer.buffer + rx_buffer.pos, rx_buffer.size);
+        rx_buffer.pos = 0;
     }
 
+    USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &Buf[0]);
     USBD_CDC_ReceivePacket(&hUsbDeviceFS);
     return (USBD_OK);
 }

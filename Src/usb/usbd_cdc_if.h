@@ -113,11 +113,12 @@ uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len);
 typedef struct buffer_t
 {
     uint32_t pos;
-    uint8_t buffer[2 * max_rx_size];
+    uint32_t size;
+    uint8_t buffer[3 * max_rx_size];
 } buffer_t;
-extern buffer_t rx_buffer;
+extern volatile buffer_t rx_buffer;
 
-uint32_t receive_callback (uint8_t * buf, uint32_t len);
+uint32_t receive_callback (volatile uint8_t * buf, uint32_t len);
 
 /* USER CODE END EXPORTED_FUNCTIONS */
 

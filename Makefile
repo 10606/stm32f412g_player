@@ -59,7 +59,6 @@ Src/usb/usbd_conf.c \
 Src/usb/usbd_desc.c \
 Src/usb/usb_device.c \
 ../../BSP/f412g_disco/stm32412g_discovery.c \
-../../BSP/f412g_disco/stm32412g_discovery_lcd.c \
 ../../BSP/f412g_disco/stm32412g_discovery_sd.c \
 ../../BSP/f412g_disco/stm32412g_discovery_audio.c \
 ../../BSP/f412g_disco/stm32412g_discovery_ts.c \
@@ -104,6 +103,7 @@ Src/usb/usb_device.c \
 ../../../FAT32_driver_char11/src/read_file_info/read_file_info.c  \
 ../../../FAT32_driver_char11/src/file_descriptor/file_descriptor.c \
 ../../../LCD_display/display_string.c \
+../../../LCD_display/display_init.c \
 ../../../Utilities/Fonts/font24.c \
 ../../../Utilities/Fonts/font20.c \
 ../../../Utilities/Fonts/font16.c \
@@ -117,6 +117,7 @@ Src/usb/usb_device.c \
 #../../BSP/f412g_disco/stm32412g_discovery_eeprom.c \
 #../../BSP/f412g_disco/stm32412g_discovery_qspi.c \
 #../../BSP/f412g_disco/stm32412g_discovery_ts.c \
+#../../BSP/f412g_disco/stm32412g_discovery_lcd.c \
 #Src/stm32f4xx_it.c \
 #Src/stm32f4xx_hal_msp.c \
 #Src/system_stm32f4xx.c \

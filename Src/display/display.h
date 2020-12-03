@@ -27,7 +27,7 @@ void display_err ();
 #define count_offset 30
 #define name_limit 11
 
-#define picture_offset 95
+#define picture_offset 75
 #define song_picture_address (void *)0x08080000
 #define err_picture_address (void *)0x080c0000
 #endif

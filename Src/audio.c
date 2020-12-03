@@ -40,6 +40,7 @@
 #include "FAT.h"
 #include "stm32412g_discovery_audio.h"
 #include "display.h"
+#include "display_string.h"
 #include "touchscreen.h"
 #include <stdio.h>
 #include <stdint.h>
@@ -60,7 +61,7 @@ static uint32_t GetData (file_descriptor * file, uint8_t *pbuf, uint32_t NbrOfDa
 static uint32_t get_all_data (file_descriptor * _file, uint8_t *pbuf, uint32_t NbrOfData);
 AUDIO_ErrorTypeDef AUDIO_Start ();
 uint8_t AUDIO_Process (void);
-uint8_t need_redraw = 0;
+volatile uint8_t need_redraw = 0;
 
 
 
@@ -77,20 +78,10 @@ void audio_init ()
     status = BSP_JOY_Init(JOY_MODE_GPIO);
   
     if (status != HAL_OK)
-    {    
-        BSP_LCD_SetBackColor(LCD_COLOR_WHITE); 
-        BSP_LCD_SetTextColor(LCD_COLOR_RED);
-        BSP_LCD_DisplayStringAt(0, BSP_LCD_GetYSize()- 100, (uint8_t *)"ERROR", CENTER_MODE);
-        BSP_LCD_DisplayStringAt(0, BSP_LCD_GetYSize()- 85, (uint8_t *)"Joystick init error", CENTER_MODE);
-    }
+        display_string_c(0, 140, (uint8_t*)"Joystick init error", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
   
     if (BSP_AUDIO_OUT_Init(OUTPUT_DEVICE_HEADPHONE, buffer_ctl.volume, *buffer_ctl.audio_freq_ptr) != 0)
-    {
-        BSP_LCD_SetBackColor(LCD_COLOR_WHITE);
-        BSP_LCD_SetTextColor(LCD_COLOR_RED);
-        BSP_LCD_DisplayStringAt(0, BSP_LCD_GetYSize()- 100, (uint8_t *)"  AUDIO CODEC  FAIL ", CENTER_MODE);
-        BSP_LCD_DisplayStringAt(0, BSP_LCD_GetYSize()- 85, (uint8_t *)" Try to reset board ", CENTER_MODE);
-    }
+        display_string_c(0, 140, (uint8_t*)"Audio codec fail", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
 }
 
 void audio_destruct ()
@@ -103,8 +94,6 @@ void AudioPlay_demo ()
 { 
     buffer_ctl.audio_freq_ptr = audio_freq + 5; /*AF_44K*/
 
-    BSP_LCD_SetTextColor(LCD_COLOR_RED);
-    BSP_LCD_SetBackColor(LCD_COLOR_WHITE); 
     if (AUDIO_Start() == AUDIO_ERROR_IO)
         return;
   
@@ -146,9 +135,11 @@ void AudioPlay_demo ()
             need_redraw = 0;
             display_view(&viewer);
         }
-        process_view(&viewer, &need_redraw);
+        uint8_t need_redraw_nv = 0;
+        process_view(&viewer, &need_redraw_nv);
         usb_process();
-        touch_check(&touch_state, &viewer, &need_redraw);
+        touch_check(&touch_state, &viewer, &need_redraw_nv);
+        need_redraw |= need_redraw_nv;
         
         /*
         BSP_AUDIO_OUT_SetVolume(buffer_ctl.volume);
@@ -195,9 +186,8 @@ void AudioPlay_demo ()
 
 static void Audio_SetHint (void)
 {
-    BSP_LCD_Clear(LCD_COLOR_WHITE);
-    BSP_LCD_SetTextColor(LCD_COLOR_BLUE);
-    BSP_LCD_FillRect(0, 0, BSP_LCD_GetXSize(), HEADBAND_HEIGHT);
+    fill_rect(0, HEADBAND_HEIGHT, 240, 240 - HEADBAND_HEIGHT, LCD_COLOR_WHITE);
+    fill_rect(0, 0, 240, HEADBAND_HEIGHT, LCD_COLOR_BLUE);
 }
 
 
@@ -207,7 +197,7 @@ AUDIO_ErrorTypeDef AUDIO_Start ()
 
     if (open_song(&viewer.pl, &buffer_ctl.audio_file))
     {
-        BSP_LCD_DisplayStringAt(0, 152, (uint8_t*)"Not opened...", 0);
+        display_string_c(0, 152, (uint8_t*)"Not opened", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
         return AUDIO_ERROR_IO;
     }
     buffer_ctl.audio_file_size = buffer_ctl.audio_file.size;
@@ -270,10 +260,7 @@ uint8_t AUDIO_Process (void)
                 total_time.sec,
                 total_time.ms
             );
-            BSP_LCD_SetBackColor(LCD_COLOR_BLUE);
-            BSP_LCD_SetTextColor(LCD_COLOR_WHITE);
-            BSP_LCD_SetFont(&Font12);
-            BSP_LCD_DisplayStringAt(0, BSP_LCD_GetYSize()- 180, (uint8_t *)str, CENTER_MODE);
+            display_string_center_c(0, 60, (uint8_t *)str, &Font12, LCD_COLOR_BLUE, LCD_COLOR_WHITE);
         }
 
         if (buffer_ctl.fptr >= buffer_ctl.audio_file_size)
@@ -283,17 +270,13 @@ uint8_t AUDIO_Process (void)
             if (buffer_ctl.repeat_mode)
             {
                 if (f_seek(&buffer_ctl.audio_file, 0)) //TODO repeat mode
-                {
-                    BSP_LCD_DisplayStringAt(0, 152, (uint8_t*)"Not seeked...", 0);
-                }
+                    display_string_c(0, 152, (uint8_t*)"Not seeked", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
             }
             else
             {
                 next_playlist(&viewer.pl);
                 if (open_song(&viewer.pl, &buffer_ctl.audio_file))
-                {
-                    BSP_LCD_DisplayStringAt(0, 152, (uint8_t*)"Not opened...", 0);
-                }
+                    display_string_c(0, 152, (uint8_t*)"Not opened", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
                 buffer_ctl.audio_file_size = buffer_ctl.audio_file.size;
             }
             error_state = AUDIO_ERROR_EOF;
@@ -346,7 +329,7 @@ static uint32_t GetData (file_descriptor * _file, uint8_t * pbuf, uint32_t NbrOf
             return 0;
         }
         --tried;
-        BSP_LCD_DisplayStringAt(0, BSP_LCD_GetYSize() - 120, (uint8_t *)"       ERR READ", CENTER_MODE);
+        display_string_c(0, 120, (uint8_t*)"    Error read", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
     }
     return BytesRead;
 }
@@ -384,9 +367,7 @@ void BSP_AUDIO_OUT_HalfTransfer_CallBack(void)
 
 void BSP_AUDIO_OUT_Error_CallBack(void)
 {
-    BSP_LCD_SetBackColor(LCD_COLOR_RED);
-    BSP_LCD_DisplayStringAt(0, LINE(14), (uint8_t *)"       DMA  ERROR     ", CENTER_MODE);
-    BSP_LCD_SetBackColor(LCD_COLOR_WHITE);
+    display_string_c(0, 120, (uint8_t*)"    DMA error", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
 
     if (BSP_PB_GetState(BUTTON_WAKEUP) != RESET)
         return;
