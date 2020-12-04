@@ -54,7 +54,6 @@ extern view viewer;
 old_touch_state touch_state = {0};
 audio_ctl  buffer_ctl;
 
-static JOYState_TypeDef JoyState = JOY_NONE;
 
 static void Audio_SetHint (void);
 static uint32_t GetData (file_descriptor * file, uint8_t *pbuf, uint32_t NbrOfData);
@@ -89,11 +88,40 @@ void audio_destruct ()
     BSP_AUDIO_OUT_DeInit();
 }
 
+void check_buttons ()
+{
+    JOYState_TypeDef JoyState = JOY_NONE;
+    JoyState = BSP_JOY_GetState();
+  
+    switch (JoyState)
+    {
+    case JOY_UP:
+        joystick_state.pressed[joy_button_up] = 1;
+        break;
+      
+    case JOY_DOWN:
+        joystick_state.pressed[joy_button_down] = 1;
+        break;
+
+    case JOY_RIGHT:
+        joystick_state.pressed[joy_button_right] = 1;
+        break;
+
+    case JOY_LEFT:
+        joystick_state.pressed[joy_button_left] = 1;
+        break;
+
+    case JOY_SEL:
+        joystick_state.pressed[joy_button_center] = 1;
+        break;
+
+    default:
+        break;
+    }
+}
 
 void AudioPlay_demo ()
 { 
-    buffer_ctl.audio_freq_ptr = audio_freq + 5; /*AF_44K*/
-
     if (AUDIO_Start() == AUDIO_ERROR_IO)
         return;
   
@@ -102,33 +130,7 @@ void AudioPlay_demo ()
     while (1)
     {
         AUDIO_Process();
-        JoyState = BSP_JOY_GetState();
-      
-        switch (JoyState)
-        {
-        case JOY_UP:
-            joystick_state.pressed[joy_button_up] = 1;
-            break;
-          
-        case JOY_DOWN:
-            joystick_state.pressed[joy_button_down] = 1;
-            break;
-
-        case JOY_RIGHT:
-            joystick_state.pressed[joy_button_right] = 1;
-            break;
-
-        case JOY_LEFT:
-            joystick_state.pressed[joy_button_left] = 1;
-            break;
-
-        case JOY_SEL:
-            joystick_state.pressed[joy_button_center] = 1;
-            break;
-
-        default:
-            break;
-        }
+        check_buttons();
       
         if (need_redraw)
         {
@@ -141,42 +143,6 @@ void AudioPlay_demo ()
         touch_check(&touch_state, &viewer, &need_redraw_nv);
         need_redraw |= need_redraw_nv;
         
-        /*
-        BSP_AUDIO_OUT_SetVolume(buffer_ctl.volume);
-        BSP_AUDIO_OUT_SetFrequency(*buffer_ctl.audio_freq_ptr);
-        
-        case JOY_SEL:
-            // Set Pause / Resume or Exit 
-            HAL_Delay(200);
-            if (BSP_JOY_GetState() == JOY_SEL)  // Long press on joystick selection button : Pause/Resume 
-            {
-                if (buffer_ctl.pause_status == 1)
-                { // Pause is enabled, call Resume 
-                    BSP_AUDIO_OUT_Resume();
-                    buffer_ctl.pause_status = 0;
-                    BSP_LCD_DisplayStringAt(0, BSP_LCD_GetYSize()- 85, (uint8_t *)"       PLAYING...     ", CENTER_MODE);
-                } 
-                else
-                { // Pause the playback 
-                    BSP_AUDIO_OUT_Pause();
-                    buffer_ctl.pause_status = 1;
-                    BSP_LCD_DisplayStringAt(0, BSP_LCD_GetYSize()- 85, (uint8_t *)"       PAUSE  ...     ", CENTER_MODE);
-                }
-                BSP_LCD_DisplayStringAt(0, LINE(14), (uint8_t *)"                      ", CENTER_MODE);
-                HAL_Delay(200);
-            }
-            else  // Short press on joystick selection button : exit 
-            {
-                BSP_AUDIO_OUT_Stop(CODEC_PDWN_SW);
-                AUDIO_Stop();
-                return;
-            }
-            break;
-        
-        default:
-            break;
-        }
-        */
         if (BSP_SD_IsDetected() != SD_PRESENT)
         {
             break;
@@ -240,6 +206,7 @@ uint8_t AUDIO_Process (void)
     switch (buffer_ctl.audio_state)
     {
         case AUDIO_STATE_PLAYING:
+        //display time
         {
             tik_t cur_time;
             tik_t total_time;
@@ -263,16 +230,17 @@ uint8_t AUDIO_Process (void)
             display_string_center_c(0, 60, (uint8_t *)str, &Font12, LCD_COLOR_BLUE, LCD_COLOR_WHITE);
         }
 
+        //end of song reached
         if (buffer_ctl.fptr >= buffer_ctl.audio_file_size)
         {
-            /* Play audio sample again ... */
             buffer_ctl.fptr = 0; 
+            // play song again
             if (buffer_ctl.repeat_mode)
             {
                 if (f_seek(&buffer_ctl.audio_file, 0)) //TODO repeat mode
                     display_string_c(0, 152, (uint8_t*)"Not seeked", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
             }
-            else
+            else //or next song
             {
                 next_playlist(&viewer.pl);
                 if (open_song(&viewer.pl, &buffer_ctl.audio_file))
