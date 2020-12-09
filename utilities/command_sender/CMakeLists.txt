@@ -13,7 +13,7 @@ set(compile_flags
 )
 
 set(root_code_path
-    ../../../../
+    ../../../../../
 )
 set (usb_command_path
     ${root_code_path}/stm32/stm32cubemx/f412g_player/Src/usb
