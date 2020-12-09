@@ -58,6 +58,7 @@ Src/usb/usbd_cdc_if.c \
 Src/usb/usbd_conf.c \
 Src/usb/usbd_desc.c \
 Src/usb/usb_device.c \
+Src/usb/usb_send.c \
 ../../BSP/f412g_disco/stm32412g_discovery.c \
 ../../BSP/f412g_disco/stm32412g_discovery_sd.c \
 ../../BSP/f412g_disco/stm32412g_discovery_audio.c \

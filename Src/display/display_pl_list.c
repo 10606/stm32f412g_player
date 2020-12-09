@@ -2,13 +2,15 @@
 
 #include "pl_list.h"
 #include "display_string.h"
+#include "usb_send.h"
 #include <stdint.h>
 
-void display_pl_list (pl_list * pll, uint32_t playing_pl, playlist * pl_p)
+void display_pl_list (pl_list * pll, uint32_t playing_pl, playlist * pl_p, char to_screen)
 {
     uint32_t y_pos = list_offset + line_offset * view_plb_cnt;
-    fill_rect(0, y_pos, 240, 240 - y_pos, LCD_COLOR_WHITE);
-    display_cur_song(pl_p);
+    if (to_screen)
+        fill_rect(0, y_pos, 240, 240 - y_pos, LCD_COLOR_WHITE);
+    display_cur_song(pl_p, to_screen);
     
     char playlist_name[max_plb_files][pl_name_sz + 1];
     char number[max_plb_files][3 + 1];
@@ -59,9 +61,14 @@ void display_pl_list (pl_list * pll, uint32_t playing_pl, playlist * pl_p)
         }
 
         color_t c_group = {text_color_group, back_color_group};
-        display_string(4, list_offset + line_offset * i, (uint8_t *)s_playlist, &Font12, &c_group);
         color_t c_song = {text_color_song, back_color_song};
-        display_string(4, list_offset + in_line_offset + line_offset * i, (uint8_t *)empty, &Font12, &c_song);
+        if (to_screen)
+        {
+            display_string(4, list_offset + line_offset * i, (uint8_t *)s_playlist, &Font12, &c_group);
+            display_string(4, list_offset + in_line_offset + line_offset * i, (uint8_t *)empty, &Font12, &c_song);
+        }
         AUDIO_Process();
+        send_pl_list(s_playlist, selected[i], i);
     }
 }
+

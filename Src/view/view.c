@@ -51,16 +51,27 @@ void display_view (view * vv)
     switch (vv->state)
     {
     case D_PL_LIST:
-        display_pl_list(&vv->pll, vv->playing_playlist, &vv->pl);
+        display_playlist(&vv->plv, &vv->pl, vv->state, 0);
+        display_pl_list(&vv->pll, vv->playing_playlist, &vv->pl, 1);
+        display_song(&vv->pl, vv->buffer_ctl, &vv->state_song_view, 0);
         break;
 
     case D_PLAYLIST:
-        display_playlist(&vv->plv, &vv->pl);
+        display_playlist(&vv->plv, &vv->pl, vv->state, 1);
+        display_pl_list(&vv->pll, vv->playing_playlist, &vv->pl, 0);
+        display_song(&vv->pl, vv->buffer_ctl, &vv->state_song_view, 0);
         break;
         
     case D_SONG:
-        display_song(&vv->pl, vv->buffer_ctl, &vv->state_song_view);
+        display_playlist(&vv->plv, &vv->pl, vv->state, 0);
+        display_pl_list(&vv->pll, vv->playing_playlist, &vv->pl, 0);
+        display_song(&vv->pl, vv->buffer_ctl, &vv->state_song_view, 1);
         break;
+
+    default:
+        display_playlist(&vv->plv, &vv->pl, vv->state, 0);
+        display_song(&vv->pl, vv->buffer_ctl, &vv->state_song_view, 0);
+        display_pl_list(&vv->pll, vv->playing_playlist, &vv->pl, 0);
     }
 }
 
@@ -86,8 +97,7 @@ uint32_t process_view_inc_volume (view * vv, uint8_t * need_redraw)
     if (vv->buffer_ctl->volume > 100)
         vv->buffer_ctl->volume = 100;
     BSP_AUDIO_OUT_SetVolume(vv->buffer_ctl->volume);
-    if (vv->state == D_SONG)
-        display_song_volume(&vv->pl, vv->buffer_ctl, &vv->state_song_view);
+    display_song_volume(&vv->pl, vv->buffer_ctl, &vv->state_song_view, (vv->state == D_SONG));
     return 0;
 }
 
@@ -168,8 +178,7 @@ uint32_t process_view_dec_volume (view * vv, uint8_t * need_redraw)
     else
         vv->buffer_ctl->volume -= 1;
     BSP_AUDIO_OUT_SetVolume(vv->buffer_ctl->volume);
-    if (vv->state == D_SONG)
-        display_song_volume(&vv->pl, vv->buffer_ctl, &vv->state_song_view);
+    display_song_volume(&vv->pl, vv->buffer_ctl, &vv->state_song_view, (vv->state == D_SONG));
     return 0;
 }
 
@@ -288,7 +297,7 @@ uint32_t process_view_right (view * vv, uint8_t * need_redraw)
         
     case D_SONG:
         vv->state_song_view = (vv->state_song_view + 1) % state_song_view_cnt;
-        display_song_volume(&vv->pl, vv->buffer_ctl, &vv->state_song_view);
+        display_song_volume(&vv->pl, vv->buffer_ctl, &vv->state_song_view, 1);
         break;
     }
     return 0;
@@ -326,7 +335,7 @@ uint32_t process_view_center (view * vv, uint8_t * need_redraw)
         
     case D_SONG:
         vv->buffer_ctl->repeat_mode ^= 1;
-        display_song_volume(&vv->pl, vv->buffer_ctl, &vv->state_song_view);
+        display_song_volume(&vv->pl, vv->buffer_ctl, &vv->state_song_view, 1);
         break;
     }
     return 0;

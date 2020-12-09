@@ -1,8 +1,9 @@
 
 #include "display.h"
 #include "display_string.h"
+#include "usb_send.h"
 
-void display_cur_song (playlist * pl_p)
+void display_cur_song (playlist * pl_p, char to_screen)
 {
     char cur_song_name[song_name_sz + 1];
     char cur_group_name[group_name_sz + 1];
@@ -11,16 +12,24 @@ void display_cur_song (playlist * pl_p)
     memcpy(cur_group_name, pl_p->song.group_name, group_name_sz);
     cur_group_name[group_name_sz] = 0;
     color_t yb = {LCD_COLOR_YELLOW, LCD_COLOR_BLUE};
-    display_string(5, 20, (uint8_t *)cur_group_name, &Font16, &yb);
-    display_string(5, 40, (uint8_t *)cur_song_name, &Font16, &yb);
-    AUDIO_Process();
+    if (to_screen)
+    {
+        display_string(5, 20, (uint8_t *)cur_group_name, &Font16, &yb);
+        display_string(5, 40, (uint8_t *)cur_song_name, &Font16, &yb);
+        AUDIO_Process();
+    }
+    send_cur_song(cur_song_name, cur_group_name);
 }
 
-void display_playlist (playlist_view * plv, playlist * pl_p)
+void display_playlist (playlist_view * plv, playlist * pl_p, int state, char to_screen)
 {
     uint32_t y_pos = list_offset + line_offset * view_plb_cnt;
-    fill_rect(0, y_pos, 240, 240 - y_pos, LCD_COLOR_WHITE);
-    display_cur_song(pl_p);
+    if (to_screen)
+        fill_rect(0, y_pos, 240, 240 - y_pos, LCD_COLOR_WHITE);
+    display_cur_song(pl_p, to_screen);
+    HAL_Delay(1);
+    send_state(state);
+    AUDIO_Process();
     
     char song_name[view_cnt][song_name_sz + 1];
     char group_name[view_cnt][group_name_sz + 1];
@@ -71,10 +80,14 @@ void display_playlist (playlist_view * plv, playlist * pl_p)
         }
 
         color_t c_group = {text_color_group, back_color_group};
-        display_string(4, list_offset + line_offset * i, (uint8_t *)s_group, &Font12, &c_group);
         color_t c_song = {text_color_song, back_color_song};
-        display_string(4, list_offset + in_line_offset + line_offset * i, (uint8_t *)s_song, &Font12, &c_song);
+        if (to_screen)
+        {
+            display_string(4, list_offset + line_offset * i, (uint8_t *)s_group, &Font12, &c_group);
+            display_string(4, list_offset + in_line_offset + line_offset * i, (uint8_t *)s_song, &Font12, &c_song);
+        }
         AUDIO_Process();
+        send_displayed_song(s_group, s_song, selected[i], i);
     }
 }
 

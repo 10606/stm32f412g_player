@@ -76,7 +76,7 @@
 /*---------- -----------*/
 #define USBD_LPM_ENABLED     1U
 /*---------- -----------*/
-#define USBD_SELF_POWERED     1U
+#define USBD_SELF_POWERED     0U
 
 #define USB_OTGFS_OVRCR_Pin GPIO_PIN_7
 #define USB_OTGFS_OVRCR_GPIO_Port GPIOG

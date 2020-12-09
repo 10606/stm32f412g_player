@@ -42,7 +42,7 @@ uint32_t usb_process ()
                 break;
             case command_repeat:
                 viewer.buffer_ctl->repeat_mode ^= 1;
-                display_song_volume(&viewer.pl, viewer.buffer_ctl, &viewer.state_song_view);
+                display_song_volume(&viewer.pl, viewer.buffer_ctl, &viewer.state_song_view, 1);
                 break;
                 
             case commnad_volume_up:
@@ -64,6 +64,11 @@ uint32_t usb_process ()
                 break;
             case commnad_prev_song:
                 ret = process_view_prev_song(&viewer, &need_redraw_nv);
+                break;
+                
+            case commnad_send_info:
+                need_redraw_nv = 1;
+                //display_song_volume(&viewer.pl, viewer.buffer_ctl, &viewer.state_song_view, 0);
                 break;
                 
             default:

@@ -2,6 +2,7 @@
 
 #include "st7789h2/st7789h2.h"
 #include "display_string.h"
+#include "usb_send.h"
 
 inline uint32_t min (uint32_t a, uint32_t b)
 {
@@ -13,7 +14,7 @@ void display_err ()
     ST7789H2_DrawRGBImage(0, 0, 240, 240, err_picture_address);
 }
 
-void display_song_volume (playlist * pl, audio_ctl * actl, state_song_view_t * state) //TODO
+void display_song_volume (playlist * pl, audio_ctl * actl, state_song_view_t * state, char to_screen) //TODO
 {
     char c_state = ' ';
     switch (*state)
@@ -31,20 +32,19 @@ void display_song_volume (playlist * pl, audio_ctl * actl, state_song_view_t * s
         break;
     }
     
-    /*
-    char s_volume[25];
-    snprintf(s_volume, sizeof(s_volume), " volume %3lu%%    %c %c", (actl->volume % 101), (actl->repeat_mode? 'r' : ' '), c_state);
-    
-    color_t bw = {LCD_COLOR_BLUE, LCD_COLOR_WHITE};
-    display_string(4, list_offset, (uint8_t *)s_volume, &Font12, &bw);
-    */
-    char s_volume[25];
+    char s_volume[volume_width];
+    char s_state[volume_width];
     color_t bw = {LCD_COLOR_BLUE, LCD_COLOR_WHITE};
     snprintf(s_volume, sizeof(s_volume), " %3lu%%", (actl->volume % 101));
-    display_string(200, list_offset, (uint8_t *)s_volume, &Font12, &bw);
-    snprintf(s_volume, sizeof(s_volume), "  %c %c", (actl->repeat_mode? 'r' : ' '), c_state);
-    display_string(200, list_offset + in_line_offset, (uint8_t *)s_volume, &Font12, &bw);
-    AUDIO_Process();
+    snprintf(s_state, sizeof(s_state), "  %c %c", (actl->repeat_mode? 'r' : ' '), c_state);
+    if (to_screen)
+    {
+        display_string(200, list_offset, (uint8_t *)s_volume, &Font12, &bw);
+        display_string(200, list_offset + in_line_offset, (uint8_t *)s_state, &Font12, &bw);
+        AUDIO_Process();
+    }
+    HAL_Delay(1);
+    send_volume(s_volume, s_state);
 }
 
 void display_picture ()
@@ -62,27 +62,15 @@ void display_picture ()
     }
 }
 
-void display_song (playlist * pl, audio_ctl * actl, state_song_view_t * state) //TODO
+void display_song (playlist * pl, audio_ctl * actl, state_song_view_t * state, char to_screen) //TODO
 {
-    display_picture();
-    AUDIO_Process();
-    display_cur_song(pl);
-    display_song_volume(pl, actl, state);
-    AUDIO_Process();
-
-    //char s_freq[15];
-    //snprintf(s_freq, sizeof(s_freq), "     %luhz", *actl->audio_freq_ptr);
-    
-    //color_t bw = {LCD_COLOR_BLUE, LCD_COLOR_WHITE};
-    //display_string(4, list_offset + in_line_offset, (uint8_t *)s_freq, &Font12, &bw);
-    
-    /*
-    for (uint32_t i = 0; i != min(name_limit, pl->path_sz); ++i)
+    if (to_screen)
     {
-        display_string(4, list_offset + line_offset + in_line_offset * (i + 1), (uint8_t *)pl->path[i], &Font12, &bw);
+        display_picture();
         AUDIO_Process();
     }
-    */
- 
+    display_cur_song(pl, to_screen);
+    display_song_volume(pl, actl, state, to_screen);
+    AUDIO_Process();
 }
 

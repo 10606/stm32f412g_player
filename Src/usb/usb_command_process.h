@@ -25,6 +25,8 @@
 #define command_next_song 0x0c
 #define commnad_prev_song 0x0d
 
+#define commnad_send_info 0x0e
+
 uint32_t usb_process ();
 
 #endif

@@ -175,6 +175,12 @@ static int8_t CDC_DeInit_FS(void)
   /* USER CODE END 4 */
 }
 
+
+inline size_t min (size_t a, uint16_t b)
+{
+    return (a < b)? a : b; 
+}
+
 /**
   * @brief  Manage the CDC class requests
   * @param  cmd: Command code
@@ -185,6 +191,7 @@ static int8_t CDC_DeInit_FS(void)
 static int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length)
 {
   /* USER CODE BEGIN 5 */
+  static uint8_t tempbuf[7];
   switch(cmd)
   {
     case CDC_SEND_ENCAPSULATED_COMMAND:
@@ -225,11 +232,11 @@ static int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length)
   /* 6      | bDataBits  |   1   | Number Data bits (5, 6, 7, 8 or 16).          */
   /*******************************************************************************/
     case CDC_SET_LINE_CODING:
-
+        memcpy(tempbuf, pbuf, min(sizeof(tempbuf), length) / sizeof(tempbuf[0]));
     break;
 
     case CDC_GET_LINE_CODING:
-
+        memcpy(pbuf, tempbuf, min(sizeof(tempbuf), length) / sizeof(tempbuf[0]));
     break;
 
     case CDC_SET_CONTROL_LINE_STATE:
@@ -275,32 +282,8 @@ void memcpy_s (volatile void * _dst, volatile void * _src, uint32_t sz)
     }
 }
 
-uint8_t good_char (uint8_t c)
-{
-    return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'z');
-}
-
-uint32_t trunk_0xa (uint8_t * dst, uint8_t * src, uint32_t len)
-{
-    uint32_t end = 0;
-    for (uint32_t i = 0; i != len; ++i)
-    {
-        /*
-        if ((src[i] != 0xa) &&
-            (src[i] != '^') &&
-            (src[i] != '@'))
-        */
-        //if (good_char(src[i]))
-        {
-            dst[end++] = src[i];
-        }
-    }
-    return end;
-}
-
 int8_t CDC_Receive_FS (uint8_t * Buf, uint32_t * Len)
 {
-    //uint32_t len = trunk_0xa(rx_buffer.buffer + rx_buffer.pos, Buf, *Len);
     memcpy((uint8_t *)rx_buffer.buffer + rx_buffer.pos, Buf, *Len);
     uint32_t len = *Len;
     rx_buffer.size += len;
@@ -350,6 +333,8 @@ uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len)
   if (hcdc->TxState != 0){
     return USBD_BUSY;
   }
+  //memcpy(UserTxBufferFS, Buf, Len);
+  //USBD_CDC_SetTxBuffer(&hUsbDeviceFS, UserTxBufferFS, Len);
   USBD_CDC_SetTxBuffer(&hUsbDeviceFS, Buf, Len);
   result = USBD_CDC_TransmitPacket(&hUsbDeviceFS);
   /* USER CODE END 7 */
