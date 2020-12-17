@@ -6,7 +6,9 @@
 
 //#define AUDIO_BUFFER_SIZE       8192  * 2
 //#define AUDIO_BUFFER_SIZE       12288 
-#define AUDIO_BUFFER_SIZE       8192
+#define MP3_FRAMES_IN_BUFFER    2
+#define MP3_FRAME_SIZE          4608
+#define AUDIO_BUFFER_SIZE       (MP3_FRAMES_IN_BUFFER * MP3_FRAME_SIZE)
 #define AUDIO_DEFAULT_VOLUME    70
 #define HEADBAND_HEIGHT         72
 

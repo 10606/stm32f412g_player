@@ -49,6 +49,14 @@ Src/playlist/light_playlist.c \
 Src/playlist/playlist.c \
 Src/playlist/playlist_common.c \
 Src/playlist/playlist_view.c \
+Src/mp3/stream.c \
+Src/mp3/frame.c \
+Src/mp3/synth.c \
+Src/mp3/bit.c \
+Src/mp3/timer.c \
+Src/mp3/layer12.c \
+Src/mp3/layer3.c \
+Src/mp3/huffman.c \
 Src/view/view.c \
 Src/touch/touchscreen.c \
 Src/touch/moving.c \
@@ -180,7 +188,9 @@ AS_DEFS =
 # C defines
 C_DEFS =  \
 -DUSE_HAL_DRIVER \
--DSTM32F412Zx
+-DSTM32F412Zx \
+-DHAVE_CONFIG_H \
+-DFPM_DEFAULT
 
 
 # AS includes
@@ -195,6 +205,7 @@ C_INCLUDES =  \
 -ISrc/display \
 -ISrc/touch \
 -ISrc/usb \
+-ISrc/mp3 \
 -I../../STM32CubeF4/Middlewares/ST/STM32_USB_Device_Library/Core/Inc \
 -I../../STM32CubeF4/Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc \
 -I../../../Utilities \

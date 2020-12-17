@@ -34,6 +34,7 @@
   *
   ******************************************************************************
   */
+#include "mad.h"
 #include "view.h"
 #include "audio.h"
 #include "main.h"
@@ -57,11 +58,39 @@ audio_ctl  buffer_ctl;
 
 static void Audio_SetHint (void);
 static uint32_t GetData (file_descriptor * file, uint8_t *pbuf, uint32_t NbrOfData);
-static uint32_t get_all_data (file_descriptor * _file, uint8_t *pbuf, uint32_t NbrOfData);
+static uint32_t get_pcm_sound (file_descriptor * _file, uint8_t *pbuf, uint32_t NbrOfData);
 AUDIO_ErrorTypeDef AUDIO_Start ();
 uint8_t AUDIO_Process (void);
 volatile uint8_t need_redraw = 0;
 
+#define mp3_input_buffer_size 1536
+#define mp3_frame_size 1152
+struct 
+{
+    uint8_t buffer[mp3_input_buffer_size];
+    uint32_t size;
+} mp3_input_buffer;
+
+struct
+{
+    struct mad_stream stream;
+    struct mad_frame frame;
+    struct mad_synth synth;
+} mad_data;
+
+void init_mad ()
+{
+    mad_stream_init(&mad_data.stream);
+    mad_synth_init(&mad_data.synth);
+    mad_frame_init(&mad_data.frame);
+}
+
+void deinit_mad ()
+{
+    mad_synth_finish(&mad_data.synth);
+    mad_frame_finish(&mad_data.frame);
+    mad_stream_finish(&mad_data.stream);
+}
 
 
 void audio_init ()
@@ -81,11 +110,14 @@ void audio_init ()
   
     if (BSP_AUDIO_OUT_Init(OUTPUT_DEVICE_HEADPHONE, buffer_ctl.volume, *buffer_ctl.audio_freq_ptr) != 0)
         display_string_c(0, 140, (uint8_t*)"Audio codec fail", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
+    
+    init_mad();
 }
 
 void audio_destruct ()
 {
     BSP_AUDIO_OUT_DeInit();
+    deinit_mad();
 }
 
 void check_buttons ()
@@ -169,7 +201,7 @@ AUDIO_ErrorTypeDef AUDIO_Start ()
     buffer_ctl.audio_file_size = buffer_ctl.audio_file.size;
 
     buffer_ctl.state = BUFFER_OFFSET_NONE;
-    bytesread = get_all_data(&buffer_ctl.audio_file,
+    bytesread = get_pcm_sound(&buffer_ctl.audio_file,
                       &buffer_ctl.buff[0],
                       AUDIO_BUFFER_SIZE);
     if (bytesread > 0)
@@ -254,7 +286,7 @@ uint8_t AUDIO_Process (void)
         /* 1st half buffer played; so fill it and continue playing from bottom*/
         if (buffer_ctl.state == BUFFER_OFFSET_HALF)
         {
-            bytesread = get_all_data(&buffer_ctl.audio_file,
+            bytesread = get_pcm_sound(&buffer_ctl.audio_file,
                           &buffer_ctl.buff[0],
                           AUDIO_BUFFER_SIZE /2);
       
@@ -267,7 +299,7 @@ uint8_t AUDIO_Process (void)
         /* 2nd half buffer played; so fill it and continue playing from top */    
         if (buffer_ctl.state == BUFFER_OFFSET_FULL)
         {
-            bytesread = get_all_data(&buffer_ctl.audio_file,
+            bytesread = get_pcm_sound(&buffer_ctl.audio_file,
                           &buffer_ctl.buff[AUDIO_BUFFER_SIZE /2],
                           AUDIO_BUFFER_SIZE /2);
             if (bytesread > 0)
@@ -315,6 +347,109 @@ static uint32_t get_all_data (file_descriptor * _file, uint8_t *pbuf, uint32_t N
         BytesRead += cnt_read;
     }
     return BytesRead;
+}
+
+inline int16_t scale (mad_fixed_t sample) 
+{
+     if (sample >= MAD_F_ONE)
+         sample = MAD_F_ONE - 1;
+     else if (sample < -MAD_F_ONE)
+         sample = -MAD_F_ONE;
+     return sample >> (MAD_F_FRACBITS + 1 - 16);
+}
+
+void fill_buffer
+(
+    struct mad_header const * header, 
+    struct mad_pcm * pcm,
+    uint8_t * buff //[pcm->length * 4] //4608
+) 
+{
+    mad_fixed_t const * left_ch = pcm->samples[0];
+    mad_fixed_t const * right_ch = pcm->samples[1];
+    if (pcm->channels == 2)
+    {
+        for (size_t cur_sample = 0; cur_sample != pcm->length; ++cur_sample) 
+        {
+            int16_t sample;
+            sample = scale(*(left_ch++));
+            buff[cur_sample * 4    ] = ((sample >> 0) & 0xff);
+            buff[cur_sample * 4 + 1] = ((sample >> 8) & 0xff);
+            sample = scale(*(right_ch++));
+            buff[cur_sample * 4 + 2] = ((sample >> 0) & 0xff);
+            buff[cur_sample * 4 + 3] = ((sample >> 8) & 0xff);
+        }
+    } 
+    else if (pcm->channels == 1) 
+    {
+        for (size_t cur_sample = 0; cur_sample != pcm->length; ++cur_sample) 
+        {
+            int16_t sample;
+            sample = scale(*(left_ch++));
+            buff[cur_sample * 4    ] = ((sample >> 0) & 0xff);
+            buff[cur_sample * 4 + 1] = ((sample >> 8) & 0xff);
+            buff[cur_sample * 4 + 2] = ((sample >> 0) & 0xff);
+            buff[cur_sample * 4 + 3] = ((sample >> 8) & 0xff);
+        }
+    }
+}
+
+
+static uint32_t get_pcm_sound (file_descriptor * _file, uint8_t * pbuf, uint32_t NbrOfData)
+{
+    uint32_t total_read = 0;
+    uint32_t frames = 0;
+    while (frames < (NbrOfData / MP3_FRAME_SIZE))
+    {
+        uint32_t keep = 0;
+        if (mad_data.stream.error != MAD_ERROR_BUFLEN)
+            keep = 0;
+        else if (mad_data.stream.next_frame != NULL)
+            keep = mad_data.stream.bufend - mad_data.stream.next_frame;
+        else if ((mad_data.stream.bufend - mad_data.stream.buffer) < mp3_input_buffer_size)
+            keep = mad_data.stream.bufend - mad_data.stream.buffer;
+        else
+            keep = mp3_input_buffer_size - mp3_frame_size;
+
+        if (keep)
+            memmove(mp3_input_buffer.buffer, mad_data.stream.bufend - keep, keep);
+
+        uint32_t rb = get_all_data(_file, mp3_input_buffer.buffer + keep, mp3_input_buffer_size - keep);
+        mp3_input_buffer.size = keep + rb;
+        total_read += rb;
+
+        mad_stream_buffer(&mad_data.stream, mp3_input_buffer.buffer, rb + keep);
+
+        while (frames < (NbrOfData / MP3_FRAME_SIZE))
+        {
+
+            if (mad_frame_decode(&mad_data.frame, &mad_data.stream)) 
+            {
+                if (MAD_RECOVERABLE(mad_data.stream.error))
+                {
+                    continue;
+                }
+                else if (mad_data.stream.error == MAD_ERROR_BUFLEN)
+                {
+                    break;
+                    continue;
+                }
+                else
+                {
+                    goto break_for;
+                    break;
+                }
+            }
+            mad_synth_frame(&mad_data.synth, &mad_data.frame);
+            frames++;
+            fill_buffer(&mad_data.frame.header, &mad_data.synth.pcm, pbuf + (frames * MP3_FRAME_SIZE));
+        }
+        
+        if (rb == 0)
+            goto break_for;
+    }
+    break_for:
+    return total_read;
 }
 
 void BSP_AUDIO_OUT_TransferComplete_CallBack(void)
