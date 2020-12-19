@@ -18,7 +18,7 @@ void send_cur_song
     buffer[0] = cur_song_info;
     memcpy(buffer + 1, cur_song_name, song_name_sz + 1);
     memcpy(buffer + 1 + song_name_sz + 1, cur_group_name, group_name_sz + 1);
-    CDC_Transmit_FS(buffer, sizeof(buffer));
+    CDC_Transmit_FS((uint8_t *)buffer, sizeof(buffer));
 }
 
 void send_displayed_song 
@@ -35,7 +35,7 @@ void send_displayed_song
     buffer[2] = pos;
     memcpy(buffer + 3, s_group, name_offset + group_name_sz + 1);
     memcpy(buffer + 3 + name_offset + group_name_sz + 1, s_song, name_offset + song_name_sz + 1);
-    CDC_Transmit_FS(buffer, sizeof(buffer));
+    CDC_Transmit_FS((uint8_t *)buffer, sizeof(buffer));
 }
 
 void send_pl_list
@@ -50,7 +50,7 @@ void send_pl_list
     buffer[1] = selected;
     buffer[2] = pos;
     memcpy(buffer + 3, s_playlist, name_offset + pl_name_sz + count_offset + 4);
-    CDC_Transmit_FS(buffer, sizeof(buffer));
+    CDC_Transmit_FS((uint8_t *)buffer, sizeof(buffer));
 }
 
 void send_volume
@@ -63,7 +63,7 @@ void send_volume
     buffer[0] = volume_info;
     memcpy(buffer + 1, s_volume, volume_width);
     memcpy(buffer + 1 + volume_width, s_state, volume_width);
-    CDC_Transmit_FS(buffer, sizeof(buffer));
+    CDC_Transmit_FS((uint8_t *)buffer, sizeof(buffer));
 }
 
 void send_state
@@ -74,6 +74,6 @@ void send_state
     char buffer[2];
     buffer[0] = state_info;
     buffer[1] = state & 0xff;
-    CDC_Transmit_FS(buffer, sizeof(buffer));
+    CDC_Transmit_FS((uint8_t *)buffer, sizeof(buffer));
 }
 

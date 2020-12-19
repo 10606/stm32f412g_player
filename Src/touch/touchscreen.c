@@ -69,7 +69,7 @@ direction_t get_direction (old_touch_state const * ots, int32_t x, int32_t y)
 void touch_check (old_touch_state * ots, view * vv, uint8_t * need_redraw)
 {
     TS_StateTypeDef  TS_State = {0};
-    uint32_t ts_status = BSP_TS_GetState(&TS_State);
+    [[maybe_unused]] uint32_t ts_status = BSP_TS_GetState(&TS_State);
     if (TS_State.touchDetected)
     {
         int32_t x1 = normalize_x(TS_State.touchX[0]);

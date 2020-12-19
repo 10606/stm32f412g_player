@@ -124,31 +124,30 @@ void check_buttons ()
     JOYState_TypeDef JoyState = JOY_NONE;
     JoyState = BSP_JOY_GetState();
   
-    switch (JoyState)
-    {
-    case JOY_UP:
+    if (JoyState == JOY_UP)
         joystick_state.pressed[joy_button_up] = 1;
-        break;
+    else
+        joystick_state.pressed[joy_button_up] = 0;
       
-    case JOY_DOWN:
+    if (JoyState == JOY_DOWN)
         joystick_state.pressed[joy_button_down] = 1;
-        break;
+    else
+        joystick_state.pressed[joy_button_down] = 0;
 
-    case JOY_RIGHT:
+    if (JoyState == JOY_RIGHT)
         joystick_state.pressed[joy_button_right] = 1;
-        break;
+    else
+        joystick_state.pressed[joy_button_right] = 0;
 
-    case JOY_LEFT:
+    if (JoyState == JOY_LEFT)
         joystick_state.pressed[joy_button_left] = 1;
-        break;
+    else
+        joystick_state.pressed[joy_button_left] = 0;
 
-    case JOY_SEL:
+    if (JoyState == JOY_SEL)
         joystick_state.pressed[joy_button_center] = 1;
-        break;
-
-    default:
-        break;
-    }
+    else
+        joystick_state.pressed[joy_button_center] = 0;
 }
 
 void AudioPlay_demo ()

@@ -82,6 +82,7 @@ typedef struct joystick_state_t
 {
     uint8_t pressed[joystick_states_cnt];
     uint8_t process[joystick_states_cnt];
+    uint8_t prev_processed[joystick_states_cnt];
 } joystick_state_t;
 extern joystick_state_t joystick_state;
 

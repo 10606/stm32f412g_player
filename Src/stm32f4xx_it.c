@@ -130,7 +130,12 @@ void TIM2_IRQHandler (void)
         if (joystick_state.pressed[i])
         {
             joystick_state.process[i]++;
-            joystick_state.pressed[i] = 0;
+            //joystick_state.pressed[i] = 0;
+        }
+        else
+        {
+            joystick_state.prev_processed[i] = 0;
+            joystick_state.process[i] = 0;
         }
     }
     

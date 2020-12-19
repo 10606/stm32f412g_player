@@ -9,7 +9,7 @@ void deinit_mad ();
 
 uint32_t no_plb_files = 401;
 
-uint32_t seek_value = (1024 * 256);
+uint32_t seek_value = (1024 * 32);
 
 uint32_t init_view (view * vv, char (* path)[12], uint32_t len, audio_ctl * buffer_ctl)
 {
@@ -353,32 +353,67 @@ uint32_t process_view_center (view * vv, uint8_t * need_redraw)
     return 0;
 }
 
+inline char check_button_state (uint32_t joy_button)
+{
+    char ans = 
+        ((joystick_state.process[joy_button] >= 1) &&
+         (joystick_state.prev_processed[joy_button] == 0)) ||
+        ((joystick_state.process[joy_button] >= 4) &&
+         (joystick_state.prev_processed[joy_button] == 1)) ||
+        ((joystick_state.process[joy_button] >= 1) &&
+         (joystick_state.prev_processed[joy_button] == 2));
+    if (ans)
+    {
+        switch (joystick_state.prev_processed[joy_button])
+        {
+            case 0:
+                joystick_state.process[joy_button] -= 1;
+                break;
+            case 1:
+                joystick_state.process[joy_button] -= 4;
+                break;
+            case 2:
+                joystick_state.process[joy_button] -= 1;
+                break;
+        }
+        joystick_state.prev_processed[joy_button]++;
+        if (joystick_state.prev_processed[joy_button] > 2)
+            joystick_state.prev_processed[joy_button] = 2;
+    }
+    return ans;
+}
+
 uint32_t process_view (view * vv, uint8_t * need_redraw)
 {
-    if (joystick_state.process[joy_button_up] > 1)
+    char flag = 1;
+    while (flag)
     {
-        joystick_state.process[joy_button_up] = 0;
-        process_view_up(vv, need_redraw);
-    }
-    if (joystick_state.process[joy_button_down] > 1)
-    {
-        joystick_state.process[joy_button_down] = 0;
-        process_view_down(vv, need_redraw);
-    }
-    if (joystick_state.process[joy_button_left] > 1)
-    {
-        joystick_state.process[joy_button_left] = 0;
-        process_view_left(vv, need_redraw);
-    }
-    if (joystick_state.process[joy_button_right] > 1)
-    {
-        joystick_state.process[joy_button_right] = 0;
-        process_view_right(vv, need_redraw);
-    }
-    if (joystick_state.process[joy_button_center] > 1)
-    {
-        joystick_state.process[joy_button_center] = 0;
-        process_view_center(vv, need_redraw);
+        flag = 0;
+        if (check_button_state(joy_button_up))
+        {
+            flag = 1;
+            process_view_up(vv, need_redraw);
+        }
+        if (check_button_state(joy_button_down))
+        {
+            flag = 1;
+            process_view_down(vv, need_redraw);
+        }
+        if (check_button_state(joy_button_left))
+        {
+            flag = 1;
+            process_view_left(vv, need_redraw);
+        }
+        if (check_button_state(joy_button_right))
+        {
+            flag = 1;
+            process_view_right(vv, need_redraw);
+        }
+        if (check_button_state(joy_button_center))
+        {
+            flag = 1;
+            process_view_center(vv, need_redraw);
+        }
     }
     return 0;
 }
