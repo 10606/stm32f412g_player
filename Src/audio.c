@@ -57,17 +57,16 @@ audio_ctl  buffer_ctl;
 
 
 static void Audio_SetHint (void);
-static uint32_t GetData (file_descriptor * file, uint8_t *pbuf, uint32_t NbrOfData);
-static uint32_t get_pcm_sound (file_descriptor * _file, uint8_t *pbuf, uint32_t NbrOfData);
+static uint32_t get_pcm_sound (file_descriptor * _file, uint8_t * buffer, uint32_t size);
 AUDIO_ErrorTypeDef AUDIO_Start ();
 uint8_t AUDIO_Process (void);
 volatile uint8_t need_redraw = 0;
 
-#define mp3_input_buffer_size 1536
+#define mp3_input_buffer_size (1 * 1536)
 #define mp3_frame_size 1152
 struct 
 {
-    uint8_t buffer[mp3_input_buffer_size];
+    uint8_t buffer[mp3_input_buffer_size + MAD_BUFFER_GUARD];
     uint32_t size;
 } mp3_input_buffer;
 
@@ -92,6 +91,7 @@ void deinit_mad ()
     mad_stream_finish(&mad_data.stream);
 }
 
+char seeked = 0;
 
 void audio_init ()
 {
@@ -111,7 +111,6 @@ void audio_init ()
     if (BSP_AUDIO_OUT_Init(OUTPUT_DEVICE_HEADPHONE, buffer_ctl.volume, *buffer_ctl.audio_freq_ptr) != 0)
         display_string_c(0, 140, (uint8_t*)"Audio codec fail", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
     
-    init_mad();
 }
 
 void audio_destruct ()
@@ -155,7 +154,10 @@ void check_buttons ()
 void AudioPlay_demo ()
 { 
     if (AUDIO_Start() == AUDIO_ERROR_IO)
+    {
+        deinit_mad();
         return;
+    }
   
     need_redraw = 0;
     display_view(&viewer);
@@ -177,6 +179,7 @@ void AudioPlay_demo ()
         
         if (BSP_SD_IsDetected() != SD_PRESENT)
         {
+            deinit_mad();
             break;
         }
     }
@@ -193,6 +196,7 @@ AUDIO_ErrorTypeDef AUDIO_Start ()
 {
     uint32_t bytesread;
 
+    init_mad();
     if (open_song(&viewer.pl, &buffer_ctl.audio_file))
     {
         display_string_c(0, 152, (uint8_t*)"Not opened", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
@@ -269,12 +273,17 @@ uint8_t AUDIO_Process (void)
             // play song again
             if (buffer_ctl.repeat_mode)
             {
+                deinit_mad();
+                init_mad();
+                seeked = 1;
                 if (f_seek(&buffer_ctl.audio_file, 0)) //TODO repeat mode
                     display_string_c(0, 152, (uint8_t*)"Not seeked", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
             }
             else //or next song
             {
                 next_playlist(&viewer.pl);
+                deinit_mad();
+                init_mad();
                 if (open_song(&viewer.pl, &buffer_ctl.audio_file))
                     display_string_c(0, 152, (uint8_t*)"Not opened", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
                 buffer_ctl.audio_file_size = buffer_ctl.audio_file.size;
@@ -295,6 +304,12 @@ uint8_t AUDIO_Process (void)
                 buffer_ctl.state = BUFFER_OFFSET_NONE;
                 buffer_ctl.fptr += bytesread; 
             }
+            else
+            {
+                //TODO FIXME
+                buffer_ctl.fptr = buffer_ctl.audio_file_size;
+                display_string_c(0, 152, (uint8_t*)"err_read", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
+            }
         }
         /* 2nd half buffer played; so fill it and continue playing from top */    
         if (buffer_ctl.state == BUFFER_OFFSET_FULL)
@@ -307,6 +322,12 @@ uint8_t AUDIO_Process (void)
                 buffer_ctl.state = BUFFER_OFFSET_NONE;
                 buffer_ctl.fptr += bytesread;
             }
+            else
+            {
+                //TODO FIXME
+                buffer_ctl.fptr = buffer_ctl.audio_file_size;
+                display_string_c(0, 152, (uint8_t*)"err_read", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
+            }
         }
         break;
     
@@ -317,12 +338,12 @@ uint8_t AUDIO_Process (void)
     return (uint8_t)error_state;
 }
 
-static uint32_t GetData (file_descriptor * _file, uint8_t * pbuf, uint32_t NbrOfData)
+static uint32_t get_data (file_descriptor * _file, uint8_t * buffer, uint32_t size)
 {
-    uint32_t BytesRead = 0;
+    uint32_t total_read = 0;
     uint32_t ret;
     uint32_t tried = 2;
-    while ((ret = f_read(_file, pbuf, NbrOfData, &BytesRead)) && (tried))
+    while ((ret = f_read(_file, buffer, size, &total_read)) && (tried))
     {
         if (ret == eof_file)
         {
@@ -331,22 +352,22 @@ static uint32_t GetData (file_descriptor * _file, uint8_t * pbuf, uint32_t NbrOf
         --tried;
         display_string_c(0, 120, (uint8_t*)"    Error read", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
     }
-    return BytesRead;
+    return total_read;
 }
 
-static uint32_t get_all_data (file_descriptor * _file, uint8_t *pbuf, uint32_t NbrOfData)
+static uint32_t get_all_data (file_descriptor * _file, uint8_t * buffer, uint32_t size)
 {
-    uint32_t BytesRead = 0;
-    while (BytesRead != NbrOfData)
+    uint32_t total_read = 0;
+    while (total_read != size)
     {
-        uint32_t cnt_read = GetData(_file, pbuf + BytesRead, NbrOfData - BytesRead);
+        uint32_t cnt_read = get_data(_file, buffer + total_read, size - total_read);
         if (cnt_read == 0)
         {
-            return BytesRead;
+            return total_read;
         }
-        BytesRead += cnt_read;
+        total_read += cnt_read;
     }
-    return BytesRead;
+    return total_read;
 }
 
 inline int16_t scale (mad_fixed_t sample) 
@@ -399,6 +420,7 @@ static uint32_t get_pcm_sound (file_descriptor * _file, uint8_t * pbuf, uint32_t
 {
     uint32_t total_read = 0;
     uint32_t frames = 0;
+
     while (frames < (NbrOfData / MP3_FRAME_SIZE))
     {
         uint32_t keep = 0;
@@ -411,6 +433,15 @@ static uint32_t get_pcm_sound (file_descriptor * _file, uint8_t * pbuf, uint32_t
         else
             keep = mp3_input_buffer_size - mp3_frame_size;
 
+        if (seeked)
+        {
+            keep = 0;
+            seeked = 0;
+        }
+        
+        if (keep == mp3_input_buffer_size)
+            keep = mp3_input_buffer_size - mp3_frame_size;
+        
         if (keep)
             memmove(mp3_input_buffer.buffer, mad_data.stream.bufend - keep, keep);
 
@@ -418,31 +449,38 @@ static uint32_t get_pcm_sound (file_descriptor * _file, uint8_t * pbuf, uint32_t
         mp3_input_buffer.size = keep + rb;
         total_read += rb;
 
+        if (rb + keep < mp3_input_buffer_size)
+        {
+            memset(mp3_input_buffer.buffer + keep + rb, 0, MAD_BUFFER_GUARD);
+            keep += MAD_BUFFER_GUARD;
+        }
+
         mad_stream_buffer(&mad_data.stream, mp3_input_buffer.buffer, rb + keep);
 
-        while (frames < (NbrOfData / MP3_FRAME_SIZE))
+        uint32_t tries = 0;
+        while ((frames < (NbrOfData / MP3_FRAME_SIZE)) && (tries < 100))
         {
-
             if (mad_frame_decode(&mad_data.frame, &mad_data.stream)) 
             {
                 if (MAD_RECOVERABLE(mad_data.stream.error))
                 {
+                    tries++;
                     continue;
                 }
                 else if (mad_data.stream.error == MAD_ERROR_BUFLEN)
                 {
                     break;
-                    continue;
                 }
                 else
                 {
+                    deinit_mad();
+                    init_mad();
                     goto break_for;
-                    break;
                 }
             }
             mad_synth_frame(&mad_data.synth, &mad_data.frame);
-            frames++;
             fill_buffer(&mad_data.frame.header, &mad_data.synth.pcm, pbuf + (frames * MP3_FRAME_SIZE));
+            frames++;
         }
         
         if (rb == 0)

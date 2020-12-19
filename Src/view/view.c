@@ -3,6 +3,10 @@
 #include "view.h"
 #include "display.h"
 
+extern char seeked;
+void init_mad ();
+void deinit_mad ();
+
 uint32_t no_plb_files = 401;
 
 uint32_t seek_value = (1024 * 256);
@@ -110,6 +114,7 @@ uint32_t process_view_seek_forward (view * vv, uint8_t * need_redraw)
         new_pos = vv->buffer_ctl->audio_file_size;
     else
         new_pos += seek_value;
+    seeked = 1;
     ret = f_seek(&vv->buffer_ctl->audio_file, new_pos);
     if (ret)
     {
@@ -130,6 +135,8 @@ uint32_t process_view_prev_song (view * vv, uint8_t * need_redraw)
     else
     {
         vv->buffer_ctl->fptr = 0; 
+        deinit_mad();
+        init_mad();
         if (open_song(&vv->pl, &vv->buffer_ctl->audio_file))
         {
             return ret;
@@ -190,6 +197,7 @@ uint32_t process_view_seek_backward (view * vv, uint8_t * need_redraw)
         new_pos = 0;
     else
         new_pos -= seek_value;
+    seeked = 1;
     ret = f_seek(&vv->buffer_ctl->audio_file, new_pos);
     if (ret)
     {
@@ -210,6 +218,8 @@ uint32_t process_view_next_song (view * vv, uint8_t * need_redraw)
     else
     {
         vv->buffer_ctl->fptr = 0; 
+        deinit_mad();
+        init_mad();
         if (open_song(&vv->pl, &vv->buffer_ctl->audio_file))
         {
             return ret;
@@ -287,6 +297,8 @@ uint32_t process_view_right (view * vv, uint8_t * need_redraw)
     case D_PLAYLIST:
         play(&vv->plv, &vv->pl);
         vv->playing_playlist = vv->selected_playlist;
+        deinit_mad();
+        init_mad();
         ret = open_song(&vv->pl, &vv->buffer_ctl->audio_file);
         if (ret)
             return ret;
