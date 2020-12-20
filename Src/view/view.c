@@ -108,10 +108,10 @@ uint32_t process_view_inc_volume (view * vv, uint8_t * need_redraw)
 uint32_t process_view_seek_forward (view * vv, uint8_t * need_redraw)
 {
     uint32_t ret, new_pos;
-    new_pos = vv->buffer_ctl->fptr;
-    if ((vv->buffer_ctl->audio_file_size < seek_value) ||
-        (new_pos > vv->buffer_ctl->audio_file_size - seek_value))
-        new_pos = vv->buffer_ctl->audio_file_size;
+    new_pos = current_position(&vv->buffer_ctl->audio_file);
+    if ((vv->buffer_ctl->audio_file.size < seek_value) ||
+        (new_pos > vv->buffer_ctl->audio_file.size - seek_value))
+        new_pos = vv->buffer_ctl->audio_file.size;
     else
         new_pos += seek_value;
     seeked = 1;
@@ -120,7 +120,6 @@ uint32_t process_view_seek_forward (view * vv, uint8_t * need_redraw)
     {
         return ret;
     }
-    vv->buffer_ctl->fptr = new_pos;
     return 0;
 }
 
@@ -134,14 +133,15 @@ uint32_t process_view_prev_song (view * vv, uint8_t * need_redraw)
     }
     else
     {
-        vv->buffer_ctl->fptr = 0; 
         deinit_mad();
         init_mad();
-        if (open_song(&vv->pl, &vv->buffer_ctl->audio_file))
-        {
+        if ((ret = open_song(&vv->pl, &vv->buffer_ctl->audio_file)))
             return ret;
-        }
-        vv->buffer_ctl->audio_file_size = vv->buffer_ctl->audio_file.size;
+        seeked = 1;
+        get_length(&vv->buffer_ctl->audio_file, &vv->buffer_ctl->info);
+        if ((ret = f_seek(&vv->buffer_ctl->audio_file, vv->buffer_ctl->info.offset)))
+            return ret;
+        vv->buffer_ctl->audio_file.size = vv->buffer_ctl->audio_file.size;
     }
     *need_redraw = 1;
     return 0;
@@ -192,7 +192,7 @@ uint32_t process_view_dec_volume (view * vv, uint8_t * need_redraw)
 uint32_t process_view_seek_backward (view * vv, uint8_t * need_redraw)
 {
     uint32_t ret, new_pos;
-    new_pos = vv->buffer_ctl->fptr;
+    new_pos = current_position(&vv->buffer_ctl->audio_file);
     if (new_pos < seek_value)
         new_pos = 0;
     else
@@ -203,7 +203,6 @@ uint32_t process_view_seek_backward (view * vv, uint8_t * need_redraw)
     {
         return ret;
     }
-    vv->buffer_ctl->fptr = new_pos;
     return 0;
 }
 
@@ -217,14 +216,15 @@ uint32_t process_view_next_song (view * vv, uint8_t * need_redraw)
     }
     else
     {
-        vv->buffer_ctl->fptr = 0; 
         deinit_mad();
         init_mad();
-        if (open_song(&vv->pl, &vv->buffer_ctl->audio_file))
-        {
+        if ((ret = open_song(&vv->pl, &vv->buffer_ctl->audio_file)))
             return ret;
-        }
-        vv->buffer_ctl->audio_file_size = vv->buffer_ctl->audio_file.size;
+        seeked = 1;
+        get_length(&vv->buffer_ctl->audio_file, &vv->buffer_ctl->info);
+        if ((ret = f_seek(&vv->buffer_ctl->audio_file, vv->buffer_ctl->info.offset)))
+            return ret;
+        vv->buffer_ctl->audio_file.size = vv->buffer_ctl->audio_file.size;
     }
     *need_redraw = 1;
     return 0;
@@ -302,8 +302,11 @@ uint32_t process_view_right (view * vv, uint8_t * need_redraw)
         ret = open_song(&vv->pl, &vv->buffer_ctl->audio_file);
         if (ret)
             return ret;
-        vv->buffer_ctl->audio_file_size = vv->buffer_ctl->audio_file.size;
-        vv->buffer_ctl->fptr = 0;
+        seeked = 1;
+        get_length(&vv->buffer_ctl->audio_file, &vv->buffer_ctl->info);
+        if ((ret = f_seek(&vv->buffer_ctl->audio_file, vv->buffer_ctl->info.offset)))
+            return ret;
+        vv->buffer_ctl->audio_file.size = vv->buffer_ctl->audio_file.size;
         *need_redraw = 1;
         break;
         

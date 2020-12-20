@@ -67,6 +67,7 @@ Src/usb/usbd_conf.c \
 Src/usb/usbd_desc.c \
 Src/usb/usb_device.c \
 Src/usb/usb_send.c \
+Src/audio/id3.c \
 ../../BSP/f412g_disco/stm32412g_discovery.c \
 ../../BSP/f412g_disco/stm32412g_discovery_sd.c \
 ../../BSP/f412g_disco/stm32412g_discovery_audio.c \
@@ -206,6 +207,7 @@ C_INCLUDES =  \
 -ISrc/touch \
 -ISrc/usb \
 -ISrc/mp3 \
+-ISrc/audio \
 -I../../STM32CubeF4/Middlewares/ST/STM32_USB_Device_Library/Core/Inc \
 -I../../STM32CubeF4/Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc \
 -I../../../Utilities \

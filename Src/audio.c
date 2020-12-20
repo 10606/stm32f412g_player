@@ -62,8 +62,8 @@ AUDIO_ErrorTypeDef AUDIO_Start ();
 uint8_t AUDIO_Process (void);
 volatile uint8_t need_redraw = 0;
 
-#define mp3_input_buffer_size (1 * 1536)
-#define mp3_frame_size 1152
+#define mp3_input_buffer_size 1536LU
+#define mp3_frame_size 1152LU
 struct 
 {
     uint8_t buffer[mp3_input_buffer_size + MAD_BUFFER_GUARD];
@@ -201,7 +201,9 @@ AUDIO_ErrorTypeDef AUDIO_Start ()
         display_string_c(0, 152, (uint8_t*)"Not opened", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
         return AUDIO_ERROR_IO;
     }
-    buffer_ctl.audio_file_size = buffer_ctl.audio_file.size;
+    get_length(&buffer_ctl.audio_file, &buffer_ctl.info);
+    if (f_seek(&buffer_ctl.audio_file, buffer_ctl.info.offset))
+        display_string_c(0, 152, (uint8_t*)"Not seeked", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
 
     buffer_ctl.state = BUFFER_OFFSET_NONE;
     bytesread = get_pcm_sound(&buffer_ctl.audio_file,
@@ -211,7 +213,6 @@ AUDIO_ErrorTypeDef AUDIO_Start ()
     {
         BSP_AUDIO_OUT_Play((uint16_t*)&buffer_ctl.buff[0], AUDIO_BUFFER_SIZE);
         buffer_ctl.audio_state = AUDIO_STATE_PLAYING;      
-        buffer_ctl.fptr = bytesread;
         return AUDIO_ERROR_NONE;
     }
     return AUDIO_ERROR_IO;
@@ -226,11 +227,27 @@ typedef struct tik_t
 
 void byte_to_time (tik_t * time, uint32_t value)
 {
+    if (value >= buffer_ctl.info.offset)
+        value -= buffer_ctl.info.offset;
+    else
+        value = 0;
+
+    uint32_t time_ms = 
+        (float)(buffer_ctl.info.length) /
+        (float)(buffer_ctl.audio_file.size - buffer_ctl.info.offset) *
+        (float)(value);
+    
+    time->ms = time_ms % 1000;
+    time->sec = (time_ms / 1000) % 60;
+    time->min = time_ms / 1000 / 60;
+    
+    /*
     uint32_t divider = *buffer_ctl.audio_freq_ptr;
     value = value / 2 / 2; // 16 bit (2 bytes)   2 channels
     time->min = (value / divider) / 60;
     time->sec = (value / divider) % 60;
     time->ms = (value % divider) * 1000 / divider;
+    */
 }
 
 uint8_t AUDIO_Process (void)
@@ -246,8 +263,8 @@ uint8_t AUDIO_Process (void)
             tik_t cur_time;
             tik_t total_time;
       
-            byte_to_time(&cur_time, buffer_ctl.fptr);
-            byte_to_time(&total_time, buffer_ctl.audio_file_size);
+            byte_to_time(&cur_time, current_position(&buffer_ctl.audio_file));
+            byte_to_time(&total_time, buffer_ctl.audio_file.size);
 
             char str[str_time_size];
             snprintf
@@ -266,17 +283,16 @@ uint8_t AUDIO_Process (void)
         }
 
         //end of song reached
-        if (buffer_ctl.fptr >= buffer_ctl.audio_file_size)
+        if (current_position(&buffer_ctl.audio_file) >= buffer_ctl.audio_file.size)
         {
-            buffer_ctl.fptr = 0; 
             // play song again
             if (buffer_ctl.repeat_mode)
             {
                 deinit_mad();
                 init_mad();
-                seeked = 1;
-                if (f_seek(&buffer_ctl.audio_file, 0)) //TODO repeat mode
+                if (f_seek(&buffer_ctl.audio_file, buffer_ctl.info.offset)) 
                     display_string_c(0, 152, (uint8_t*)"Not seeked", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
+                seeked = 1;
             }
             else //or next song
             {
@@ -285,7 +301,10 @@ uint8_t AUDIO_Process (void)
                 init_mad();
                 if (open_song(&viewer.pl, &buffer_ctl.audio_file))
                     display_string_c(0, 152, (uint8_t*)"Not opened", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
-                buffer_ctl.audio_file_size = buffer_ctl.audio_file.size;
+                seeked = 1;
+                get_length(&buffer_ctl.audio_file, &buffer_ctl.info);
+                if (f_seek(&buffer_ctl.audio_file, buffer_ctl.info.offset))
+                    display_string_c(0, 152, (uint8_t*)"Not seeked", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
             }
             error_state = AUDIO_ERROR_EOF;
             display_view(&viewer);
@@ -301,12 +320,10 @@ uint8_t AUDIO_Process (void)
             if (bytesread > 0)
             { 
                 buffer_ctl.state = BUFFER_OFFSET_NONE;
-                buffer_ctl.fptr += bytesread; 
             }
             else
             {
                 //TODO FIXME
-                buffer_ctl.fptr = buffer_ctl.audio_file_size;
                 display_string_c(0, 152, (uint8_t*)"err_read", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
             }
         }
@@ -319,12 +336,10 @@ uint8_t AUDIO_Process (void)
             if (bytesread > 0)
             {
                 buffer_ctl.state = BUFFER_OFFSET_NONE;
-                buffer_ctl.fptr += bytesread;
             }
             else
             {
                 //TODO FIXME
-                buffer_ctl.fptr = buffer_ctl.audio_file_size;
                 display_string_c(0, 152, (uint8_t*)"err_read", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
             }
         }
@@ -423,8 +438,10 @@ static uint32_t get_pcm_sound (file_descriptor * _file, uint8_t * pbuf, uint32_t
     while (frames < (NbrOfData / MP3_FRAME_SIZE))
     {
         uint32_t keep = 0;
-        if (mad_data.stream.error != MAD_ERROR_BUFLEN)
-            keep = 0;
+        if ((mad_data.stream.next_frame != NULL) && (mad_data.stream.error == MAD_ERROR_NONE))
+            keep = mad_data.stream.bufend - mad_data.stream.next_frame;
+        else if (mad_data.stream.error != MAD_ERROR_BUFLEN)
+            keep = 0; //FIXME
         else if (mad_data.stream.next_frame != NULL)
             keep = mad_data.stream.bufend - mad_data.stream.next_frame;
         else if ((mad_data.stream.bufend - mad_data.stream.buffer) < mp3_input_buffer_size)
