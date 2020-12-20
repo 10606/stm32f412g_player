@@ -308,4 +308,8 @@ clean:
 #######################################
 -include $(wildcard $(BUILD_DIR)/*.d)
 
+
+load: build/f412g_2.bin
+	st-flash --reset write build/f412g_2.bin 0x08000000
+
 # *** EOF ***
