@@ -90,7 +90,7 @@ uint32_t get_mp3_header (file_descriptor * fd, mp3_header * mp3_h, uint32_t id3_
     uint32_t total_read = 2;
     while (total_read < sizeof(mp3_header))
     {
-        if ((ret = f_read(fd, mp3_h->value + total_read, sizeof(mp3_header) - total_read, &rb)))
+        if ((ret = f_read(fd, (char *)mp3_h->value + total_read, sizeof(mp3_header) - total_read, &rb)))
             return 0xffffffff;
         total_read += rb;
     }

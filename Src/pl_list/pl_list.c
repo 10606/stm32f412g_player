@@ -86,7 +86,7 @@ uint32_t init_pl_list (pl_list * pll, char (* dir_name)[12], size_t len_name)
         uint32_t bread;
         while (tread != sizeof(header))
         {
-            res = f_read(&file, &header, sizeof(header) - tread, &bread);
+            res = f_read(&file, (char *)&header + tread, sizeof(header) - tread, &bread);
             if (res != 0)
             {
                 pll->cnt = i;
