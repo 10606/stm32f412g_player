@@ -361,7 +361,7 @@ inline char check_button_state (uint32_t joy_button)
     char ans = 
         ((joystick_state.process[joy_button] >= 1) &&
          (joystick_state.prev_processed[joy_button] == 0)) ||
-        ((joystick_state.process[joy_button] >= 4) &&
+        ((joystick_state.process[joy_button] >= 8) &&
          (joystick_state.prev_processed[joy_button] == 1)) ||
         ((joystick_state.process[joy_button] >= 1) &&
          (joystick_state.prev_processed[joy_button] == 2));
@@ -373,7 +373,7 @@ inline char check_button_state (uint32_t joy_button)
                 joystick_state.process[joy_button] -= 1;
                 break;
             case 1:
-                joystick_state.process[joy_button] -= 4;
+                joystick_state.process[joy_button] -= 8;
                 break;
             case 2:
                 joystick_state.process[joy_button] -= 1;

@@ -163,7 +163,7 @@ void init_timer ()
 {
     RCC->APB1ENR |= RCC_APB1ENR_TIM2EN;
     TIM2->SMCR &= ~TIM_SMCR_SMS;
-    TIM2->PSC = 359;//719;
+    TIM2->PSC = 179;//359;//719;
     TIM2->ARR = 24999;
     TIM2->DIER |= TIM_DIER_UIE;
     NVIC_EnableIRQ(TIM2_IRQn);
