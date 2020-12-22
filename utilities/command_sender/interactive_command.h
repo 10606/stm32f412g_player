@@ -17,8 +17,8 @@ const char * const int_command_volume_down = "\033[23~";
 const char * const int_command_seek_forward = "f";
 const char * const int_command_seek_backward = "b";
 
-const char * const int_command_next_song = "n";
-const char * const int_command_prev_song = "p";
+const char * const int_command_next_song = ">";
+const char * const int_command_prev_song = "<";
 
 const char * const int_commands[] =
 {

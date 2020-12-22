@@ -43,14 +43,15 @@ struct base
 {
     typedef std::pair <size_t, size_t> coord;
     
-    static const constexpr coord cur_song_0{5, 1};
-    static const constexpr coord cur_song_1{5, 2};
+    static const constexpr coord cur_song_0{10, 1};
+    static const constexpr coord cur_song_1{10, 2};
 
     static const constexpr coord disp_song_0{name_offset + pl_name_sz + count_offset + 4 + 2, 4};
     static const constexpr coord disp_song_1{name_offset + pl_name_sz + count_offset + 4 + 2, 5};
     static const constexpr coord disp_song_a{0, 2};
 
     static const constexpr coord pl_list_0{0, 4};
+    static const constexpr coord pl_list_1{0, 5};
     static const constexpr coord pl_list_a{0, 2};
     
     static const constexpr coord volume_0{name_offset + pl_name_sz + count_offset + 4 + 2 + 5, 1};
@@ -114,10 +115,10 @@ const std::vector  //cmd
     
     { //cur_song_info
         { //group
-            {{color::yellow}}
+            {{color::green}}
         },
         { //song
-            {{color::yellow}}
+            {{color::green}}
         }
     },
     
@@ -126,17 +127,17 @@ const std::vector  //cmd
             { //not selected
                 {
                     color::white, //0
-                    color::yellow, //selected
-                    color::green, //played
-                    color::yellow //selected and played
+                    color::cyan, //selected
+                    color::red, //played
+                    color::cyan //selected and played
                 }
             },
             { //selected
                 {
                     color::cyan, //0
-                    color::yellow, //selected
-                    color::green, //played
-                    color::yellow //selected and played
+                    color::green, //selected
+                    color::yellow, //played
+                    color::green //selected and played
                 }
             }
         },
@@ -144,37 +145,55 @@ const std::vector  //cmd
             { //not selected
                 {
                     color::white, //0
-                    color::yellow, //selected
-                    color::green, //played
-                    color::green //selected and played
+                    color::cyan, //selected
+                    color::red, //played
+                    color::red //selected and played
                 }
             },
             { //selected
                 {
                     color::cyan, //0
-                    color::yellow, //selected
-                    color::green, //played
-                    color::green //selected and played
+                    color::green, //selected
+                    color::yellow, //played
+                    color::yellow //selected and played
                 }
             }
         }
     },
     
     { //pl_list_info
-        {
+        { //first line
             { //not selected
                 {
                     color::white, //0
-                    color::yellow, //selected
-                    color::green, //played
-                    color::yellow //selected and played
+                    color::cyan, //selected
+                    color::red, //played
+                    color::cyan //selected and played
                 }
             },
             { //selected
                 {
                     color::cyan, //0
-                    color::yellow, //selected
-                    color::green, //played
+                    color::green, //selected
+                    color::yellow, //played
+                    color::green //selected and played
+                }
+            }
+        },
+        { //second line
+            { //not selected
+                {
+                    color::white, //0
+                    color::cyan, //selected
+                    color::red, //played
+                    color::red //selected and played
+                }
+            },
+            { //selected
+                {
+                    color::cyan, //0
+                    color::green, //selected
+                    color::yellow, //played
                     color::yellow //selected and played
                 }
             }
@@ -219,7 +238,7 @@ inline void set_color (bool current, char cmd, bool line, char s = 0)
     }
     if (cmd == pl_list_info)
     {
-        line = 0;
+        //line = 0;
     }
     if (cmd == volume_info)
     {
@@ -227,6 +246,17 @@ inline void set_color (bool current, char cmd, bool line, char s = 0)
     }
     std::cout << colors::table[cmd][line][current][s];
 }
+
+bool is_spaces (std::string const & str)
+{
+    for (std::string::const_iterator it = str.begin(); it != str.end(); ++it)
+    {
+        if ((!std::isspace(*it)) && (*it != 0))
+            return 0;
+    }
+    return 1;
+}
+
 
 void extract (std::string & data, size_t & state)
 {
@@ -278,6 +308,12 @@ void extract (std::string & data, size_t & state)
                 set_cursor(base::pl_list_0 + static_cast <size_t> (data[pos + 2]) * base::pl_list_a);
                 set_color(state == 0, pl_list_info, 0, data[pos + 1]);
                 std::cout << data.substr(pos + 3, name_offset + pl_name_sz + count_offset + 4);
+                if (!is_spaces(data.substr(pos + 3, name_offset + pl_name_sz + count_offset + 4)))
+                {
+                    set_cursor(base::pl_list_1 + static_cast <size_t> (data[pos + 2]) * base::pl_list_a);
+                    set_color(state == 0, pl_list_info, 1, data[pos + 1]);
+                    std::cout << "  -------------------------------  ";
+                }
                 std::cout << color::defaul_color;
                 pos += name_offset + pl_name_sz + count_offset + 4 + 3;
                 break;
