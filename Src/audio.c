@@ -34,6 +34,7 @@
   *
   ******************************************************************************
   */
+#include "util.h"
 #include "mad.h"
 #include "view.h"
 #include "audio.h"
@@ -96,7 +97,7 @@ char seeked = 0;
 void audio_init ()
 {
     buffer_ctl.repeat_mode = 0;
-    buffer_ctl.audio_freq_ptr = audio_freq + 5; /*AF_44K*/
+    buffer_ctl.audio_freq = *(audio_freq + 5); /*AF_44K*/
     uint8_t status = 0;
     buffer_ctl.pause_status = 0; /* 0 when audio is running, 1 when Pause is on */
     buffer_ctl.volume = AUDIO_DEFAULT_VOLUME;
@@ -108,7 +109,7 @@ void audio_init ()
     if (status != HAL_OK)
         display_string_c(0, 140, (uint8_t*)"Joystick init error", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
   
-    if (BSP_AUDIO_OUT_Init(OUTPUT_DEVICE_HEADPHONE, buffer_ctl.volume, *buffer_ctl.audio_freq_ptr) != 0)
+    if (BSP_AUDIO_OUT_Init(OUTPUT_DEVICE_HEADPHONE, buffer_ctl.volume, buffer_ctl.audio_freq) != 0)
         display_string_c(0, 140, (uint8_t*)"Audio codec fail", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
     
 }
@@ -242,7 +243,7 @@ void byte_to_time (tik_t * time, uint32_t value)
     time->min = time_ms / 1000 / 60;
     
     /*
-    uint32_t divider = *buffer_ctl.audio_freq_ptr;
+    uint32_t divider = buffer_ctl.audio_freq;
     value = value / 2 / 2; // 16 bit (2 bytes)   2 channels
     time->min = (value / divider) / 60;
     time->sec = (value / divider) % 60;
@@ -393,18 +394,25 @@ inline int16_t scale (mad_fixed_t sample)
      return sample >> (MAD_F_FRACBITS + 1 - 16);
 }
 
-void fill_buffer
+uint32_t fill_buffer
 (
     struct mad_header const * header, 
     struct mad_pcm * pcm,
-    uint8_t * buff //[pcm->length * 4] //4608
+    uint8_t * buff, //[pcm->length * 4] //4608
+    uint32_t pcm_length_max
 ) 
 {
+    if (pcm->samplerate != buffer_ctl.audio_freq)
+    {
+        BSP_AUDIO_OUT_SetFrequency(pcm->samplerate);
+        buffer_ctl.audio_freq = pcm->samplerate;
+    }
     mad_fixed_t const * left_ch = pcm->samples[0];
     mad_fixed_t const * right_ch = pcm->samples[1];
+    uint32_t samples = min(pcm->length, pcm_length_max);
     if (pcm->channels == 2)
     {
-        for (size_t cur_sample = 0; cur_sample != pcm->length; ++cur_sample) 
+        for (size_t cur_sample = 0; cur_sample != samples; ++cur_sample) 
         {
             int16_t sample;
             sample = scale(*(left_ch++));
@@ -417,7 +425,7 @@ void fill_buffer
     } 
     else if (pcm->channels == 1) 
     {
-        for (size_t cur_sample = 0; cur_sample != pcm->length; ++cur_sample) 
+        for (size_t cur_sample = 0; cur_sample != samples; ++cur_sample) 
         {
             int16_t sample;
             sample = scale(*(left_ch++));
@@ -427,6 +435,7 @@ void fill_buffer
             buff[cur_sample * 4 + 3] = ((sample >> 8) & 0xff);
         }
     }
+    return pcm->length * 4;
 }
 
 
@@ -435,7 +444,7 @@ static uint32_t get_pcm_sound (file_descriptor * _file, uint8_t * pbuf, uint32_t
     uint32_t total_read = 0;
     uint32_t frames = 0;
 
-    while (frames < (NbrOfData / MP3_FRAME_SIZE))
+    while (frames < NbrOfData)
     {
         uint32_t keep = 0;
         if ((mad_data.stream.next_frame != NULL) && (mad_data.stream.error == MAD_ERROR_NONE))
@@ -474,7 +483,7 @@ static uint32_t get_pcm_sound (file_descriptor * _file, uint8_t * pbuf, uint32_t
         mad_stream_buffer(&mad_data.stream, mp3_input_buffer.buffer, rb + keep);
 
         uint32_t tries = 0;
-        while ((frames < (NbrOfData / MP3_FRAME_SIZE)) && (tries < 100))
+        while ((frames < NbrOfData) && (tries < 100))
         {
             if (mad_frame_decode(&mad_data.frame, &mad_data.stream)) 
             {
@@ -495,8 +504,7 @@ static uint32_t get_pcm_sound (file_descriptor * _file, uint8_t * pbuf, uint32_t
                 }
             }
             mad_synth_frame(&mad_data.synth, &mad_data.frame);
-            fill_buffer(&mad_data.frame.header, &mad_data.synth.pcm, pbuf + (frames * MP3_FRAME_SIZE));
-            frames++;
+            frames += fill_buffer(&mad_data.frame.header, &mad_data.synth.pcm, pbuf + frames, AUDIO_BUFFER_SIZE - frames);
         }
         
         if (rb == 0)

@@ -7,7 +7,7 @@
 
 //#define AUDIO_BUFFER_SIZE       8192  * 2
 //#define AUDIO_BUFFER_SIZE       12288 
-#define MP3_FRAMES_IN_BUFFER    2
+#define MP3_FRAMES_IN_BUFFER    4
 #define MP3_FRAME_SIZE          4608
 #define AUDIO_BUFFER_SIZE       (MP3_FRAMES_IN_BUFFER * MP3_FRAME_SIZE)
 #define AUDIO_DEFAULT_VOLUME    70
@@ -32,7 +32,7 @@ typedef struct audio_ctl {
     AUDIO_PLAYBACK_StateTypeDef audio_state;
     uint32_t volume;
     uint32_t pause_status;
-    uint32_t *audio_freq_ptr;
+    uint32_t audio_freq;
     char repeat_mode;
     mp3_info info;
 } audio_ctl;

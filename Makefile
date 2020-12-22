@@ -208,6 +208,7 @@ C_INCLUDES =  \
 -ISrc/usb \
 -ISrc/mp3 \
 -ISrc/audio \
+-ISrc/util \
 -I../../STM32CubeF4/Middlewares/ST/STM32_USB_Device_Library/Core/Inc \
 -I../../STM32CubeF4/Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc \
 -I../../../Utilities \
