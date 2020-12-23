@@ -44,7 +44,7 @@ const char * const int_commands[] =
     int_command_next_song,  //0x0c
     int_command_prev_song,  //0x0d
 
-    "",  //0x0e - command_send_info
+    "R",  //0x0e - command_send_info
     
     "q" //0x0f - quit
 };

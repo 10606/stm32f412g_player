@@ -99,6 +99,7 @@ struct escape_buffer
                     std::cout.flush();
                     std::exit(0);
                 }
+                //std::cerr << "send " << static_cast <uint32_t> (i) << "\n";
                 if (to_write.empty())
                     mod_fd(EPOLLIN | EPOLLOUT);
                 to_write.push_back(i);
