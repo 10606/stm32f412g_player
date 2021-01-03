@@ -50,6 +50,7 @@
 #include "play.h"
 #include "view.h"
 #include "FAT.h"
+#include "sd_card_operation.h"
 
 #include "usb_device.h"
 #include "usbd_cdc_if.h"
@@ -61,7 +62,6 @@ void Error_Handler (void);
 void audio_init ();
 void AudioPlay_demo ();
 void audio_destruct ();
-DSTATUS SD_initialize (BYTE);
 
 #include "stm32f4xx_hal_gpio.h"
 #define JOY_LEFT_Pin        GPIO_PIN_15
@@ -109,27 +109,16 @@ void init_base () //joystick, led, LCD
 uint32_t init_fs (char (* path)[12], uint32_t len)
 {
     while (BSP_SD_IsDetected() != SD_PRESENT)
-    {
         display_err();
-    }
 
-    while (SD_initialize((BYTE)0))
+    while (sd_card_init())
     {}
-    if (!SD_initialize((BYTE)0))
+    /* Open filesystem */
+    global_info.sector_size = 512;
+    if (init_fatfs())
     {
-        if (Storage_Init())
-            return 1;
-        /* Open filesystem */
-        global_info.sector_size = 512;
-        if (init_fatfs())
-        {
-            display_string_c(0, 152, (uint8_t*)"Not initialized...", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
-            return 2;
-        }
-    }
-    else
-    {
-        return 3;
+        display_string_c(0, 152, (uint8_t*)"Not initialized...", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
+        return 2;
     }
     return 0;
 }

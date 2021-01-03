@@ -51,9 +51,6 @@
 #include "stm32412g_discovery_audio.h"
 #include "stm32412g_discovery_ts.h"
 #include <stdlib.h>
-#include "fatfs_storage.h"
-
-#include "sd_diskio.h"
 
 typedef enum {
     AUDIO_ERROR_NONE = 0,

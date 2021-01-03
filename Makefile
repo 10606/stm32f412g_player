@@ -37,9 +37,8 @@ BUILD_DIR = build
 # C sources
 C_SOURCES =  \
 Src/main.c \
-Src/audio.c \
-Src/fatfs_storage.c \
-Src/sd_diskio.c  \
+Src/audio/audio.c \
+Src/sd_card/sd_card_operation.c  \
 Src/stm32f4xx_it.c  \
 Src/system_stm32f4xx.c \
 Src/display/display_playlist.c \
@@ -209,6 +208,7 @@ C_INCLUDES =  \
 -ISrc/mp3 \
 -ISrc/audio \
 -ISrc/util \
+-ISrc/sd_card \
 -I../../STM32CubeF4/Middlewares/ST/STM32_USB_Device_Library/Core/Inc \
 -I../../STM32CubeF4/Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc \
 -I../../../Utilities \
