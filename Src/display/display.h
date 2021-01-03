@@ -11,7 +11,6 @@
 #include "stm32412g_discovery_audio.h"
 #include <stdint.h>
 
-uint8_t AUDIO_Process(void);
 void display_cur_song (playlist * pl_p, char to_screen);
 void display_pl_list (pl_list * pll, uint32_t playing_pl, playlist * pl_p, char to_screen);
 void display_playlist (playlist_view * plv, playlist * pl_p, int state, char to_screen);

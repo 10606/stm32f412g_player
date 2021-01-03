@@ -51,25 +51,24 @@
 #include "view.h"
 #include "FAT.h"
 #include "sd_card_operation.h"
-
+#include "stm32f4xx_hal_gpio.h"
 #include "usb_device.h"
 #include "usbd_cdc_if.h"
 
-view viewer;
 
-void SystemClock_Config (void);
-void Error_Handler (void);
-void audio_init ();
-void AudioPlay_demo ();
-void audio_destruct ();
-
-#include "stm32f4xx_hal_gpio.h"
 #define JOY_LEFT_Pin        GPIO_PIN_15
 #define JOY_LEFT_GPIO_Port  GPIOF
 #define JOY_UP_Pin          GPIO_PIN_0
 #define JOY_UP_GPIO_Port    GPIOG
 #define JOY_DOWN_Pin        GPIO_PIN_1
 #define JOY_DOWN_GPIO_Port  GPIOG
+
+
+view viewer;
+
+void SystemClock_Config (void);
+void Error_Handler (void);
+
 
 void init_base () //joystick, led, LCD
 {
@@ -210,7 +209,7 @@ int main (void)
         }
 
         counter = 0;
-        AudioPlay_demo();
+        audio_play();
         counter++;
 
         audio_destruct();
@@ -221,50 +220,11 @@ int main (void)
 void Error_Handler (void)
 {
     BSP_LED_On(LED3);
-    while(1)
+    while (1)
     {}
 }
 
-/*
 void SystemClock_Config (void)
-{
-    RCC_ClkInitTypeDef RCC_ClkInitStruct;
-    RCC_OscInitTypeDef RCC_OscInitStruct;
-
-    HAL_StatusTypeDef ret = HAL_OK;
-
-    __HAL_RCC_PWR_CLK_ENABLE();
-    __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
-
-    RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
-    RCC_OscInitStruct.HSEState = RCC_HSE_ON;
-    RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-    RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-    RCC_OscInitStruct.PLL.PLLM = 8;
-    RCC_OscInitStruct.PLL.PLLN = 200;
-    RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-    RCC_OscInitStruct.PLL.PLLQ = 7;
-    RCC_OscInitStruct.PLL.PLLR = 2;
-    ret = HAL_RCC_OscConfig(&RCC_OscInitStruct);
-    if (ret != HAL_OK)
-    {
-        while (1) {} 
-    }
-
-    RCC_ClkInitStruct.ClockType = (RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2);
-    RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
-    RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-    RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
-    RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
-    ret = HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_3);
-    if (ret != HAL_OK)
-    {
-        while (1) {}
-    }
-}
-*/
-
-void SystemClock_Config(void)
 {
     RCC_OscInitTypeDef RCC_OscInitStruct = {0};
     RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
@@ -284,9 +244,7 @@ void SystemClock_Config(void)
     RCC_OscInitStruct.PLL.PLLQ = 3;
     RCC_OscInitStruct.PLL.PLLR = 2;
     if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-    {
         Error_Handler();
-    }
     RCC_ClkInitStruct.ClockType = 
         RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
     RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
@@ -295,9 +253,7 @@ void SystemClock_Config(void)
     RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
     if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
-    {
         Error_Handler();
-    }
     PeriphClkInitStruct.PeriphClockSelection = 
         RCC_PERIPHCLK_I2S_APB1 | RCC_PERIPHCLK_SDIO | RCC_PERIPHCLK_CLK48;
     PeriphClkInitStruct.PLLI2S.PLLI2SN = 50;
@@ -309,9 +265,7 @@ void SystemClock_Config(void)
     PeriphClkInitStruct.PLLI2SSelection = RCC_PLLI2SCLKSOURCE_PLLSRC;
     PeriphClkInitStruct.I2sApb1ClockSelection = RCC_I2SAPB1CLKSOURCE_PLLI2S;
     if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
-    {
         Error_Handler();
-    }
     HAL_RCC_MCOConfig(RCC_MCO1, RCC_MCO1SOURCE_HSI, RCC_MCODIV_1);
 }
 
@@ -337,7 +291,7 @@ void HAL_GPIO_EXTI_Callback (uint16_t GPIO_Pin)
 }
 
 #ifdef  USE_FULL_ASSERT
-void assert_failed(uint8_t* file, uint32_t line)
+void assert_failed (uint8_t * file, uint32_t line)
 {
     while (1)
     {}

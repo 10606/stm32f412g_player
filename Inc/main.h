@@ -51,17 +51,13 @@
 #include "stm32412g_discovery_audio.h"
 #include "stm32412g_discovery_ts.h"
 #include <stdlib.h>
-
-typedef enum {
-    AUDIO_ERROR_NONE = 0,
-    AUDIO_ERROR_NOTREADY,
-    AUDIO_ERROR_IO,
-    AUDIO_ERROR_EOF,
-} AUDIO_ErrorTypeDef;
+#include "view.h"
 
 #define LCD_SCREEN_WIDTH              240
 #define LCD_SCREEN_HEIGHT             240
 #define RGB565_BYTE_PER_PIXEL         2
+
+extern view viewer;
 
 #endif /* __MAIN_H */
 

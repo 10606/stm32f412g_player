@@ -14,30 +14,43 @@
 #define HEADBAND_HEIGHT         72
 
 typedef enum {
+    AUDIO_ERROR_NONE = 0,
+    AUDIO_ERROR_NOTREADY,
+    AUDIO_ERROR_IO,
+    AUDIO_ERROR_EOF,
+} audio_error_t;
+
+typedef enum {
     AUDIO_STATE_IDLE = 0,
     AUDIO_STATE_INIT,    
     AUDIO_STATE_PLAYING,  
-} AUDIO_PLAYBACK_StateTypeDef;
+} audio_playback_state_t;
 
 typedef enum {
     BUFFER_OFFSET_NONE = 0,  
     BUFFER_OFFSET_HALF,  
     BUFFER_OFFSET_FULL,     
-} BUFFER_StateTypeDef;
+} buffer_state_t;
 
 typedef struct audio_ctl {
     file_descriptor audio_file;
     uint8_t buff[AUDIO_BUFFER_SIZE];
-    BUFFER_StateTypeDef state;
-    AUDIO_PLAYBACK_StateTypeDef audio_state;
+    buffer_state_t state;
+    audio_playback_state_t audio_state;
     uint32_t volume;
     uint32_t pause_status;
     uint32_t audio_freq;
     char repeat_mode;
+    char seeked;
     mp3_info info;
 } audio_ctl;
-
 extern audio_ctl  buffer_ctl;
+
+
+void audio_init ();
+void audio_play ();
+void audio_destruct ();
+uint8_t audio_process ();
 
 #endif
 

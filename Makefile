@@ -38,6 +38,8 @@ BUILD_DIR = build
 C_SOURCES =  \
 Src/main.c \
 Src/audio/audio.c \
+Src/joystick/joystick.c \
+Src/audio/mp3.c \
 Src/sd_card/sd_card_operation.c  \
 Src/stm32f4xx_it.c  \
 Src/system_stm32f4xx.c \
@@ -48,14 +50,14 @@ Src/playlist/light_playlist.c \
 Src/playlist/playlist.c \
 Src/playlist/playlist_common.c \
 Src/playlist/playlist_view.c \
-Src/mp3/stream.c \
-Src/mp3/frame.c \
-Src/mp3/synth.c \
-Src/mp3/bit.c \
-Src/mp3/timer.c \
-Src/mp3/layer12.c \
-Src/mp3/layer3.c \
-Src/mp3/huffman.c \
+Src/audio/mp3/stream.c \
+Src/audio/mp3/frame.c \
+Src/audio/mp3/synth.c \
+Src/audio/mp3/bit.c \
+Src/audio/mp3/timer.c \
+Src/audio/mp3/layer12.c \
+Src/audio/mp3/layer3.c \
+Src/audio/mp3/huffman.c \
 Src/view/view.c \
 Src/touch/touchscreen.c \
 Src/touch/moving.c \
@@ -199,13 +201,14 @@ AS_INCLUDES =
 # C includes
 C_INCLUDES =  \
 -IInc \
+-ISrc/joystick \
 -ISrc/playlist \
 -ISrc/view \
 -ISrc/pl_list \
 -ISrc/display \
 -ISrc/touch \
 -ISrc/usb \
--ISrc/mp3 \
+-ISrc/audio/mp3 \
 -ISrc/audio \
 -ISrc/util \
 -ISrc/sd_card \

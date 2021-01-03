@@ -1,5 +1,6 @@
 #include "display.h"
 
+#include "audio.h"
 #include "st7789h2/st7789h2.h"
 #include "display_string.h"
 #include "usb_send.h"
@@ -41,7 +42,7 @@ void display_song_volume (playlist * pl, audio_ctl * actl, state_song_view_t * s
     {
         display_string(200, list_offset, (uint8_t *)s_volume, &Font12, &bw);
         display_string(200, list_offset + in_line_offset, (uint8_t *)s_state, &Font12, &bw);
-        AUDIO_Process();
+        audio_process();
     }
     HAL_Delay(1);
     send_volume(s_volume, s_state);
@@ -58,7 +59,7 @@ void display_picture ()
         if (part + 1 == parts)
             p_size = (240 - picture_offset) - (parts - 1) * p_old_size;
         ST7789H2_DrawRGBImage(0, picture_offset + p_old_size * part, 240, p_size, song_picture_address + 2 * 240 * part * p_old_size);
-        AUDIO_Process();
+        audio_process();
     }
 }
 
@@ -67,10 +68,10 @@ void display_song (playlist * pl, audio_ctl * actl, state_song_view_t * state, c
     if (to_screen)
     {
         display_picture();
-        AUDIO_Process();
+        audio_process();
     }
     display_cur_song(pl, to_screen);
     display_song_volume(pl, actl, state, to_screen);
-    AUDIO_Process();
+    audio_process();
 }
 

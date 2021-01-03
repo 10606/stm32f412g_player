@@ -1,5 +1,6 @@
-
 #include "display.h"
+
+#include "audio.h"
 #include "display_string.h"
 #include "usb_send.h"
 
@@ -16,7 +17,7 @@ void display_cur_song (playlist * pl_p, char to_screen)
     {
         display_string(5, 20, (uint8_t *)cur_group_name, &Font16, &yb);
         display_string(5, 40, (uint8_t *)cur_song_name, &Font16, &yb);
-        AUDIO_Process();
+        audio_process();
     }
     send_cur_song(cur_song_name, cur_group_name);
 }
@@ -29,7 +30,7 @@ void display_playlist (playlist_view * plv, playlist * pl_p, int state, char to_
     display_cur_song(pl_p, to_screen);
     HAL_Delay(1);
     send_state(state);
-    AUDIO_Process();
+    audio_process();
     
     char song_name[view_cnt][song_name_sz + 1];
     char group_name[view_cnt][group_name_sz + 1];
@@ -86,7 +87,7 @@ void display_playlist (playlist_view * plv, playlist * pl_p, int state, char to_
             display_string(4, list_offset + line_offset * i, (uint8_t *)s_group, &Font12, &c_group);
             display_string(4, list_offset + in_line_offset + line_offset * i, (uint8_t *)s_song, &Font12, &c_song);
         }
-        AUDIO_Process();
+        audio_process();
         send_displayed_song(s_group, s_song, selected[i], i);
     }
 }

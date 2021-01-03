@@ -1,9 +1,8 @@
-#include "stm32f4xx_it.h"
+#include "joystick.h"
 #include "stm32412g_discovery_audio.h"
 #include "view.h"
 #include "display.h"
 
-extern char seeked;
 void init_mad ();
 void deinit_mad ();
 
@@ -114,7 +113,7 @@ uint32_t process_view_seek_forward (view * vv, uint8_t * need_redraw)
         new_pos = vv->buffer_ctl->audio_file.size;
     else
         new_pos += seek_value;
-    seeked = 1;
+    vv->buffer_ctl->seeked = 1;
     ret = f_seek(&vv->buffer_ctl->audio_file, new_pos);
     if (ret)
     {
@@ -137,7 +136,7 @@ uint32_t process_view_prev_song (view * vv, uint8_t * need_redraw)
         init_mad();
         if ((ret = open_song(&vv->pl, &vv->buffer_ctl->audio_file)))
             return ret;
-        seeked = 1;
+        vv->buffer_ctl->seeked = 1;
         get_length(&vv->buffer_ctl->audio_file, &vv->buffer_ctl->info);
         if ((ret = f_seek(&vv->buffer_ctl->audio_file, vv->buffer_ctl->info.offset)))
             return ret;
@@ -197,7 +196,7 @@ uint32_t process_view_seek_backward (view * vv, uint8_t * need_redraw)
         new_pos = 0;
     else
         new_pos -= seek_value;
-    seeked = 1;
+    vv->buffer_ctl->seeked = 1;
     ret = f_seek(&vv->buffer_ctl->audio_file, new_pos);
     if (ret)
     {
@@ -220,7 +219,7 @@ uint32_t process_view_next_song (view * vv, uint8_t * need_redraw)
         init_mad();
         if ((ret = open_song(&vv->pl, &vv->buffer_ctl->audio_file)))
             return ret;
-        seeked = 1;
+        vv->buffer_ctl->seeked = 1;
         get_length(&vv->buffer_ctl->audio_file, &vv->buffer_ctl->info);
         if ((ret = f_seek(&vv->buffer_ctl->audio_file, vv->buffer_ctl->info.offset)))
             return ret;
@@ -302,7 +301,7 @@ uint32_t process_view_right (view * vv, uint8_t * need_redraw)
         ret = open_song(&vv->pl, &vv->buffer_ctl->audio_file);
         if (ret)
             return ret;
-        seeked = 1;
+        vv->buffer_ctl->seeked = 1;
         get_length(&vv->buffer_ctl->audio_file, &vv->buffer_ctl->info);
         if ((ret = f_seek(&vv->buffer_ctl->audio_file, vv->buffer_ctl->info.offset)))
             return ret;

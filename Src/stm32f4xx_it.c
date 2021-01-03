@@ -37,6 +37,7 @@
 
 #include <stdint.h>
 #include "main.h"
+#include "joystick.h"
 #include "stm32f4xx_it.h"
 
 /* uSD handler declared in "stm32412g_discovery_sd.c" file */
@@ -121,7 +122,6 @@ void DMA2_Stream3_IRQHandler (void)
 /*  file (startup_stm32f40xx.s/startup_stm32f427x.s/startup_stm32f429x.s).    */
 /******************************************************************************/
 
-joystick_state_t joystick_state;
 
 void TIM2_IRQHandler (void)
 {
