@@ -43,7 +43,7 @@
   ******************************************************************************
   */
 #include "main.h"
-#include "display/display.h"
+#include "display.h"
 #include "display_string.h"
 #include "display_init.h"
 #include "audio.h"

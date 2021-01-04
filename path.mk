@@ -122,6 +122,12 @@ external_sources =  \
 ######################################
 # local sources
 
+# main
+main_sources = \
+	Src/main/main.c \
+	Src/main/stm32f4xx_it.c  \
+	Src/main/system_stm32f4xx.c
+	
 # USB
 USB_sources = \
 	Src/usb/usb_command_process.c \
@@ -159,9 +165,7 @@ audio_sources = \
 
 # local sources
 local_sources =  \
-	Src/main.c \
-	Src/stm32f4xx_it.c  \
-	Src/system_stm32f4xx.c \
+	$(main_sources) \
 	Src/sd_card/sd_card_operation.c  \
 	Src/view/view.c \
 	$(audio_sources) \
@@ -196,7 +200,7 @@ external_includes = \
 #######################################
 # local includes
 local_includes = \
-	-IInc \
+	-ISrc/main \
 	-ISrc/joystick \
 	-ISrc/playlist \
 	-ISrc/view \
