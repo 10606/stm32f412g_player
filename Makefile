@@ -17,6 +17,12 @@ TARGET = f412g_2
 
 
 ######################################
+# make sources
+make_files = \
+	Makefile \
+	path.mk
+
+######################################
 # building variables
 ######################################
 # debug build?
@@ -28,127 +34,43 @@ OPT = -Wall -Os
 #######################################
 # paths
 #######################################
-# Build path
+# build path
 BUILD_DIR = build
 
-#######################################
-# source paths
-root = ../../..
 
-utilities = $(root)/Utilities
-fonts = $(utilities)/Fonts
-
-BSP_src = $(root)/stm32/BSP
-
-libs = $(root)/libs
-STM32_drivers = $(libs)/STM32CubeF4/Drivers
-STM32_middleware = $(libs)/STM32CubeF4/Middlewares
-CMSIS = $(STM32_drivers)/CMSIS
-HAL_driver = $(STM32_drivers)/STM32F4xx_HAL_Driver/Src
-USB_driver = $(STM32_middleware)/ST/STM32_USB_Device_Library
-
-FAT32_driver = $(root)/FAT32_driver_char11/src
-LCD_display = $(root)/LCD_display
-
-
-
-######################################
-# source
+include path.mk
 ######################################
 # C sources
 C_SOURCES =  \
-	Src/main.c \
-	Src/stm32f4xx_it.c  \
-	Src/system_stm32f4xx.c \
-	Src/audio/audio.c \
-	Src/audio/mp3.c \
-	Src/audio/id3.c \
-	Src/audio/mp3/stream.c \
-	Src/audio/mp3/frame.c \
-	Src/audio/mp3/synth.c \
-	Src/audio/mp3/bit.c \
-	Src/audio/mp3/timer.c \
-	Src/audio/mp3/layer12.c \
-	Src/audio/mp3/layer3.c \
-	Src/audio/mp3/huffman.c \
-	Src/sd_card/sd_card_operation.c  \
-	Src/display/display_playlist.c \
-	Src/display/display_pl_list.c \
-	Src/display/display_song.c \
-	Src/playlist/light_playlist.c \
-	Src/playlist/playlist.c \
-	Src/playlist/playlist_common.c \
-	Src/playlist/playlist_view.c \
-	Src/view/view.c \
-	Src/pl_list/pl_list.c \
-	Src/joystick/joystick.c \
-	Src/touch/touchscreen.c \
-	Src/touch/moving.c \
-	Src/usb/usb_command_process.c \
-	Src/usb/usbd_cdc_if.c \
-	Src/usb/usbd_conf.c \
-	Src/usb/usbd_desc.c \
-	Src/usb/usb_device.c \
-	Src/usb/usb_send.c \
-	$(BSP_src)/f412g_disco/stm32412g_discovery.c \
-	$(BSP_src)/f412g_disco/stm32412g_discovery_sd.c \
-	$(BSP_src)/f412g_disco/stm32412g_discovery_audio.c \
-	$(BSP_src)/f412g_disco/stm32412g_discovery_ts.c \
-	$(BSP_src)/Components/ls016b8uy/ls016b8uy.c \
-	$(BSP_src)/Components/st7789h2/st7789h2.c \
-	$(BSP_src)/Components/wm8994/wm8994.c \
-	$(BSP_src)/Components/ft6x06/ft6x06.c  \
-	$(HAL_driver)/stm32f4xx_hal_pcd.c \
-	$(HAL_driver)/stm32f4xx_hal_pcd_ex.c \
-	$(HAL_driver)/stm32f4xx_hal_dfsdm.c \
-	$(HAL_driver)/stm32f4xx_hal.c \
-	$(HAL_driver)/stm32f4xx_hal_hcd.c \
-	$(HAL_driver)/stm32f4xx_ll_usb.c \
-	$(HAL_driver)/stm32f4xx_hal_rcc.c \
-	$(HAL_driver)/stm32f4xx_hal_rcc_ex.c \
-	$(HAL_driver)/stm32f4xx_hal_flash.c \
-	$(HAL_driver)/stm32f4xx_hal_flash_ex.c \
-	$(HAL_driver)/stm32f4xx_hal_flash_ramfunc.c \
-	$(HAL_driver)/stm32f4xx_hal_gpio.c \
-	$(HAL_driver)/stm32f4xx_hal_dma_ex.c \
-	$(HAL_driver)/stm32f4xx_hal_dma.c \
-	$(HAL_driver)/stm32f4xx_hal_pwr.c \
-	$(HAL_driver)/stm32f4xx_hal_pwr_ex.c \
-	$(HAL_driver)/stm32f4xx_hal_cortex.c \
-	$(HAL_driver)/stm32f4xx_hal_exti.c \
-	$(HAL_driver)/stm32f4xx_ll_fsmc.c \
-	$(HAL_driver)/stm32f4xx_hal_sram.c \
-	$(HAL_driver)/stm32f4xx_hal_i2c.c \
-	$(HAL_driver)/stm32f4xx_hal_i2c_ex.c \
-	$(HAL_driver)/stm32f4xx_hal_i2s.c \
-	$(HAL_driver)/stm32f4xx_hal_i2s_ex.c \
-	$(HAL_driver)/stm32f4xx_hal_qspi.c \
-	$(HAL_driver)/stm32f4xx_ll_sdmmc.c \
-	$(HAL_driver)/stm32f4xx_hal_sd.c \
-	$(HAL_driver)/stm32f4xx_hal_tim.c \
-	$(HAL_driver)/stm32f4xx_hal_tim_ex.c \
-	$(HAL_driver)/stm32f4xx_hal_uart.c  \
-	$(FAT32_driver)/init/init.c \
-	$(FAT32_driver)/load_FAT/load_FAT.c \
-	$(FAT32_driver)/open/open.c \
-	$(FAT32_driver)/read/read.c \
-	$(FAT32_driver)/read_file_info/read_file_info.c  \
-	$(FAT32_driver)/file_descriptor/file_descriptor.c \
-	$(LCD_display)/display_string.c \
-	$(LCD_display)/display_init.c \
-	$(fonts)/font24.c \
-	$(fonts)/font20.c \
-	$(fonts)/font16.c \
-	$(fonts)/font12.c \
-	$(fonts)/font8.c  \
-	$(USB_driver)/Core/Src/usbd_core.c \
-	$(USB_driver)/Core/Src/usbd_ctlreq.c \
-	$(USB_driver)/Core/Src/usbd_ioreq.c \
-	$(USB_driver)/Class/CDC/Src/usbd_cdc.c
+	$(local_sources) \
+	$(external_sources)
 
 # ASM sources
 ASM_SOURCES =  \
 	startup_stm32f412zx.s
+
+
+######################################
+# macros for gcc
+# AS defines
+AS_DEFS = 
+
+# C defines
+C_DEFS =  \
+	-DUSE_HAL_DRIVER \
+	-DSTM32F412Zx \
+	-DHAVE_CONFIG_H \
+	-DFPM_DEFAULT
+
+
+######################################
+# AS includes
+AS_INCLUDES = 
+
+# C includes
+C_INCLUDES =  \
+	$(local_includes) \
+	$(external_includes)
 
 
 #######################################
@@ -186,52 +108,6 @@ FLOAT-ABI = -mfloat-abi=hard
 
 # mcu
 MCU = $(CPU) -mthumb $(FPU) $(FLOAT-ABI)
-
-# macros for gcc
-# AS defines
-AS_DEFS = 
-
-# C defines
-C_DEFS =  \
-	-DUSE_HAL_DRIVER \
-	-DSTM32F412Zx \
-	-DHAVE_CONFIG_H \
-	-DFPM_DEFAULT
-
-
-# AS includes
-AS_INCLUDES = 
-
-# C includes
-C_INCLUDES =  \
-	-IInc \
-	-ISrc/joystick \
-	-ISrc/playlist \
-	-ISrc/view \
-	-ISrc/pl_list \
-	-ISrc/display \
-	-ISrc/touch \
-	-ISrc/usb \
-	-ISrc/audio/mp3 \
-	-ISrc/audio \
-	-ISrc/util \
-	-ISrc/sd_card \
-	-I$(USB_driver)/Core/Inc \
-	-I$(USB_driver)/Class/CDC/Inc \
-	-I$(utilities) \
-	-I$(BSP_src) \
-	-I$(BSP_src)/f412g_disco \
-	-I$(BSP_src)/Components \
-	-I$(BSP_src)/Components\Common \
-	-I$(BSP_src)/Components\st7789h2 \
-	-I$(BSP_src)/Components\ls016b8uy \
-	-I$(BSP_src)/Components/wm8994 \
-	-I$(HAL_driver)/../Inc/ \
-	-I$(CMSIS)/Device/ST/STM32F4xx/Include/ \
-	-I$(CMSIS)/Include/ \
-	-I$(FAT32_driver) \
-	-I$(LCD_display)/ \
-	-I$(fonts) 
 
 
 
@@ -276,16 +152,16 @@ vpath %.cpp $(sort $(dir $(C_SOURCES)))
 vpath %.c $(sort $(dir $(C_SOURCES))) 
 vpath %.s $(sort $(dir $(ASM_SOURCES))) 
 
-$(BUILD_DIR)/%.o: %.cpp Makefile | $(BUILD_DIR) 
+$(BUILD_DIR)/%.o: %.cpp $(make_files) | $(BUILD_DIR) 
 	$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.cpp=.lst)) $< -o $@
 
-$(BUILD_DIR)/%.o: %.c Makefile | $(BUILD_DIR) 
+$(BUILD_DIR)/%.o: %.c $(make_files) | $(BUILD_DIR) 
 	$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@
 
-$(BUILD_DIR)/%.o: %.s Makefile | $(BUILD_DIR)
+$(BUILD_DIR)/%.o: %.s $(make_files) | $(BUILD_DIR)
 	$(AS) -c $(CFLAGS) $< -o $@
 
-$(BUILD_DIR)/$(TARGET).elf: $(OBJECTS) Makefile
+$(BUILD_DIR)/$(TARGET).elf: $(OBJECTS) $(make_files)
 	$(CC) $(OBJECTS) $(LDFLAGS) -o $@
 	$(SZ) $@
 
