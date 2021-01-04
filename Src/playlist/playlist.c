@@ -109,8 +109,3 @@ void destroy_playlist (playlist * pl)
     }
 }
 
-uint32_t open_song (playlist * pl, file_descriptor * fd)
-{
-    return open(fd, pl->path, pl->song.path_len);
-}
-

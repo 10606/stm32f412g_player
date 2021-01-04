@@ -22,7 +22,6 @@ uint32_t init_playlist (playlist * pl, file_descriptor * fd);
 uint32_t seek_playlist (playlist * pl, uint32_t pos);
 uint32_t next_playlist (playlist * pl);
 uint32_t prev_playlist (playlist * pl);
-uint32_t open_song (playlist * pl, file_descriptor * fd);
 void destroy_playlist (playlist * pl);
 
 #endif

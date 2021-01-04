@@ -97,9 +97,7 @@ void init_base () //joystick, led, LCD
         HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
     }
     
-    //BSP_LCD_Init();
     display_init();
-    //BSP_LCD_Clear(LCD_COLOR_WHITE);
     display_err();
     BSP_PB_Init(BUTTON_WAKEUP, BUTTON_MODE_GPIO);
     BSP_TS_Init(240, 240);
@@ -126,24 +124,15 @@ uint32_t init_audio (char (* path)[12], uint32_t len)
 {
     audio_init();
 
-    /* Get the .PLB file names on root directory */
+    // get the .PLB file names from path directory 
     uint32_t ret = init_view(&viewer, path, len, &buffer_ctl);
     if (ret)
     {
-        display_string_c(0, 112, (uint8_t*)"No PLB files...", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED); //TODO center
+        display_string_c(0, 112, (uint8_t*)"No PLB files...", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
         audio_destruct();
         destroy_view(&viewer);
         return ret;
     }
-    
-    /*
-    memcpy(path[len - 1], pDirectoryFiles[index], 12);
-    open(&fd_plv, path, len);
-    init_playlist_view(&plv, &fd_plv);
-  
-    open(&fd_pl, path, len);
-    init_playlist(&pl, &fd_pl);
-    */
     return 0;
 }
 

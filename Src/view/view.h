@@ -63,6 +63,7 @@ uint32_t process_view_dec_volume (view * vv, uint8_t * need_redraw);
 uint32_t process_view_seek_backward (view * vv, uint8_t * need_redraw);
 uint32_t process_view_next_song (view * vv, uint8_t * need_redraw);
 
+uint32_t open_song (view * vv);
 
 #endif
 

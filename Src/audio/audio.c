@@ -36,14 +36,11 @@ static inline audio_error_t audio_start ()
     uint32_t bytesread;
 
     init_mad();
-    if (open_song(&viewer.pl, &buffer_ctl.audio_file))
+    if (open_song(&viewer))
     {
         display_string_c(0, 152, (uint8_t*)"Not opened", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
         return AUDIO_ERROR_IO;
     }
-    get_length(&buffer_ctl.audio_file, &buffer_ctl.info);
-    if (f_seek(&buffer_ctl.audio_file, buffer_ctl.info.offset))
-        display_string_c(0, 152, (uint8_t*)"Not seeked", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
 
     buffer_ctl.state = BUFFER_OFFSET_NONE;
     bytesread = get_pcm_sound(&buffer_ctl.audio_file,
@@ -169,12 +166,8 @@ uint8_t audio_process ()
                 next_playlist(&viewer.pl);
                 deinit_mad();
                 init_mad();
-                if (open_song(&viewer.pl, &buffer_ctl.audio_file))
+                if (open_song(&viewer))
                     display_string_c(0, 152, (uint8_t*)"Not opened", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
-                buffer_ctl.seeked = 1;
-                get_length(&buffer_ctl.audio_file, &buffer_ctl.info);
-                if (f_seek(&buffer_ctl.audio_file, buffer_ctl.info.offset))
-                    display_string_c(0, 152, (uint8_t*)"Not seeked", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
             }
             error_state = AUDIO_ERROR_EOF;
             display_view(&viewer);

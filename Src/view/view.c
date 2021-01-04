@@ -134,13 +134,8 @@ uint32_t process_view_prev_song (view * vv, uint8_t * need_redraw)
     {
         deinit_mad();
         init_mad();
-        if ((ret = open_song(&vv->pl, &vv->buffer_ctl->audio_file)))
+        if ((ret = open_song(vv)))
             return ret;
-        vv->buffer_ctl->seeked = 1;
-        get_length(&vv->buffer_ctl->audio_file, &vv->buffer_ctl->info);
-        if ((ret = f_seek(&vv->buffer_ctl->audio_file, vv->buffer_ctl->info.offset)))
-            return ret;
-        vv->buffer_ctl->audio_file.size = vv->buffer_ctl->audio_file.size;
     }
     *need_redraw = 1;
     return 0;
@@ -217,13 +212,8 @@ uint32_t process_view_next_song (view * vv, uint8_t * need_redraw)
     {
         deinit_mad();
         init_mad();
-        if ((ret = open_song(&vv->pl, &vv->buffer_ctl->audio_file)))
+        if ((ret = open_song(vv)))
             return ret;
-        vv->buffer_ctl->seeked = 1;
-        get_length(&vv->buffer_ctl->audio_file, &vv->buffer_ctl->info);
-        if ((ret = f_seek(&vv->buffer_ctl->audio_file, vv->buffer_ctl->info.offset)))
-            return ret;
-        vv->buffer_ctl->audio_file.size = vv->buffer_ctl->audio_file.size;
     }
     *need_redraw = 1;
     return 0;
@@ -298,14 +288,9 @@ uint32_t process_view_right (view * vv, uint8_t * need_redraw)
         vv->playing_playlist = vv->selected_playlist;
         deinit_mad();
         init_mad();
-        ret = open_song(&vv->pl, &vv->buffer_ctl->audio_file);
+        ret = open_song(vv);
         if (ret)
             return ret;
-        vv->buffer_ctl->seeked = 1;
-        get_length(&vv->buffer_ctl->audio_file, &vv->buffer_ctl->info);
-        if ((ret = f_seek(&vv->buffer_ctl->audio_file, vv->buffer_ctl->info.offset)))
-            return ret;
-        vv->buffer_ctl->audio_file.size = vv->buffer_ctl->audio_file.size;
         *need_redraw = 1;
         break;
         
@@ -417,6 +402,18 @@ uint32_t process_view (view * vv, uint8_t * need_redraw)
             process_view_center(vv, need_redraw);
         }
     }
+    return 0;
+}
+
+uint32_t open_song (view * vv)
+{
+    uint32_t ret;
+    if ((ret = open(&vv->buffer_ctl->audio_file, vv->pl.path, vv->pl.song.path_len)))
+        return ret;
+    vv->buffer_ctl->seeked = 1;
+    get_length(&vv->buffer_ctl->audio_file, &vv->buffer_ctl->info);
+    if ((ret = f_seek(&vv->buffer_ctl->audio_file, vv->buffer_ctl->info.offset)))
+        return ret;
     return 0;
 }
 
