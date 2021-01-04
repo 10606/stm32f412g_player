@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <string.h>
 
-inline char is_eq (char const * a, char const * b, uint32_t length)
+static inline char is_eq (char const * a, char const * b, uint32_t length)
 {
     for (uint32_t i = 0; i != length; ++i)
     {
@@ -14,7 +14,7 @@ inline char is_eq (char const * a, char const * b, uint32_t length)
 }
 
 
-inline uint32_t id3_v1_size (file_descriptor * fd)
+static inline uint32_t id3_v1_size (file_descriptor * fd)
 {
     uint32_t ret;
     if ((ret = f_seek(fd, 0)))
@@ -36,7 +36,7 @@ inline uint32_t id3_v1_size (file_descriptor * fd)
         return 0;
 }
 
-inline uint32_t id3_v2_size (file_descriptor * fd)
+static inline uint32_t id3_v2_size (file_descriptor * fd)
 {
     uint32_t ret;
     if ((ret = f_seek(fd, 0)))

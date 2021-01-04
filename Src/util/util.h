@@ -22,7 +22,7 @@ typedef struct tik_t
     uint16_t ms;
 } tik_t;
 
-inline void byte_to_time (tik_t * time, uint32_t value)
+static inline void byte_to_time (tik_t * time, uint32_t value)
 {
     if (value >= buffer_ctl.info.offset)
         value -= buffer_ctl.info.offset;

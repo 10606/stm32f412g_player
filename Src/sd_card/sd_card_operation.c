@@ -23,7 +23,7 @@ uint32_t read_sector (uint32_t sector_number, void * buffer)
     return ans;
 }
 
-inline uint32_t sd_status ()
+static inline uint32_t sd_status ()
 {
     if (BSP_SD_GetCardState() == MSD_OK)
         return 0;

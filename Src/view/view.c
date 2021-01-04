@@ -355,7 +355,7 @@ uint32_t process_view_center (view * vv, uint8_t * need_redraw)
     return 0;
 }
 
-inline char check_button_state (uint32_t joy_button)
+static inline char check_button_state (uint32_t joy_button)
 {
     char ans = 
         ((joystick_state.process[joy_button] >= 1) &&

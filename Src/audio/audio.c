@@ -25,13 +25,13 @@ uint8_t audio_process (void);
 volatile uint8_t need_redraw = 0;
 
 
-inline void set_song_hint (void)
+static inline void set_song_hint (void)
 {
     fill_rect(0, HEADBAND_HEIGHT, 240, 240 - HEADBAND_HEIGHT, LCD_COLOR_WHITE);
     fill_rect(0, 0, 240, HEADBAND_HEIGHT, LCD_COLOR_BLUE);
 }
 
-inline audio_error_t audio_start ()
+static inline audio_error_t audio_start ()
 {
     uint32_t bytesread;
 
