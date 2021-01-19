@@ -28,7 +28,7 @@ make_files = \
 # debug build?
 DEBUG = 0
 # optimization
-OPT = -Wall -Os
+OPT = -Wall -Os -flto
 
 
 #######################################

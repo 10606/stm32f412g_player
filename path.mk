@@ -8,9 +8,9 @@ fonts = $(utilities)/Fonts
 
 BSP_src = $(root)/stm32/BSP
 
-libs = $(root)/libs
-STM32_drivers = $(libs)/STM32CubeF4/Drivers
-STM32_middleware = $(libs)/STM32CubeF4/Middlewares
+libs = $(root)/libs/STM32CubeF4
+STM32_drivers = $(libs)/Drivers
+STM32_middleware = $(libs)/Middlewares
 CMSIS = $(STM32_drivers)/CMSIS
 HAL_driver = $(STM32_drivers)/STM32F4xx_HAL_Driver/Src
 USB_driver = $(STM32_middleware)/ST/STM32_USB_Device_Library

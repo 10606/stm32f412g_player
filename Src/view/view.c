@@ -20,24 +20,21 @@ uint32_t init_view (view * vv, char (* path)[12], uint32_t len, audio_ctl * buff
     vv->pl.fd = &vv->fd_pl;
     bind_playlist_view(&vv->plv, &vv->fd_plv);
     
-    //BSP_LCD_DisplayStringAt(0, 100, (uint8_t *)"bind plv", LEFT_MODE);
     uint32_t ret;
     ret = init_pl_list(&vv->pll, path, len);
     if (ret)
         return ret;
-    //BSP_LCD_DisplayStringAt(0, 100, (uint8_t *)"init pl_list", LEFT_MODE);
+
     if (vv->pll.cnt == 0)
         return no_plb_files;
     
     ret = open_selected_pl_list(&vv->pll, &vv->plv, &vv->selected_playlist);
     if (ret)
         return ret;
-    //BSP_LCD_DisplayStringAt(0, 100, (uint8_t *)"open pl_list", LEFT_MODE);
     
     ret = play(&vv->plv, &vv->pl);
     if (ret)
         return ret;
-    //BSP_LCD_DisplayStringAt(0, 100, (uint8_t *)"play plv", LEFT_MODE);
     vv->playing_playlist = vv->selected_playlist;
     return 0;
 }
@@ -81,12 +78,12 @@ void display_view (view * vv)
 uint32_t process_view_play_pause (view * vv, uint8_t * need_redraw)
 {
     if (vv->buffer_ctl->pause_status == 1)
-    { // Pause is enabled, call Resume
+    {
         BSP_AUDIO_OUT_Resume();
         vv->buffer_ctl->pause_status = 0;
     }
     else
-    { // Pause the playback
+    {
         BSP_AUDIO_OUT_Pause();
         vv->buffer_ctl->pause_status = 1;
     }
@@ -194,9 +191,7 @@ uint32_t process_view_seek_backward (view * vv, uint8_t * need_redraw)
     vv->buffer_ctl->seeked = 1;
     ret = f_seek(&vv->buffer_ctl->audio_file, new_pos);
     if (ret)
-    {
         return ret;
-    }
     return 0;
 }
 
@@ -205,9 +200,7 @@ uint32_t process_view_next_song (view * vv, uint8_t * need_redraw)
     uint32_t ret;
     ret = next_playlist(&vv->pl);
     if (ret)
-    {
         return ret;
-    }
     else
     {
         deinit_mad();

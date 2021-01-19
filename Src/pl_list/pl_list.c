@@ -41,6 +41,7 @@ uint32_t init_pl_list (pl_list * pll, char (* dir_name)[12], size_t len_name)
     {
         //BSP_LCD_DisplayStringAt(0, 152, (uint8_t*)"No directory Media...", 0);
         pll->cnt = 0;
+        destroy_pl_list(pll);
         return res;
     }
     for (;;)
@@ -78,21 +79,18 @@ uint32_t init_pl_list (pl_list * pll, char (* dir_name)[12], size_t len_name)
         if (res != 0)
         {
             pll->cnt = i;
+            destroy_pl_list(pll);
             return res;
         }
         
         playlist_header header;
-        uint32_t tread = 0;
-        uint32_t bread;
-        while (tread != sizeof(header))
+        uint32_t br;
+        res = f_read_all_fixed(&file, (char *)&header, sizeof(header), &br);
+        if (res != 0)
         {
-            res = f_read(&file, (char *)&header + tread, sizeof(header) - tread, &bread);
-            if (res != 0)
-            {
-                pll->cnt = i;
-                return res;
-            }
-            tread += bread;
+            pll->cnt = i;
+            destroy_pl_list(pll);
+            return res;
         }
         memcpy(pll->pl_name[i], header.playlist_name, pl_name_sz);
         pll->pl_songs[i] = header.cnt_songs;
@@ -119,10 +117,15 @@ uint32_t open_selected_pl_list (pl_list * pll, playlist_view * plv, uint32_t * s
 {
     if (*selected_pl == pll->current_pos)
         return 0;
+    char old_path [12];
+    memcpy(old_path, pll->root_path[pll->path_len - 1], 12);
     memcpy(pll->root_path[pll->path_len - 1], pll->pl_path[pll->current_pos], 12);
     uint32_t ret = open_playlist(plv, pll->root_path, pll->path_len);
     if (ret)
+    {
+        memcpy(pll->root_path[pll->path_len - 1], old_path, 12);
         return ret;
+    }
     *selected_pl = pll->current_pos;
     return 0;
 }
@@ -174,30 +177,31 @@ uint32_t print_pl_list
     }
     
     uint32_t index;
-    if (pll->current_pos <= border_plb_cnt)
+    if (pll->current_pos <= border_plb_cnt) // on top
     {
         selected[pll->current_pos] |= 1;
-        if (playing_pl < view_plb_cnt)
+        if (playing_pl < view_plb_cnt) // if our list playing
             selected[playing_pl] |= 2;
         index = 0;
     }
-    else if (pll->current_pos >= pll->cnt - border_plb_cnt)
+    else if (pll->current_pos + border_plb_cnt >= pll->cnt) // on bottom
     {
         selected[pll->cnt - view_plb_cnt + pll->current_pos] |= 1;
-        if (playing_pl >= pll->cnt - view_plb_cnt)
+        if (playing_pl >= pll->cnt - view_plb_cnt) // if our list playing
             selected[pll->cnt - view_plb_cnt + playing_pl] |= 2;
         index = pll->cnt - view_plb_cnt;
     }
-    else
+    else // on middle
     {
         selected[border_plb_cnt] |= 1;
         if ((playing_pl >= pll->current_pos - border_plb_cnt) &&
-            (playing_pl <= pll->current_pos + border_plb_cnt))
+            (playing_pl <= pll->current_pos + border_plb_cnt)) // if our list playing
         {
             selected[playing_pl + border_plb_cnt - pll->current_pos] |= 2;
         }
         index = pll->current_pos - border_plb_cnt ;
     }
+    
     for (uint32_t i = 0; i != view_plb_cnt; ++i)
     {
         fill_name(playlist_name[i], pll->pl_name[i], pl_name_sz + 1);

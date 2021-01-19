@@ -50,7 +50,7 @@ extern audio_ctl  buffer_ctl;
 void audio_init ();
 void audio_play ();
 void audio_destruct ();
-uint8_t audio_process ();
+uint32_t audio_process ();
 
 #endif
 

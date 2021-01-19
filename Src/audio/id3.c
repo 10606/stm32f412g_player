@@ -169,25 +169,6 @@ void get_length (file_descriptor * _fd, mp3_info * info)
     file_descriptor fd;
     copy_file_descriptor_seek_0(&fd, _fd);
 
-    
-    /*
-    static uint32_t bitrate_index[] = 
-    { //MPEG-1 layer 3 bitrate bitreverse
-        //      100     010     110     001     101     011     111
-        1,      112,    56,     224,    40,     160,    80,     320,
-        32,     128,    64,     256,    48,     192,    96,     1
-    };
-    */
-
-    /*
-    static uint32_t bitrate_index[] = 
-    { //MPEG-1 layer 3 bitrate
-        //      100     010     110     001     101     011     111
-        1,      32,     40,     48,     56,     64,     80,     96,
-        112,    128,    160,    192,    224,    256,    320,    1
-    };
-    */
-
     static uint32_t bitrate_index[] = 
     { //MPEG-1 layer 3 bitrate
         //      100     010     110     001     101     011     111

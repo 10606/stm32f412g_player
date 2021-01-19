@@ -114,7 +114,7 @@ uint32_t init_fs (char (* path)[12], uint32_t len)
     global_info.sector_size = 512;
     if (init_fatfs())
     {
-        display_string_c(0, 152, (uint8_t*)"Not initialized...", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
+        display_string_c(0, 152, (uint8_t*)"not initialized...", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
         return 2;
     }
     return 0;
