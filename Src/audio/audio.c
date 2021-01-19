@@ -108,7 +108,7 @@ void audio_play ()
         if (process_view(&viewer, &need_redraw_nv))
             break;
         if (usb_process())
-            break;
+            ; //break;
         touch_check(&touch_state, &viewer, &need_redraw_nv);
         need_redraw |= need_redraw_nv;
         

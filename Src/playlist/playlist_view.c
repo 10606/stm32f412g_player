@@ -36,14 +36,14 @@ uint32_t init_playlist_view (playlist_view * plv, file_descriptor * fd)
     ret = init_light_playlist(&plv->lpl, fd);
     if (ret)
         return ret;
-    plv->pos_begin = 0;
-    plv->pos_selected = 0;
     ret = fill_names(plv);
     if (ret)
     {
         memcpy(&plv->lpl, &old_lpl, sizeof(light_playlist));
         return ret;
     }
+    plv->pos_begin = 0;
+    plv->pos_selected = 0;
     return 0;
 }
 
@@ -164,32 +164,28 @@ uint32_t up (playlist_view * plv) //TODO exception
     return 0;
 }
 
-uint32_t play (playlist_view * plv, playlist * pl) //TODO exception
+uint32_t play (playlist_view * plv, playlist * pl) 
 {
     uint32_t ret;
     file_descriptor old_fd;
-    copy_file_descriptor(&old_fd, pl->fd);
     playlist old_pl;
+    copy_file_descriptor(&old_fd, pl->fd);
     memcpy(&old_pl, pl, sizeof(playlist));
-    memset(pl, 0, sizeof(playlist));
-    pl->fd = old_pl.fd;
+    release_path(pl);
     copy_file_descriptor_seek_0(pl->fd, plv->lpl.fd);
-    if ((ret = init_playlist(pl, pl->fd)))
+    if ((ret = init_playlist(pl, pl->fd)) == 0)
     {
-        copy_file_descriptor(pl->fd, &old_fd);
-        destroy_playlist(pl);
-        memmove(pl, &old_pl, sizeof(playlist));
-        return ret;
+        if ((ret = seek_playlist(pl, plv->pos_selected)) == 0)
+        {
+            destroy_playlist(&old_pl);
+            return 0;
+        }
     }
-    if ((ret = seek_playlist(pl, plv->pos_selected)))
-    {
-        copy_file_descriptor(pl->fd, &old_fd);
-        destroy_playlist(pl);
-        memmove(pl, &old_pl, sizeof(playlist));
-        return ret;
-    }
-    destroy_playlist(&old_pl);
-    return 0;
+
+    copy_file_descriptor(pl->fd, &old_fd);
+    destroy_playlist(pl);
+    memmove(pl, &old_pl, sizeof(playlist));
+    return ret;
 }
 
 char compare (light_playlist * a, playlist * b)

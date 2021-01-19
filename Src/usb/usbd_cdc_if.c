@@ -272,16 +272,6 @@ static int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length)
 
 volatile buffer_t rx_buffer = {0};
 
-void memcpy_s (volatile void * _dst, volatile void * _src, uint32_t sz)
-{
-    volatile uint8_t * dst = _dst;
-    volatile uint8_t * src = _src;
-    for (uint32_t i = 0; i != sz; ++i)
-    {
-        dst[i] = src[i];
-    }
-}
-
 int8_t CDC_Receive_FS (uint8_t * Buf, uint32_t * Len)
 {
     memcpy((uint8_t *)rx_buffer.buffer + rx_buffer.pos, Buf, *Len);
@@ -295,7 +285,7 @@ int8_t CDC_Receive_FS (uint8_t * Buf, uint32_t * Len)
     }
     if (rx_buffer.pos >= max_rx_size)
     {
-        memcpy_s(rx_buffer.buffer, rx_buffer.buffer + rx_buffer.pos, rx_buffer.size);
+        memmove((void *)rx_buffer.buffer, (void *)(rx_buffer.buffer + rx_buffer.pos), rx_buffer.size);
         rx_buffer.pos = 0;
     }
 

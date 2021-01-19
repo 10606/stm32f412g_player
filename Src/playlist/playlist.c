@@ -104,6 +104,14 @@ uint32_t init_playlist (playlist * pl, file_descriptor * fd)
     return 0;
 }
 
+char (* release_path (playlist * pl)) [12] 
+{
+    char (* path) [12] = pl->path;
+    pl->path = 0;
+    pl->path_sz = 0;
+    return path;
+}
+
 void destroy_playlist (playlist * pl)
 {
     if (pl->path)

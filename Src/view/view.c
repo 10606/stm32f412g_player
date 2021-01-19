@@ -366,36 +366,37 @@ static inline char check_button_state (uint32_t joy_button)
 uint32_t process_view (view * vv, uint8_t * need_redraw)
 {
     char flag = 1;
+    uint32_t ret = 0;
     while (flag)
     {
         flag = 0;
         if (check_button_state(joy_button_up))
         {
             flag = 1;
-            process_view_up(vv, need_redraw);
+            ret |= process_view_up(vv, need_redraw);
         }
         if (check_button_state(joy_button_down))
         {
             flag = 1;
-            process_view_down(vv, need_redraw);
+            ret |= process_view_down(vv, need_redraw);
         }
         if (check_button_state(joy_button_left))
         {
             flag = 1;
-            process_view_left(vv, need_redraw);
+            ret |= process_view_left(vv, need_redraw);
         }
         if (check_button_state(joy_button_right))
         {
             flag = 1;
-            process_view_right(vv, need_redraw);
+            ret |= process_view_right(vv, need_redraw);
         }
         if (check_button_state(joy_button_center))
         {
             flag = 1;
-            process_view_center(vv, need_redraw);
+            ret |= process_view_center(vv, need_redraw);
         }
     }
-    return 0;
+    return ret;
 }
 
 uint32_t open_song (view * vv)
