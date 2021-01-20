@@ -23,7 +23,7 @@ uint32_t seek_playlist (playlist * pl, uint32_t pos);
 uint32_t next_playlist (playlist * pl);
 uint32_t prev_playlist (playlist * pl);
 void destroy_playlist (playlist * pl);
-char (* release_path (playlist * pl)) [12];
+void move_playlist (playlist * dst, playlist * src);
 
 #endif
 

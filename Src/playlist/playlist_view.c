@@ -170,8 +170,7 @@ uint32_t play (playlist_view * plv, playlist * pl)
     file_descriptor old_fd;
     playlist old_pl;
     copy_file_descriptor(&old_fd, pl->fd);
-    memcpy(&old_pl, pl, sizeof(playlist));
-    release_path(pl);
+    move_playlist(&old_pl, pl);
     copy_file_descriptor_seek_0(pl->fd, plv->lpl.fd);
     if ((ret = init_playlist(pl, pl->fd)) == 0)
     {
@@ -184,7 +183,8 @@ uint32_t play (playlist_view * plv, playlist * pl)
 
     copy_file_descriptor(pl->fd, &old_fd);
     destroy_playlist(pl);
-    memmove(pl, &old_pl, sizeof(playlist));
+    move_playlist(pl, &old_pl);
+    destroy_playlist(&old_pl);
     return ret;
 }
 
@@ -214,10 +214,10 @@ void print_playlist_view
 (
     playlist_view * plv, 
     playlist * playing_pl,
-    char (* song_name)[song_name_sz + 1], 
-    char (* group_name)[group_name_sz + 1], 
-    char * selected,
-    char (* number)[3 + 1]
+    char (* restrict song_name)[song_name_sz + 1], 
+    char (* restrict group_name)[group_name_sz + 1], 
+    char * restrict selected,
+    char (* restrict number)[3 + 1]
 )
 {
     memset(selected, 0, view_cnt);

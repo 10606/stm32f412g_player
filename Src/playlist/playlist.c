@@ -96,12 +96,11 @@ uint32_t init_playlist (playlist * pl, file_descriptor * fd)
     return 0;
 }
 
-char (* release_path (playlist * pl)) [12] 
+void move_playlist (playlist * dst, playlist * src)
 {
-    char (* path) [12] = pl->path;
-    pl->path = 0;
-    pl->path_sz = 0;
-    return path;
+    memcpy(dst, src, sizeof(playlist));
+    src->path = 0;
+    src->path_sz = 0;
 }
 
 void destroy_playlist (playlist * pl)

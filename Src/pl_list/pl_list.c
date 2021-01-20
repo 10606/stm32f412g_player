@@ -148,10 +148,10 @@ uint32_t print_pl_list
 (
     pl_list * pll, 
     uint32_t playing_pl,
-    char (* playlist_name)[pl_name_sz + 1], 
-    char (* number)[3 + 1],
-    char (* count)[3 + 1], 
-    char * selected
+    char (* restrict playlist_name)[pl_name_sz + 1], 
+    char (* restrict number)[3 + 1],
+    char (* restrict count)[3 + 1], 
+    char * restrict selected
 )
 {
     memset(selected, 0, view_plb_cnt);

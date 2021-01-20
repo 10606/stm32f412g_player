@@ -30,10 +30,10 @@ void print_playlist_view
 (
     playlist_view * plv,
     playlist * playing_pl,
-    char (* song_name)[song_name_sz + 1],
-    char (* group_name)[group_name_sz + 1],
-    char * selected,
-    char (* number)[3 + 1]
+    char (* restrict song_name)[song_name_sz + 1],
+    char (* restrict group_name)[group_name_sz + 1],
+    char * restrict selected,
+    char (* restrict number)[3 + 1]
 );
 
 void bind_playlist_view (playlist_view * plv, file_descriptor * fd); //just set file_descriptor 
