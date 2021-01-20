@@ -95,8 +95,13 @@ void audio_play ()
     display_view(&viewer);
     while (1)
     {
-        if (audio_process())
-            break;
+        uint32_t ret;
+        if ((ret = audio_process()))
+        {
+            if ((ret != AUDIO_ERROR_EOF) &&
+                (ret != AUDIO_ERROR_NOTREADY))
+                break;
+        }
         check_buttons();
       
         if (need_redraw)
