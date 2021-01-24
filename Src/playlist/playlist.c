@@ -73,7 +73,6 @@ uint32_t prev_playlist (playlist * pl)
     
 uint32_t init_playlist (playlist * pl, file_descriptor * fd)
 {
-    destroy_playlist(pl);
     pl->fd = fd;
     pl->path = 0;
     pl->path_sz = 0;

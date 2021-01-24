@@ -172,6 +172,7 @@ uint32_t play (playlist_view * plv, playlist * pl)
     copy_file_descriptor(&old_fd, pl->fd);
     move_playlist(&old_pl, pl);
     copy_file_descriptor_seek_0(pl->fd, plv->lpl.fd);
+    destroy_playlist(pl);
     if ((ret = init_playlist(pl, pl->fd)) == 0)
     {
         if ((ret = seek_playlist(pl, plv->pos_selected)) == 0)
@@ -306,6 +307,7 @@ uint32_t open_playlist
     copy_file_descriptor(&fd, plv->lpl.fd);
     if ((ret = open(plv->lpl.fd, path, path_len)))
         return ret;
+    // trivially destructible
     if ((ret = init_playlist_view(plv, plv->lpl.fd)))
     {
         copy_file_descriptor(plv->lpl.fd, &fd);

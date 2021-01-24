@@ -318,6 +318,7 @@ uint32_t process_view_center (view * vv, uint8_t * need_redraw)
         {
             if (!compare(&vv->plv.lpl, &vv->pl))
             {
+                // trivially destrucible
                 init_playlist_view(&vv->plv, vv->pl.fd);
             }
             seek_playlist_view(&vv->plv, vv->pl.pos);
