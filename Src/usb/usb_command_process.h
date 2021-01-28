@@ -2,6 +2,7 @@
 #define USB_COMMAND_PROCESS_H
 
 #include <stdint.h>
+#include "view.h"
 
 #define command_up 0x01
 #define command_down 0x02
@@ -27,7 +28,7 @@
 
 #define commnad_send_info 0x0e
 
-uint32_t usb_process ();
+uint32_t usb_process (view * vv, uint8_t * need_redraw);
 
 #endif
 

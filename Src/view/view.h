@@ -37,10 +37,10 @@ typedef struct view
     
     pl_list pll;
 
-    audio_ctl * buffer_ctl;
+    audio_ctl_t * audio_ctl;
 } view;
 
-uint32_t init_view (view * vv, char (* path)[12], uint32_t len, audio_ctl * buffer_ctl);
+uint32_t init_view (view * vv, char (* path)[12], uint32_t len, audio_ctl_t * audio_ctl);
 uint32_t destroy_view (view * vv);
 uint32_t process_view (view * vv, uint8_t * need_redraw);
 void display_view (view * vv);
@@ -56,6 +56,7 @@ uint32_t process_view_play_pause (view * vv, uint8_t * need_redraw);
 uint32_t process_view_inc_volume (view * vv, uint8_t * need_redraw);
 uint32_t process_view_seek_forward (view * vv, uint8_t * need_redraw);
 uint32_t process_view_prev_song (view * vv, uint8_t * need_redraw);
+uint32_t process_toggle_repeat (view * vv, uint8_t * need_redraw);
 
 uint32_t process_view_dec_volume (view * vv, uint8_t * need_redraw);
 uint32_t process_view_seek_backward (view * vv, uint8_t * need_redraw);

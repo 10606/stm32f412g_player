@@ -23,7 +23,7 @@
 #include "usbd_cdc_if.h"
 
 /* USER CODE BEGIN INCLUDE */
-
+#include "util.h"
 /* USER CODE END INCLUDE */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -175,11 +175,6 @@ static int8_t CDC_DeInit_FS(void)
   /* USER CODE END 4 */
 }
 
-
-inline size_t min (size_t a, uint16_t b)
-{
-    return (a < b)? a : b; 
-}
 
 /**
   * @brief  Manage the CDC class requests

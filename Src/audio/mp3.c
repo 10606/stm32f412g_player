@@ -75,10 +75,10 @@ uint32_t fill_buffer
     uint32_t pcm_length_max
 ) 
 {
-    if (pcm->samplerate != buffer_ctl.audio_freq)
+    if (pcm->samplerate != audio_ctl.audio_freq)
     {
         BSP_AUDIO_OUT_SetFrequency(pcm->samplerate);
-        buffer_ctl.audio_freq = pcm->samplerate;
+        audio_ctl.audio_freq = pcm->samplerate;
     }
     mad_fixed_t const * left_ch = pcm->samples[0];
     mad_fixed_t const * right_ch = pcm->samples[1];
@@ -120,7 +120,7 @@ uint32_t get_pcm_sound (file_descriptor * _file, uint8_t * pbuf, uint32_t NbrOfD
         return NbrOfData;
     }
 
-    if (buffer_ctl.pause_status)
+    if (audio_ctl.pause_status)
         return 0;
     
     uint32_t total_read = 0;
@@ -140,10 +140,10 @@ uint32_t get_pcm_sound (file_descriptor * _file, uint8_t * pbuf, uint32_t NbrOfD
         else
             keep = mp3_input_buffer_size - mp3_frame_size;
 
-        if (buffer_ctl.seeked)
+        if (audio_ctl.seeked)
         {
             keep = 0;
-            buffer_ctl.seeked = 0;
+            audio_ctl.seeked = 0;
         }
         
         if (keep == mp3_input_buffer_size)
@@ -186,7 +186,7 @@ uint32_t get_pcm_sound (file_descriptor * _file, uint8_t * pbuf, uint32_t NbrOfD
                 }
             }
             mad_synth_frame(&mad_data.synth, &mad_data.frame);
-            frames += fill_buffer(&mad_data.frame.header, &mad_data.synth.pcm, pbuf + frames, AUDIO_BUFFER_SIZE - frames);
+            frames += fill_buffer(&mad_data.frame.header, &mad_data.synth.pcm, pbuf + frames, audio_buffer_size - frames);
         }
         
         if (rb == 0)

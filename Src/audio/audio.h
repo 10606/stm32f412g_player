@@ -5,13 +5,10 @@
 #include "id3.h"
 #include <stdint.h>
 
-//#define AUDIO_BUFFER_SIZE       8192  * 2
-//#define AUDIO_BUFFER_SIZE       12288 
-#define MP3_FRAMES_IN_BUFFER    4
-#define MP3_FRAME_SIZE          4608
-#define AUDIO_BUFFER_SIZE       (MP3_FRAMES_IN_BUFFER * MP3_FRAME_SIZE)
-#define AUDIO_DEFAULT_VOLUME    70
-#define HEADBAND_HEIGHT         72
+#define mp3_frames_in_buffer    4
+#define decoded_mp3_frame_size  4608
+#define audio_buffer_size       (mp3_frames_in_buffer * decoded_mp3_frame_size)
+#define audio_default_volume    70
 
 typedef enum {
     AUDIO_ERROR_NONE = 0,
@@ -32,9 +29,9 @@ typedef enum {
     BUFFER_OFFSET_FULL,     
 } buffer_state_t;
 
-typedef struct audio_ctl {
+typedef struct audio_ctl_t {
     file_descriptor audio_file;
-    uint8_t buff[AUDIO_BUFFER_SIZE];
+    uint8_t buff[audio_buffer_size];
     buffer_state_t state;
     audio_playback_state_t audio_state;
     uint32_t volume;
@@ -43,8 +40,8 @@ typedef struct audio_ctl {
     char repeat_mode;
     char seeked;
     mp3_info info;
-} audio_ctl;
-extern audio_ctl  buffer_ctl;
+} audio_ctl_t;
+extern audio_ctl_t  audio_ctl;
 
 
 void audio_init ();

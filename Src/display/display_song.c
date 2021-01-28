@@ -1,13 +1,15 @@
 #include "display.h"
 
+#include "util.h"
 #include "audio.h"
 #include "st7789h2/st7789h2.h"
 #include "display_string.h"
 #include "usb_send.h"
 
-inline uint32_t min (uint32_t a, uint32_t b)
+void display_song_hint ()
 {
-    return (a < b)? a : b;
+    fill_rect(0, headband_height, 240, 240 - headband_height, LCD_COLOR_WHITE);
+    fill_rect(0, 0, 240, headband_height, LCD_COLOR_BLUE);
 }
 
 void display_err ()
@@ -15,7 +17,7 @@ void display_err ()
     ST7789H2_DrawRGBImage(0, 0, 240, 240, err_picture_address);
 }
 
-void display_song_volume (playlist * pl, audio_ctl * actl, state_song_view_t * state, char to_screen) 
+void display_song_volume (playlist * pl, audio_ctl_t * actl, state_song_view_t * state, char to_screen) 
 {
     char c_state = ' ';
     switch (*state)
@@ -63,7 +65,7 @@ void display_picture ()
     }
 }
 
-void display_song (playlist * pl, audio_ctl * actl, state_song_view_t * state, char to_screen) 
+void display_song (playlist * pl, audio_ctl_t * actl, state_song_view_t * state, char to_screen) 
 {
     if (to_screen)
     {

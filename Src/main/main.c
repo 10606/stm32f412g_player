@@ -125,7 +125,7 @@ uint32_t init_audio (char (* path)[12], uint32_t len)
     audio_init();
 
     // get the .PLB file names from path directory 
-    uint32_t ret = init_view(&viewer, path, len, &buffer_ctl);
+    uint32_t ret = init_view(&viewer, path, len, &audio_ctl);
     if (ret)
     {
         display_string_c(0, 112, (uint8_t*)"No PLB files...", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);

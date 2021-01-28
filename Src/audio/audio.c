@@ -18,15 +18,9 @@
 
 
 old_touch_state touch_state = {0};
-audio_ctl  buffer_ctl;
+audio_ctl_t  audio_ctl;
 volatile uint8_t need_redraw = 0;
 
-
-static inline void set_song_hint (void)
-{
-    fill_rect(0, HEADBAND_HEIGHT, 240, 240 - HEADBAND_HEIGHT, LCD_COLOR_WHITE);
-    fill_rect(0, 0, 240, HEADBAND_HEIGHT, LCD_COLOR_BLUE);
-}
 
 static inline audio_error_t audio_start ()
 {
@@ -37,31 +31,31 @@ static inline audio_error_t audio_start ()
         return AUDIO_ERROR_IO;
     }
 
-    memset(buffer_ctl.buff, 0, AUDIO_BUFFER_SIZE);
-    BSP_AUDIO_OUT_Play((uint16_t*)&buffer_ctl.buff[0], AUDIO_BUFFER_SIZE);
-    buffer_ctl.audio_state = AUDIO_STATE_PLAYING;      
+    memset(audio_ctl.buff, 0, audio_buffer_size);
+    BSP_AUDIO_OUT_Play((uint16_t*)&audio_ctl.buff[0], audio_buffer_size);
+    audio_ctl.audio_state = AUDIO_STATE_PLAYING;      
     return AUDIO_ERROR_NONE;
 }
 
 
 void audio_init ()
 {
-    buffer_ctl.seeked = 0;
-    buffer_ctl.repeat_mode = 0;
-    buffer_ctl.audio_freq = 44100; /*AF_44K*/
+    audio_ctl.seeked = 0;
+    audio_ctl.repeat_mode = 0;
+    audio_ctl.audio_freq = 44100; /*AF_44K*/
     uint8_t status = 0;
-    buffer_ctl.pause_status = 0; /* 0 when audio is running, 1 when Pause is on */
-    buffer_ctl.volume = AUDIO_DEFAULT_VOLUME;
+    audio_ctl.pause_status = 0; /* 0 when audio is running, 1 when Pause is on */
+    audio_ctl.volume = audio_default_volume;
   
-    set_song_hint();
-    init_fake_file_descriptor(&buffer_ctl.audio_file);
+    display_song_hint();
+    init_fake_file_descriptor(&audio_ctl.audio_file);
   
     status = BSP_JOY_Init(JOY_MODE_GPIO);
   
     if (status != HAL_OK)
         display_string_c(0, 140, (uint8_t*)"joystick init error", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
   
-    if (BSP_AUDIO_OUT_Init(OUTPUT_DEVICE_HEADPHONE, buffer_ctl.volume, buffer_ctl.audio_freq) != 0)
+    if (BSP_AUDIO_OUT_Init(OUTPUT_DEVICE_HEADPHONE, audio_ctl.volume, audio_ctl.audio_freq) != 0)
         display_string_c(0, 140, (uint8_t*)"audio codec fail", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
     
 }
@@ -104,7 +98,7 @@ void audio_play ()
             if (ret != empty_playlist)
                 ;//break;
         }
-        if (usb_process())
+        if (usb_process(&viewer, &need_redraw_nv))
             ; //break;
         touch_check(&touch_state, &viewer, &need_redraw_nv);
         need_redraw |= need_redraw_nv;
@@ -126,7 +120,7 @@ typedef struct tik_t
 
 static void byte_to_time (tik_t * time, uint32_t value)
 {
-    if (buffer_ctl.audio_file.size == 0)
+    if (audio_ctl.audio_file.size == 0)
     {
         time->ms = 0;
         time->sec = 0;
@@ -134,14 +128,14 @@ static void byte_to_time (tik_t * time, uint32_t value)
         return;
     }
 
-    if (value >= buffer_ctl.info.offset)
-        value -= buffer_ctl.info.offset;
+    if (value >= audio_ctl.info.offset)
+        value -= audio_ctl.info.offset;
     else
         value = 0;
 
     uint32_t time_ms = 
-        (float)(buffer_ctl.info.length) /
-        (float)(buffer_ctl.audio_file.size - buffer_ctl.info.offset) *
+        (float)(audio_ctl.info.length) /
+        (float)(audio_ctl.audio_file.size - audio_ctl.info.offset) *
         (float)(value);
     
     time->ms = time_ms % 1000;
@@ -155,7 +149,7 @@ uint32_t audio_process ()
     uint32_t bytesread;
     audio_error_t error_state = AUDIO_ERROR_NONE;  
   
-    switch (buffer_ctl.audio_state)
+    switch (audio_ctl.audio_state)
     {
         case AUDIO_STATE_PLAYING:
         //display time
@@ -163,8 +157,8 @@ uint32_t audio_process ()
             tik_t cur_time;
             tik_t total_time;
       
-            byte_to_time(&cur_time, current_position(&buffer_ctl.audio_file));
-            byte_to_time(&total_time, buffer_ctl.audio_file.size);
+            byte_to_time(&cur_time, current_position(&audio_ctl.audio_file));
+            byte_to_time(&total_time, audio_ctl.audio_file.size);
 
             char str[str_time_size];
             snprintf
@@ -183,23 +177,23 @@ uint32_t audio_process ()
         }
 
         //end of song reached
-        if (current_position(&buffer_ctl.audio_file) >= buffer_ctl.audio_file.size)
+        if (current_position(&audio_ctl.audio_file) >= audio_ctl.audio_file.size)
         {
-            if (!is_fake_file_descriptor(&buffer_ctl.audio_file))
+            if (!is_fake_file_descriptor(&audio_ctl.audio_file))
             {
                 deinit_mad();
                 init_mad();
             }
             // play song again
-            if (buffer_ctl.repeat_mode)
+            if (audio_ctl.repeat_mode)
             {
                 uint32_t ret;
-                if ((ret = f_seek(&buffer_ctl.audio_file, buffer_ctl.info.offset)))
+                if ((ret = f_seek(&audio_ctl.audio_file, audio_ctl.info.offset)))
                 {
                     display_string_c(0, 152, (uint8_t *)"not seeked", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
                     return ret;
                 }
-                buffer_ctl.seeked = 1;
+                audio_ctl.seeked = 1;
             }
             else //or next song
             {
@@ -221,18 +215,18 @@ uint32_t audio_process ()
 
         uint8_t * buffer;
         /* 1st half buffer played; so fill it and continue playing from bottom*/
-        if (buffer_ctl.state == BUFFER_OFFSET_HALF)
-            buffer = buffer_ctl.buff;
+        if (audio_ctl.state == BUFFER_OFFSET_HALF)
+            buffer = audio_ctl.buff;
         /* 2nd half buffer played; so fill it and continue playing from top */    
-        if (buffer_ctl.state == BUFFER_OFFSET_FULL)
-            buffer = buffer_ctl.buff + (AUDIO_BUFFER_SIZE / 2);
+        if (audio_ctl.state == BUFFER_OFFSET_FULL)
+            buffer = audio_ctl.buff + (audio_buffer_size / 2);
 
-        if ((buffer_ctl.state == BUFFER_OFFSET_FULL) ||
-            (buffer_ctl.state == BUFFER_OFFSET_HALF))
+        if ((audio_ctl.state == BUFFER_OFFSET_FULL) ||
+            (audio_ctl.state == BUFFER_OFFSET_HALF))
         {
-            bytesread = get_pcm_sound(&buffer_ctl.audio_file, buffer, AUDIO_BUFFER_SIZE / 2);
+            bytesread = get_pcm_sound(&audio_ctl.audio_file, buffer, audio_buffer_size / 2);
             if (bytesread > 0)
-                buffer_ctl.state = BUFFER_OFFSET_NONE;
+                audio_ctl.state = BUFFER_OFFSET_NONE;
             else
             {
                 //ignore
@@ -250,14 +244,14 @@ uint32_t audio_process ()
 
 void BSP_AUDIO_OUT_TransferComplete_CallBack (void)
 {
-    if (buffer_ctl.audio_state == AUDIO_STATE_PLAYING)
-        buffer_ctl.state = BUFFER_OFFSET_FULL;
+    if (audio_ctl.audio_state == AUDIO_STATE_PLAYING)
+        audio_ctl.state = BUFFER_OFFSET_FULL;
 }
 
 void BSP_AUDIO_OUT_HalfTransfer_CallBack (void)
 {
-    if (buffer_ctl.audio_state == AUDIO_STATE_PLAYING)
-        buffer_ctl.state = BUFFER_OFFSET_HALF;
+    if (audio_ctl.audio_state == AUDIO_STATE_PLAYING)
+        audio_ctl.state = BUFFER_OFFSET_HALF;
 }
 
 void BSP_AUDIO_OUT_Error_CallBack (void)
