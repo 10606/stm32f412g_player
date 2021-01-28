@@ -7,8 +7,6 @@
 void init_mad ();
 void deinit_mad ();
 
-uint32_t no_plb_files = 401;
-
 uint32_t seek_value = (1024 * 32);
 
 uint32_t init_view (view * vv, char (* path)[12], uint32_t len, audio_ctl * buffer_ctl)
@@ -28,9 +26,6 @@ uint32_t init_view (view * vv, char (* path)[12], uint32_t len, audio_ctl * buff
     if (ret)
         return ret;
 
-    if (vv->pll.cnt == 0) // FIXME
-        return no_plb_files;
-    
     ret = init_playlist_view(&vv->plv, &vv->fd_plv);
     if (ret)
         return ret;
@@ -277,7 +272,6 @@ uint32_t play_new_playlist (view * vv)
     ret = play(&vv->plv, &vv->pl);
     if (ret)
         return ret;
-    vv->playing_playlist = vv->selected_playlist;
     ret = open_song_not_found(vv, 0);
     if (ret)
     {
@@ -287,6 +281,7 @@ uint32_t play_new_playlist (view * vv)
         return ret;
     }
 
+    vv->playing_playlist = vv->selected_playlist;
     deinit_mad();
     init_mad();
     return 0;

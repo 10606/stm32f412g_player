@@ -7,8 +7,6 @@
 #include "FAT.h"
 #include "audio.h"
 
-extern uint32_t no_plb_files;
-
 typedef enum state_song_view_t
 {
     S_VOLUME = 0,

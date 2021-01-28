@@ -102,21 +102,29 @@ uint32_t init_pl_list (pl_list * pll, char (* dir_name)[12], size_t len_name)
 
 void up_pl_list (pl_list * pll)
 {
+    if (pll->cnt == 0)
+        return;
     pll->current_pos = (pll->current_pos + 1) % pll->cnt;
 }
 
 void down_pl_list (pl_list * pll)
 {
+    if (pll->cnt == 0)
+        return;
     pll->current_pos = (pll->current_pos + pll->cnt - 1) % pll->cnt;
 }
 
 void seek_pl_list (pl_list * pll, uint32_t pos)
 {
+    if (pll->cnt == 0)
+        return;
     pll->current_pos = pos % pll->cnt;
 }
 
 uint32_t open_selected_pl_list (pl_list * pll, playlist_view * plv, uint32_t * selected_pl)
 {
+    if (pll->cnt == 0)
+        return 0;
     if (*selected_pl == pll->current_pos)
         return 0;
     char old_path [12];
@@ -148,6 +156,8 @@ void fill_name (char * dst, char * src, uint32_t size)
 
 char pl_list_check_near (pl_list * pll, uint32_t pos)
 {
+    if (pll->cnt == 0)
+        return 0;
     if (pos >= pll->cnt)    
         return 0;
     
@@ -174,9 +184,12 @@ uint32_t print_pl_list
     memset(selected, 0, plb_view_cnt);
     if (pll->cnt < plb_view_cnt)
     {
-        selected[pll->current_pos] |= 1;
-        if (playing_pl < pll->cnt)
-            selected[playing_pl] |= 2;
+        if (pll->cnt != 0)
+        {
+            selected[pll->current_pos] |= 1;
+            if (playing_pl < pll->cnt)
+                selected[playing_pl] |= 2;
+        }
         for (uint32_t i = 0; i != pll->cnt; ++i)
         {
             fill_name(playlist_name[i], pll->pl_name[i], pl_name_sz + 1);

@@ -54,6 +54,7 @@ void audio_init ()
     buffer_ctl.volume = AUDIO_DEFAULT_VOLUME;
   
     set_song_hint();
+    init_fake_file_descriptor(&buffer_ctl.audio_file);
   
     status = BSP_JOY_Init(JOY_MODE_GPIO);
   
