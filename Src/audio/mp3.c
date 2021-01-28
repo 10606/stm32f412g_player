@@ -38,7 +38,7 @@ static uint32_t get_data (file_descriptor * _file, uint8_t * buffer, uint32_t si
             return 0;
         }
         --tried;
-        display_string_c(0, 120, (uint8_t*)"    Error read", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
+        display_error("err read");
     }
     return total_read;
 }

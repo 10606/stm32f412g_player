@@ -56,12 +56,14 @@
 #include "usbd_cdc_if.h"
 
 
-#define JOY_LEFT_Pin        GPIO_PIN_15
-#define JOY_LEFT_GPIO_Port  GPIOF
-#define JOY_UP_Pin          GPIO_PIN_0
-#define JOY_UP_GPIO_Port    GPIOG
-#define JOY_DOWN_Pin        GPIO_PIN_1
-#define JOY_DOWN_GPIO_Port  GPIOG
+#define joy_center_pin           GPIO_PIN_0
+#define joy_center_gpio_port     GPIOA
+#define joy_left_pin             GPIO_PIN_15
+#define joy_right_pin            GPIO_PIN_14
+#define joy_left_right_gpio_port GPIOF
+#define joy_up_pin               GPIO_PIN_0
+#define joy_down_pin             GPIO_PIN_1
+#define joy_up_down_gpio_port    GPIOG
 
 
 view viewer;
@@ -77,28 +79,38 @@ void init_base () //joystick, led, LCD
     
     //joystick init
     {
+        __HAL_RCC_GPIOA_CLK_ENABLE();
+        __HAL_RCC_GPIOF_CLK_ENABLE();
         __HAL_RCC_GPIOG_CLK_ENABLE();
-        GPIO_InitTypeDef GPIO_InitStruct = {0};
-        GPIO_InitStruct.Pin = JOY_UP_Pin|JOY_DOWN_Pin;
-        GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-        GPIO_InitStruct.Pull = GPIO_NOPULL;
-        HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
+        GPIO_InitTypeDef GPIO_init = {0};
+        GPIO_init.Mode = GPIO_MODE_INPUT;
+        GPIO_init.Pull = GPIO_PULLDOWN;
+        GPIO_init.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+
+        GPIO_init.Pin = joy_up_pin | joy_down_pin;
+        HAL_GPIO_Init(joy_up_down_gpio_port, &GPIO_init);
+
+        GPIO_init.Pin = joy_left_pin | joy_right_pin;
+        HAL_GPIO_Init(joy_left_right_gpio_port, &GPIO_init);
+
+        GPIO_init.Pin = joy_center_pin;
+        HAL_GPIO_Init(joy_center_gpio_port, &GPIO_init);
     }
 
     //LED3 init
     {
-        GPIO_InitTypeDef GPIO_InitStruct = {0};
+        GPIO_InitTypeDef GPIO_init = {0};
         __HAL_RCC_GPIOE_CLK_ENABLE();
         HAL_GPIO_WritePin(GPIOE, GPIO_PIN_2, GPIO_PIN_SET);
-        GPIO_InitStruct.Pin = GPIO_PIN_2;
-        GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-        GPIO_InitStruct.Pull = GPIO_NOPULL;
-        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-        HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+        GPIO_init.Pin = GPIO_PIN_2;
+        GPIO_init.Mode = GPIO_MODE_OUTPUT_PP;
+        GPIO_init.Pull = GPIO_PULLDOWN;
+        GPIO_init.Speed = GPIO_SPEED_FREQ_LOW;
+        HAL_GPIO_Init(GPIOE, &GPIO_init);
     }
     
     display_init();
-    display_err();
+    display_start_image();
     BSP_PB_Init(BUTTON_WAKEUP, BUTTON_MODE_GPIO);
     BSP_TS_Init(240, 240);
 }
@@ -106,15 +118,15 @@ void init_base () //joystick, led, LCD
 uint32_t init_fs (char (* path)[12], uint32_t len)
 {
     while (BSP_SD_IsDetected() != SD_PRESENT)
-        display_err();
+        display_start_image();
 
     while (sd_card_init())
     {}
-    /* Open filesystem */
+    // open filesystem
     global_info.sector_size = 512;
     if (init_fatfs())
     {
-        display_string_c(0, 152, (uint8_t*)"not initialized...", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
+        display_error("err init fatfs");
         return 2;
     }
     return 0;
@@ -128,7 +140,7 @@ uint32_t init_audio (char (* path)[12], uint32_t len)
     uint32_t ret = init_view(&viewer, path, len, &audio_ctl);
     if (ret)
     {
-        display_string_c(0, 112, (uint8_t*)"No PLB files...", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
+        display_error("err init view");
         audio_destruct();
         destroy_view(&viewer);
         return ret;
@@ -151,19 +163,19 @@ void init_usb ()
 {
     HAL_GPIO_WritePin(USB_OTGFS_PPWR_EN_GPIO_Port, USB_OTGFS_PPWR_EN_Pin, GPIO_PIN_SET);
 
-    /*Configure GPIO pin : USB_OTGFS_PPWR_EN_Pin */
-    GPIO_InitTypeDef GPIO_InitStruct = {0};
-    GPIO_InitStruct.Pin = USB_OTGFS_PPWR_EN_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    HAL_GPIO_Init(USB_OTGFS_PPWR_EN_GPIO_Port, &GPIO_InitStruct);
+    // configure GPIO pin : USB_OTGFS_PPWR_EN_Pin
+    GPIO_InitTypeDef GPIO_init = {0};
+    GPIO_init.Pin = USB_OTGFS_PPWR_EN_Pin;
+    GPIO_init.Mode = GPIO_MODE_OUTPUT_OD;
+    GPIO_init.Pull = GPIO_NOPULL;
+    GPIO_init.Speed = GPIO_SPEED_FREQ_LOW;
+    HAL_GPIO_Init(USB_OTGFS_PPWR_EN_GPIO_Port, &GPIO_init);
     
-    /*Configure GPIO pins : USB_OTGFS_OVRCR_Pin */
-    GPIO_InitStruct.Pin = USB_OTGFS_OVRCR_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
+    // configure GPIO pins : USB_OTGFS_OVRCR_Pin
+    GPIO_init.Pin = USB_OTGFS_OVRCR_Pin;
+    GPIO_init.Mode = GPIO_MODE_INPUT;
+    GPIO_init.Pull = GPIO_NOPULL;
+    HAL_GPIO_Init(GPIOG, &GPIO_init);
    
     MX_USB_DEVICE_Init();
 
@@ -256,27 +268,6 @@ void SystemClock_Config (void)
     if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
         Error_Handler();
     HAL_RCC_MCOConfig(RCC_MCO1, RCC_MCO1SOURCE_HSI, RCC_MCODIV_1);
-}
-
-void HAL_GPIO_EXTI_Callback (uint16_t GPIO_Pin)
-{
-    static uint32_t debounce_time = 0;
-
-    if (GPIO_Pin == BUTTON_WAKEUP)
-    {
-        /* Prevent debounce effect for user key */
-        if ((HAL_GetTick() - debounce_time) > 50)
-        {
-            debounce_time = HAL_GetTick();
-        }
-    }
-    else if (GPIO_Pin == SD_DETECT_PIN)
-    {}
-
-    if (GPIO_Pin == GPIO_PIN_9)
-    {
-        HAL_PCDEx_BCD_VBUSDetect(&hpcd_USB_OTG_FS);
-    }
 }
 
 #ifdef  USE_FULL_ASSERT

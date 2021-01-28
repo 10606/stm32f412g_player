@@ -141,7 +141,8 @@ USB_sources = \
 display_sources = \
 	Src/display/display_playlist.c \
 	Src/display/display_pl_list.c \
-	Src/display/display_song.c
+	Src/display/display_song.c \
+	Src/display/display_error.c
 
 # playlist
 playlist_sources = \

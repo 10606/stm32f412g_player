@@ -41,7 +41,6 @@ uint32_t init_pl_list (pl_list * pll, char (* dir_name)[12], size_t len_name)
   
     if (res != 0)
     {
-        //BSP_LCD_DisplayStringAt(0, 152, (uint8_t*)"No directory Media...", 0);
         pll->cnt = 0;
         destroy_pl_list(pll);
         return res;

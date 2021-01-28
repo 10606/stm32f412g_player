@@ -15,8 +15,8 @@ void display_cur_song (playlist * pl_p, char to_screen)
     color_t yb = {LCD_COLOR_YELLOW, LCD_COLOR_BLUE};
     if (to_screen)
     {
-        display_string(5, 20, (uint8_t *)cur_group_name, &Font16, &yb);
-        display_string(5, 40, (uint8_t *)cur_song_name, &Font16, &yb);
+        display_string(5, 20, cur_group_name, &Font16, &yb);
+        display_string(5, 40, cur_song_name, &Font16, &yb);
         audio_process();
     }
     send_cur_song(cur_song_name, cur_group_name);
@@ -84,8 +84,8 @@ void display_playlist (playlist_view * plv, playlist * pl_p, int state, char to_
         color_t c_song = {text_color_song, back_color_song};
         if (to_screen)
         {
-            display_string(4, list_offset + line_offset * i, (uint8_t *)s_group, &Font12, &c_group);
-            display_string(4, list_offset + in_line_offset + line_offset * i, (uint8_t *)s_song, &Font12, &c_song);
+            display_string(4, list_offset + line_offset * i, s_group, &Font12, &c_group);
+            display_string(4, list_offset + in_line_offset + line_offset * i, s_song, &Font12, &c_song);
         }
         audio_process();
         send_displayed_song(s_group, s_song, selected[i], i);

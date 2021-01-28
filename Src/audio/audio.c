@@ -27,7 +27,7 @@ static inline audio_error_t audio_start ()
     init_mad();
     if (open_song_not_found(&viewer, 0))
     {
-        display_string_c(0, 152, (uint8_t*)"not opened", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
+        display_error("err open song at start");
         return AUDIO_ERROR_IO;
     }
 
@@ -43,20 +43,14 @@ void audio_init ()
     audio_ctl.seeked = 0;
     audio_ctl.repeat_mode = 0;
     audio_ctl.audio_freq = 44100; /*AF_44K*/
-    uint8_t status = 0;
     audio_ctl.pause_status = 0; /* 0 when audio is running, 1 when Pause is on */
     audio_ctl.volume = audio_default_volume;
   
     display_song_hint();
     init_fake_file_descriptor(&audio_ctl.audio_file);
   
-    status = BSP_JOY_Init(JOY_MODE_GPIO);
-  
-    if (status != HAL_OK)
-        display_string_c(0, 140, (uint8_t*)"joystick init error", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
-  
     if (BSP_AUDIO_OUT_Init(OUTPUT_DEVICE_HEADPHONE, audio_ctl.volume, audio_ctl.audio_freq) != 0)
-        display_string_c(0, 140, (uint8_t*)"audio codec fail", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
+        display_error("err init audio codec");
     
 }
 
@@ -173,7 +167,7 @@ uint32_t audio_process ()
                 total_time.sec,
                 total_time.ms
             );
-            display_string_center_c(0, 60, (uint8_t *)str, &Font12, LCD_COLOR_BLUE, LCD_COLOR_WHITE);
+            display_string_center_c(0, 60, str, &Font12, LCD_COLOR_BLUE, LCD_COLOR_WHITE);
         }
 
         //end of song reached
@@ -190,7 +184,7 @@ uint32_t audio_process ()
                 uint32_t ret;
                 if ((ret = f_seek(&audio_ctl.audio_file, audio_ctl.info.offset)))
                 {
-                    display_string_c(0, 152, (uint8_t *)"not seeked", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
+                    display_error("err seek");
                     return ret;
                 }
                 audio_ctl.seeked = 1;
@@ -200,12 +194,12 @@ uint32_t audio_process ()
                 uint32_t ret;
                 if ((ret = next_playlist(&viewer.pl)))
                 {
-                    display_string_c(0, 152, (uint8_t *)"can't get next song", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
+                    display_error("err get next song");
                     return ret;
                 }
                 if ((ret = open_song_not_found(&viewer, 0)))
                 {
-                    display_string_c(0, 152, (uint8_t *)"not opened", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
+                    display_error("err open song");
                     return ret;
                 }
             }
@@ -256,9 +250,6 @@ void BSP_AUDIO_OUT_HalfTransfer_CallBack (void)
 
 void BSP_AUDIO_OUT_Error_CallBack (void)
 {
-    display_string_c(0, 120, (uint8_t*)"    DMA error", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
-
-    if (BSP_PB_GetState(BUTTON_WAKEUP) != RESET)
-        return;
+    display_error("err audio out");
 }
 

@@ -16,7 +16,8 @@ void display_pl_list (pl_list * pll, uint32_t playing_pl, playlist * pl_p, char 
 void display_playlist (playlist_view * plv, playlist * pl_p, int state, char to_screen);
 void display_song (playlist * pl, audio_ctl_t * actl, state_song_view_t * state, char to_sreen);
 void display_song_volume (playlist * pl, audio_ctl_t * actl, state_song_view_t * state, char to_screen);
-void display_err ();
+void display_start_image ();
+void display_error (char const * msg);
 void display_song_hint ();
 
 

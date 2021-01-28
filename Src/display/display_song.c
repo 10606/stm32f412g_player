@@ -12,7 +12,7 @@ void display_song_hint ()
     fill_rect(0, 0, 240, headband_height, LCD_COLOR_BLUE);
 }
 
-void display_err ()
+void display_start_image ()
 {
     ST7789H2_DrawRGBImage(0, 0, 240, 240, err_picture_address);
 }
@@ -42,8 +42,8 @@ void display_song_volume (playlist * pl, audio_ctl_t * actl, state_song_view_t *
     snprintf(s_state, sizeof(s_state), "  %c %c", (actl->repeat_mode? 'r' : ' '), c_state);
     if (to_screen)
     {
-        display_string(200, list_offset, (uint8_t *)s_volume, &Font12, &bw);
-        display_string(200, list_offset + in_line_offset, (uint8_t *)s_state, &Font12, &bw);
+        display_string(200, list_offset, s_volume, &Font12, &bw);
+        display_string(200, list_offset + in_line_offset, s_state, &Font12, &bw);
         audio_process();
     }
     HAL_Delay(1);

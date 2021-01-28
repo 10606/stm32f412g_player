@@ -65,8 +65,8 @@ void display_pl_list (pl_list * pll, uint32_t playing_pl, playlist * pl_p, char 
         color_t c_song = {text_color_song, back_color_song};
         if (to_screen)
         {
-            display_string(4, list_offset + line_offset * i, (uint8_t *)s_playlist, &Font12, &c_group);
-            display_string(4, list_offset + in_line_offset + line_offset * i, (uint8_t *)empty, &Font12, &c_song);
+            display_string(4, list_offset + line_offset * i, s_playlist, &Font12, &c_group);
+            display_string(4, list_offset + in_line_offset + line_offset * i, empty, &Font12, &c_song);
         }
         audio_process();
         send_pl_list(s_playlist, selected[i], i);
