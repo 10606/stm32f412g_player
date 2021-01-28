@@ -1,7 +1,9 @@
+#include "pl_list.h"
+
+#include "util.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "pl_list.h"
 #include "playlist.h"
 #include "playlist_view.h"
 #include "playlist_structures.h"
@@ -144,6 +146,21 @@ void fill_name (char * dst, char * src, uint32_t size)
     dst[size - 1] = 0;
 }
 
+char pl_list_check_near (pl_list * pll, uint32_t pos)
+{
+    if (pos >= pll->cnt)    
+        return 0;
+    
+    return check_near
+    (
+        pll->current_pos, 
+        pos, 
+        pll->cnt, 
+        plb_view_cnt, 
+        plb_border_cnt
+    );
+}
+
 uint32_t print_pl_list 
 (
     pl_list * pll, 
@@ -154,8 +171,8 @@ uint32_t print_pl_list
     char * restrict selected
 )
 {
-    memset(selected, 0, view_plb_cnt);
-    if (pll->cnt < view_plb_cnt)
+    memset(selected, 0, plb_view_cnt);
+    if (pll->cnt < plb_view_cnt)
     {
         selected[pll->current_pos] |= 1;
         if (playing_pl < pll->cnt)
@@ -166,7 +183,7 @@ uint32_t print_pl_list
             snprintf(count[i], sizeof(count[i]), "%3lu", pll->pl_songs[i]);
             snprintf(number[i], sizeof(number[i]), "%3lu", (i % 1000));
         }
-        for (uint32_t i = pll->cnt; i != view_plb_cnt; ++i)
+        for (uint32_t i = pll->cnt; i != plb_view_cnt; ++i)
         {
             memset(playlist_name[i], ' ', pl_name_sz);
             playlist_name[i][pl_name_sz] = 0;
@@ -177,36 +194,30 @@ uint32_t print_pl_list
     }
     
     uint32_t index;
-    if (pll->current_pos <= border_plb_cnt) // on top
+    if (pll->current_pos <= plb_border_cnt) // on top
     {
         selected[pll->current_pos] |= 1;
-        if (playing_pl < view_plb_cnt) // if our list playing
-            selected[playing_pl] |= 2;
         index = 0;
     }
-    else if (pll->current_pos + border_plb_cnt >= pll->cnt) // on bottom
+    else if (pll->current_pos + plb_border_cnt >= pll->cnt) // on bottom
     {
-        selected[pll->cnt - view_plb_cnt + pll->current_pos] |= 1;
-        if (playing_pl >= pll->cnt - view_plb_cnt) // if our list playing
-            selected[pll->cnt - view_plb_cnt + playing_pl] |= 2;
-        index = pll->cnt - view_plb_cnt;
+        selected[pll->cnt - plb_view_cnt + pll->current_pos] |= 1;
+        index = pll->cnt - plb_view_cnt;
     }
     else // on middle
     {
-        selected[border_plb_cnt] |= 1;
-        if ((playing_pl >= pll->current_pos - border_plb_cnt) &&
-            (playing_pl <= pll->current_pos + border_plb_cnt)) // if our list playing
-        {
-            selected[playing_pl + border_plb_cnt - pll->current_pos] |= 2;
-        }
-        index = pll->current_pos - border_plb_cnt ;
+        selected[plb_border_cnt] |= 1;
+        index = pll->current_pos - plb_border_cnt ;
     }
+
+    if (pl_list_check_near(pll, playing_pl))
+        selected[playing_pl - index] |= 2;
     
-    for (uint32_t i = 0; i != view_plb_cnt; ++i)
+    for (uint32_t i = 0; i != plb_view_cnt; ++i)
     {
         fill_name(playlist_name[i], pll->pl_name[i], pl_name_sz + 1);
         snprintf(count[i], sizeof(count[i]), "%3lu", pll->pl_songs[index + i]);
-        snprintf(number[i], sizeof(number[i]), "%3lu", index + i);
+        snprintf(number[i], sizeof(number[i]), "%3lu", (index + i) % 1000);
     }
     return 0;
 }

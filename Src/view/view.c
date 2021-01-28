@@ -1,6 +1,7 @@
+#include "view.h"
+
 #include "joystick.h"
 #include "stm32412g_discovery_audio.h"
-#include "view.h"
 #include "display.h"
 
 void init_mad ();
@@ -18,17 +19,19 @@ uint32_t init_view (view * vv, char (* path)[12], uint32_t len, audio_ctl * buff
     vv->playing_playlist = max_plb_files;
     vv->selected_playlist = max_plb_files;
     vv->pl.fd = &vv->fd_pl;
-    bind_playlist_view(&vv->plv, &vv->fd_plv);
+    
+    init_fake_file_descriptor(&vv->fd_plv);
+    init_fake_file_descriptor(&vv->fd_pl);
     
     uint32_t ret;
     ret = init_pl_list(&vv->pll, path, len);
     if (ret)
         return ret;
 
-    if (vv->pll.cnt == 0)
+    if (vv->pll.cnt == 0) // FIXME
         return no_plb_files;
     
-    ret = open_selected_pl_list(&vv->pll, &vv->plv, &vv->selected_playlist);
+    ret = init_playlist_view(&vv->plv, &vv->fd_plv);
     if (ret)
         return ret;
     
@@ -131,7 +134,7 @@ uint32_t process_view_prev_song (view * vv, uint8_t * need_redraw)
     {
         deinit_mad();
         init_mad();
-        if ((ret = open_song(vv)))
+        if ((ret = open_song_not_found(vv)))
             return ret;
     }
     *need_redraw = 1;
@@ -205,7 +208,7 @@ uint32_t process_view_next_song (view * vv, uint8_t * need_redraw)
     {
         deinit_mad();
         init_mad();
-        if ((ret = open_song(vv)))
+        if ((ret = open_song_not_found(vv)))
             return ret;
     }
     *need_redraw = 1;
@@ -277,11 +280,13 @@ uint32_t process_view_right (view * vv, uint8_t * need_redraw)
         break;
 
     case D_PLAYLIST:
-        play(&vv->plv, &vv->pl);
+        ret = play(&vv->plv, &vv->pl);
+        if (ret)
+            return ret;
         vv->playing_playlist = vv->selected_playlist;
         deinit_mad();
         init_mad();
-        ret = open_song(vv);
+        ret = open_song_not_found(vv);
         if (ret)
             return ret;
         *need_redraw = 1;
@@ -301,29 +306,51 @@ uint32_t process_view_center (view * vv, uint8_t * need_redraw)
     switch (vv->state)
     {
     case D_PL_LIST:
-        seek_pl_list(&vv->pll, vv->playing_playlist);
-        vv->state = D_PLAYLIST;
+        if (pl_list_check_near(&vv->pll, vv->playing_playlist))
+        {
+            vv->state = D_PLAYLIST;
+        }
+        else
+        {
+            seek_pl_list(&vv->pll, vv->playing_playlist);
+        }
+        /*
         ret = open_selected_pl_list(&vv->pll, &vv->plv, &vv->selected_playlist);
         if (ret)
             return ret;
+        */
         *need_redraw = 1;
         break;
         
     case D_PLAYLIST:
-        if (check_near(&vv->plv, &vv->pl))
+        if (playlist_check_near(&vv->plv, &vv->pl))
         {
             vv->state = D_SONG;
+            *need_redraw = 1;
         }
         else
         {
-            if (!compare(&vv->plv.lpl, &vv->pl))
+            if (vv->pl.header.cnt_songs != 0)
             {
-                // trivially destrucible
-                init_playlist_view(&vv->plv, vv->pl.fd);
+                if (!playlist_compare(&vv->plv.lpl, &vv->pl))
+                {
+                    file_descriptor old_fd;
+                    copy_file_descriptor(&old_fd, vv->plv.lpl.fd);
+                    
+                    copy_file_descriptor_seek_0(vv->plv.lpl.fd, vv->pl.fd);
+                    // trivially destrucible
+                    if ((ret = init_playlist_view(&vv->plv, vv->plv.lpl.fd)))
+                    {
+                        copy_file_descriptor(vv->plv.lpl.fd, &old_fd);
+                        return ret;
+                    }
+                }
+                ret = seek_playlist_view(&vv->plv, vv->pl.pos);
+                if (ret)
+                    return ret;
+                *need_redraw = 1;
             }
-            seek_playlist_view(&vv->plv, vv->pl.pos);
         }
-        *need_redraw = 1;
         break;
         
     case D_SONG:
@@ -374,27 +401,37 @@ uint32_t process_view (view * vv, uint8_t * need_redraw)
         if (check_button_state(joy_button_up))
         {
             flag = 1;
-            ret |= process_view_up(vv, need_redraw);
+            ret = process_view_up(vv, need_redraw);
+            if (ret)
+                return ret;
         }
         if (check_button_state(joy_button_down))
         {
             flag = 1;
-            ret |= process_view_down(vv, need_redraw);
+            ret = process_view_down(vv, need_redraw);
+            if (ret)
+                return ret;
         }
         if (check_button_state(joy_button_left))
         {
             flag = 1;
-            ret |= process_view_left(vv, need_redraw);
+            ret = process_view_left(vv, need_redraw);
+            if (ret)
+                return ret;
         }
         if (check_button_state(joy_button_right))
         {
             flag = 1;
-            ret |= process_view_right(vv, need_redraw);
+            ret = process_view_right(vv, need_redraw);
+            if (ret)
+                return ret;
         }
         if (check_button_state(joy_button_center))
         {
             flag = 1;
-            ret |= process_view_center(vv, need_redraw);
+            ret = process_view_center(vv, need_redraw);
+            if (ret)
+                return ret;
         }
     }
     return ret;
@@ -402,6 +439,13 @@ uint32_t process_view (view * vv, uint8_t * need_redraw)
 
 uint32_t open_song (view * vv)
 {
+    if (vv->pl.header.cnt_songs == 0)
+    {
+        init_fake_file_descriptor(&vv->buffer_ctl->audio_file);
+        vv->buffer_ctl->info.offset = 0;
+        return 0;
+    }
+
     uint32_t ret;
     if ((ret = open(&vv->buffer_ctl->audio_file, vv->pl.path, vv->pl.song.path_len)))
         return ret;
@@ -410,5 +454,30 @@ uint32_t open_song (view * vv)
     if ((ret = f_seek(&vv->buffer_ctl->audio_file, vv->buffer_ctl->info.offset)))
         return ret;
     return 0;
+}
+
+uint32_t open_song_not_found (view * vv)
+{
+    uint32_t ret = 0;
+    for (uint32_t i = 0; i != vv->pl.header.cnt_songs; ++i)
+    {
+        if ((ret = open_song(vv)))
+        {
+            if (ret == not_found)
+                continue;
+            else
+                return ret;
+        }
+        else
+        {
+            return 0;
+        }
+        
+        if ((ret = next_playlist(&vv->pl)))
+            return ret;
+    }
+    // TODO reset to empty list and song
+    // current_playlist = pl_list.cnt
+    return ret;
 }
 

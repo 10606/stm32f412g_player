@@ -114,6 +114,12 @@ uint32_t fill_buffer
 
 uint32_t get_pcm_sound (file_descriptor * _file, uint8_t * pbuf, uint32_t NbrOfData)
 {
+    if (is_fake_file_descriptor(_file))
+    {
+        memset(pbuf, 0, NbrOfData);
+        return NbrOfData;
+    }
+
     if (buffer_ctl.pause_status)
         return 0;
     

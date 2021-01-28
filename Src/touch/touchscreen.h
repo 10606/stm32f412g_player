@@ -79,8 +79,7 @@ int32_t move_down
 void touch_check (old_touch_state * ots, view * vv, uint8_t * need_redraw);
 
 //TODO
-//multi seak 
-//non linear speed
+//fast motion
 
 #endif
 

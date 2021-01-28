@@ -6,8 +6,8 @@
 #include "playlist_view.h"
 #include "playlist_structures.h"
 
-#define border_plb_cnt 3
-#define view_plb_cnt (2 * border_plb_cnt + 1)
+#define plb_border_cnt 3
+#define plb_view_cnt (2 * plb_border_cnt + 1)
 #define max_plb_files 25
 
 typedef struct pl_list
@@ -27,6 +27,7 @@ void up_pl_list (pl_list * pll);
 void down_pl_list (pl_list * pll);
 void seek_pl_list (pl_list * pll, uint32_t pos);
 uint32_t open_selected_pl_list (pl_list * pll, playlist_view * plv, uint32_t * selected_pl);
+char pl_list_check_near (pl_list * pll, uint32_t pos);
 
 uint32_t print_pl_list 
 (

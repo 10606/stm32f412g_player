@@ -24,7 +24,7 @@ void display_cur_song (playlist * pl_p, char to_screen)
 
 void display_playlist (playlist_view * plv, playlist * pl_p, int state, char to_screen)
 {
-    uint32_t y_pos = list_offset + line_offset * view_plb_cnt;
+    uint32_t y_pos = list_offset + line_offset * playlist_view_cnt;
     if (to_screen)
         fill_rect(0, y_pos, 240, 240 - y_pos, LCD_COLOR_WHITE);
     display_cur_song(pl_p, to_screen);
@@ -32,18 +32,18 @@ void display_playlist (playlist_view * plv, playlist * pl_p, int state, char to_
     send_state(state);
     audio_process();
     
-    char song_name[view_cnt][song_name_sz + 1];
-    char group_name[view_cnt][group_name_sz + 1];
-    char selected[view_cnt];
+    char song_name[playlist_view_cnt][song_name_sz + 1];
+    char group_name[playlist_view_cnt][group_name_sz + 1];
+    char selected[playlist_view_cnt];
         // 0
         // 1 - selected
         // 2 - playing
         // 3 - playing and selected
-    char number[view_cnt][3 + 1];
+    char number[playlist_view_cnt][3 + 1];
     
     print_playlist_view(plv, pl_p, song_name, group_name, selected, number);
     
-    for (uint32_t i = 0; i != view_cnt; ++i)
+    for (uint32_t i = 0; i != playlist_view_cnt; ++i)
     {
         char s_group[name_offset + group_name_sz + 1];
         memset(s_group, ' ', name_offset + 1);

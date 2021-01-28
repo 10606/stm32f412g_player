@@ -15,7 +15,7 @@ void display_err ()
     ST7789H2_DrawRGBImage(0, 0, 240, 240, err_picture_address);
 }
 
-void display_song_volume (playlist * pl, audio_ctl * actl, state_song_view_t * state, char to_screen) //TODO
+void display_song_volume (playlist * pl, audio_ctl * actl, state_song_view_t * state, char to_screen) 
 {
     char c_state = ' ';
     switch (*state)
@@ -63,7 +63,7 @@ void display_picture ()
     }
 }
 
-void display_song (playlist * pl, audio_ctl * actl, state_song_view_t * state, char to_screen) //TODO
+void display_song (playlist * pl, audio_ctl * actl, state_song_view_t * state, char to_screen) 
 {
     if (to_screen)
     {

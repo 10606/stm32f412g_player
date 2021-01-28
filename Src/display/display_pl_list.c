@@ -8,15 +8,15 @@
 
 void display_pl_list (pl_list * pll, uint32_t playing_pl, playlist * pl_p, char to_screen)
 {
-    uint32_t y_pos = list_offset + line_offset * view_plb_cnt;
+    uint32_t y_pos = list_offset + line_offset * plb_view_cnt;
     if (to_screen)
         fill_rect(0, y_pos, 240, 240 - y_pos, LCD_COLOR_WHITE);
     display_cur_song(pl_p, to_screen);
     
-    char playlist_name[max_plb_files][pl_name_sz + 1];
-    char number[max_plb_files][3 + 1];
-    char count[max_plb_files][3 + 1];
-    char selected[max_plb_files];
+    char playlist_name[plb_view_cnt][pl_name_sz + 1];
+    char number[plb_view_cnt][3 + 1];
+    char count[plb_view_cnt][3 + 1];
+    char selected[plb_view_cnt];
         // 0
         // 1 - selected
         // 2 - playing
@@ -28,7 +28,7 @@ void display_pl_list (pl_list * pll, uint32_t playing_pl, playlist * pl_p, char 
     
     print_pl_list(pll, playing_pl, playlist_name, number, count, selected);
     
-    for (uint32_t i = 0; i != view_plb_cnt; ++i)
+    for (uint32_t i = 0; i != plb_view_cnt; ++i)
     {
         char s_playlist[name_offset + pl_name_sz + count_offset + 3 + 1];
         memset(s_playlist, ' ', sizeof(s_playlist));

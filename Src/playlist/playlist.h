@@ -24,6 +24,7 @@ uint32_t next_playlist (playlist * pl);
 uint32_t prev_playlist (playlist * pl);
 void destroy_playlist (playlist * pl);
 void move_playlist (playlist * dst, playlist * src);
+char is_fake_playlist (playlist * pl);
 
 #endif
 

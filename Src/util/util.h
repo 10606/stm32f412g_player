@@ -4,41 +4,29 @@
 #include <stdint.h>
 #include "audio.h"
 
-inline uint32_t min (uint32_t a, uint32_t b)
+static inline uint32_t min (uint32_t a, uint32_t b)
 {
     return (a < b)? a : b;
 }
 
-inline uint32_t max (uint32_t a, uint32_t b)
+static inline uint32_t max (uint32_t a, uint32_t b)
 {
     return (a > b)? a : b;
 }
 
-
-typedef struct tik_t
+static inline char check_near (uint32_t pos_a, uint32_t pos_b, uint32_t max_pos_a, uint32_t view_pos_a, uint32_t border_pos_a)
 {
-    uint16_t min;
-    uint16_t sec;
-    uint16_t ms;
-} tik_t;
+    if (max_pos_a <= view_pos_a)
+        return 1;
 
-static inline void byte_to_time (tik_t * time, uint32_t value)
-{
-    if (value >= buffer_ctl.info.offset)
-        value -= buffer_ctl.info.offset;
-    else
-        value = 0;
-
-    uint32_t time_ms = 
-        (float)(buffer_ctl.info.length) /
-        (float)(buffer_ctl.audio_file.size - buffer_ctl.info.offset) *
-        (float)(value);
-    
-    time->ms = time_ms % 1000;
-    time->sec = (time_ms / 1000) % 60;
-    time->min = time_ms / 1000 / 60;
+    if (pos_a < border_pos_a) // on top
+        return pos_b < view_pos_a;
+    else if (pos_a + border_pos_a >= max_pos_a) // on bottom
+        return pos_b >= max_pos_a - view_pos_a;
+    else                                        // on middle
+        return  (pos_b >= pos_a - border_pos_a) &&
+                (pos_b <= pos_a + border_pos_a);
 }
-
 
 #endif
 

@@ -19,9 +19,6 @@
 
 old_touch_state touch_state = {0};
 audio_ctl  buffer_ctl;
-
-
-uint32_t audio_process (void);
 volatile uint8_t need_redraw = 0;
 
 
@@ -33,26 +30,17 @@ static inline void set_song_hint (void)
 
 static inline audio_error_t audio_start ()
 {
-    uint32_t bytesread;
-
     init_mad();
-    if (open_song(&viewer))
+    if (open_song_not_found(&viewer))
     {
         display_string_c(0, 152, (uint8_t*)"not opened", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
         return AUDIO_ERROR_IO;
     }
 
-    buffer_ctl.state = BUFFER_OFFSET_NONE;
-    bytesread = get_pcm_sound(&buffer_ctl.audio_file,
-                      &buffer_ctl.buff[0],
-                      AUDIO_BUFFER_SIZE);
-    if (bytesread > 0)
-    {
-        BSP_AUDIO_OUT_Play((uint16_t*)&buffer_ctl.buff[0], AUDIO_BUFFER_SIZE);
-        buffer_ctl.audio_state = AUDIO_STATE_PLAYING;      
-        return AUDIO_ERROR_NONE;
-    }
-    return AUDIO_ERROR_IO;
+    memset(buffer_ctl.buff, 0, AUDIO_BUFFER_SIZE);
+    BSP_AUDIO_OUT_Play((uint16_t*)&buffer_ctl.buff[0], AUDIO_BUFFER_SIZE);
+    buffer_ctl.audio_state = AUDIO_STATE_PLAYING;      
+    return AUDIO_ERROR_NONE;
 }
 
 
@@ -96,11 +84,11 @@ void audio_play ()
     while (1)
     {
         uint32_t ret;
-        if ((ret = audio_process()))
+        if ((ret = audio_process(&need_redraw)))
         {
             if ((ret != AUDIO_ERROR_EOF) &&
                 (ret != AUDIO_ERROR_NOTREADY))
-                break;
+                ; //break;
         }
         check_buttons();
       
@@ -110,8 +98,11 @@ void audio_play ()
             display_view(&viewer);
         }
         uint8_t need_redraw_nv = 0;
-        if (process_view(&viewer, &need_redraw_nv))
-            break;
+        if ((ret = process_view(&viewer, &need_redraw_nv)))
+        {
+            if (ret != empty_playlist)
+                ;//break;
+        }
         if (usb_process())
             ; //break;
         touch_check(&touch_state, &viewer, &need_redraw_nv);
@@ -124,6 +115,39 @@ void audio_play ()
         }
     }
 }
+
+typedef struct tik_t
+{
+    uint16_t min;
+    uint16_t sec;
+    uint16_t ms;
+} tik_t;
+
+static void byte_to_time (tik_t * time, uint32_t value)
+{
+    if (buffer_ctl.audio_file.size == 0)
+    {
+        time->ms = 0;
+        time->sec = 0;
+        time->min = 0;
+        return;
+    }
+
+    if (value >= buffer_ctl.info.offset)
+        value -= buffer_ctl.info.offset;
+    else
+        value = 0;
+
+    uint32_t time_ms = 
+        (float)(buffer_ctl.info.length) /
+        (float)(buffer_ctl.audio_file.size - buffer_ctl.info.offset) *
+        (float)(value);
+    
+    time->ms = time_ms % 1000;
+    time->sec = (time_ms / 1000) % 60;
+    time->min = time_ms / 1000 / 60;
+}
+
 
 uint32_t audio_process ()
 {
@@ -160,11 +184,14 @@ uint32_t audio_process ()
         //end of song reached
         if (current_position(&buffer_ctl.audio_file) >= buffer_ctl.audio_file.size)
         {
-            // play song again
-            if (buffer_ctl.repeat_mode)
+            if (!is_fake_file_descriptor(&buffer_ctl.audio_file))
             {
                 deinit_mad();
                 init_mad();
+            }
+            // play song again
+            if (buffer_ctl.repeat_mode)
+            {
                 uint32_t ret;
                 if ((ret = f_seek(&buffer_ctl.audio_file, buffer_ctl.info.offset)))
                 {
@@ -175,18 +202,20 @@ uint32_t audio_process ()
             }
             else //or next song
             {
-                next_playlist(&viewer.pl);
-                deinit_mad();
-                init_mad();
                 uint32_t ret;
-                if ((ret = open_song(&viewer)))
+                if ((ret = next_playlist(&viewer.pl)))
+                {
+                    display_string_c(0, 152, (uint8_t *)"can't get next song", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
+                    return ret;
+                }
+                if ((ret = open_song_not_found(&viewer)))
                 {
                     display_string_c(0, 152, (uint8_t *)"not opened", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
                     return ret;
                 }
             }
             error_state = AUDIO_ERROR_EOF;
-            display_view(&viewer);
+            need_redraw |= 1; //TODO only if state == D_PLAYLIST && playlist_compare
         }
 
         uint8_t * buffer;
@@ -205,8 +234,7 @@ uint32_t audio_process ()
                 buffer_ctl.state = BUFFER_OFFSET_NONE;
             else
             {
-                //TODO FIXME
-                display_string_c(0, 152, (uint8_t *)"err_read", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
+                //ignore
             }
         }
         break;

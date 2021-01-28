@@ -5,6 +5,9 @@ uint32_t memory_limit = 101;
 
 uint32_t seek_playlist (playlist * pl, uint32_t pos)
 {
+    if (pl->header.cnt_songs == 0)
+        return 0;
+
     pos %= pl->header.cnt_songs;
     uint32_t ret;
     song_header old_song_header;
@@ -76,6 +79,15 @@ uint32_t init_playlist (playlist * pl, file_descriptor * fd)
     pl->fd = fd;
     pl->path = 0;
     pl->path_sz = 0;
+    pl->pos = 0;
+    memset(pl->song.song_name, ' ', song_name_sz);
+    memset(pl->song.group_name, ' ', group_name_sz);
+    pl->header.cnt_songs = 0;
+    memset(pl->header.playlist_name, ' ', pl_name_sz);
+ 
+    if (is_fake_file_descriptor(pl->fd))
+        return 0;
+    
     uint32_t ret;
     ret = f_seek(pl->fd, 0);
     if (ret) // fseek 0 don't fail
@@ -107,5 +119,10 @@ void destroy_playlist (playlist * pl)
     if (pl->path)
         free(pl->path);
     pl->path = 0;
+}
+
+char is_fake_playlist (playlist * pl)
+{
+    return is_fake_file_descriptor(pl->fd);
 }
 
