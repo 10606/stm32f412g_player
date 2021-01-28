@@ -134,7 +134,7 @@ uint32_t process_view_prev_song (view * vv, uint8_t * need_redraw)
     {
         deinit_mad();
         init_mad();
-        if ((ret = open_song_not_found(vv)))
+        if ((ret = open_song_not_found(vv, 1))) 
             return ret;
     }
     *need_redraw = 1;
@@ -208,7 +208,7 @@ uint32_t process_view_next_song (view * vv, uint8_t * need_redraw)
     {
         deinit_mad();
         init_mad();
-        if ((ret = open_song_not_found(vv)))
+        if ((ret = open_song_not_found(vv, 0)))
             return ret;
     }
     *need_redraw = 1;
@@ -266,6 +266,32 @@ uint32_t process_view_left (view * vv, uint8_t * need_redraw)
     return 0;
 }
 
+uint32_t play_new_playlist (view * vv)
+{
+    uint32_t ret;
+    file_descriptor old_fd;
+    playlist old_pl;
+    copy_file_descriptor(&old_fd, vv->pl.fd);
+    move_playlist(&old_pl, &vv->pl);
+
+    ret = play(&vv->plv, &vv->pl);
+    if (ret)
+        return ret;
+    vv->playing_playlist = vv->selected_playlist;
+    ret = open_song_not_found(vv, 0);
+    if (ret)
+    {
+        copy_file_descriptor(vv->pl.fd, &old_fd);
+        move_playlist(&vv->pl, &old_pl);
+        destroy_playlist(&old_pl);
+        return ret;
+    }
+
+    deinit_mad();
+    init_mad();
+    return 0;
+}
+
 uint32_t process_view_right (view * vv, uint8_t * need_redraw)
 {
     uint32_t ret;
@@ -280,45 +306,54 @@ uint32_t process_view_right (view * vv, uint8_t * need_redraw)
         break;
 
     case D_PLAYLIST:
-        ret = play(&vv->plv, &vv->pl);
-        if (ret)
-            return ret;
-        vv->playing_playlist = vv->selected_playlist;
-        deinit_mad();
-        init_mad();
-        ret = open_song_not_found(vv);
-        if (ret)
+        if ((ret = play_new_playlist(vv)))
             return ret;
         *need_redraw = 1;
         break;
         
     case D_SONG:
-        vv->state_song_view = (vv->state_song_view + 1) % state_song_view_cnt;
+        vv->state_song_view = ((vv->state_song_view + 1) % state_song_view_cnt);
         display_song_volume(&vv->pl, vv->buffer_ctl, &vv->state_song_view, 1);
         break;
     }
     return 0;
 }
 
+uint32_t view_to_playing_playlist (view * vv, uint8_t * need_redraw)
+{
+    if (vv->pl.header.cnt_songs != 0)
+    {
+        uint32_t ret;
+        if (!playlist_compare(&vv->plv.lpl, &vv->pl))
+        {
+            file_descriptor old_fd;
+            copy_file_descriptor(&old_fd, vv->plv.lpl.fd);
+            
+            copy_file_descriptor_seek_0(vv->plv.lpl.fd, vv->pl.fd);
+            // trivially destrucible
+            if ((ret = init_playlist_view(&vv->plv, vv->plv.lpl.fd)))
+            {
+                copy_file_descriptor(vv->plv.lpl.fd, &old_fd);
+                return ret;
+            }
+        }
+        ret = seek_playlist_view(&vv->plv, vv->pl.pos);
+        if (ret)
+            return ret;
+        *need_redraw = 1;
+    }
+    return 0;
+}
+
 uint32_t process_view_center (view * vv, uint8_t * need_redraw)
 {
-    uint32_t ret;
     switch (vv->state)
     {
     case D_PL_LIST:
         if (pl_list_check_near(&vv->pll, vv->playing_playlist))
-        {
             vv->state = D_PLAYLIST;
-        }
         else
-        {
             seek_pl_list(&vv->pll, vv->playing_playlist);
-        }
-        /*
-        ret = open_selected_pl_list(&vv->pll, &vv->plv, &vv->selected_playlist);
-        if (ret)
-            return ret;
-        */
         *need_redraw = 1;
         break;
         
@@ -330,26 +365,7 @@ uint32_t process_view_center (view * vv, uint8_t * need_redraw)
         }
         else
         {
-            if (vv->pl.header.cnt_songs != 0)
-            {
-                if (!playlist_compare(&vv->plv.lpl, &vv->pl))
-                {
-                    file_descriptor old_fd;
-                    copy_file_descriptor(&old_fd, vv->plv.lpl.fd);
-                    
-                    copy_file_descriptor_seek_0(vv->plv.lpl.fd, vv->pl.fd);
-                    // trivially destrucible
-                    if ((ret = init_playlist_view(&vv->plv, vv->plv.lpl.fd)))
-                    {
-                        copy_file_descriptor(vv->plv.lpl.fd, &old_fd);
-                        return ret;
-                    }
-                }
-                ret = seek_playlist_view(&vv->plv, vv->pl.pos);
-                if (ret)
-                    return ret;
-                *need_redraw = 1;
-            }
+            view_to_playing_playlist(vv, need_redraw);
         }
         break;
         
@@ -456,10 +472,10 @@ uint32_t open_song (view * vv)
     return 0;
 }
 
-uint32_t open_song_not_found (view * vv)
+uint32_t open_song_not_found (view * vv, char direction)
 {
     uint32_t ret = 0;
-    for (uint32_t i = 0; i != vv->pl.header.cnt_songs; ++i)
+    for (uint32_t i = 0; i != vv->pl.header.cnt_songs; direction? --i : ++i)
     {
         if ((ret = open_song(vv)))
         {
@@ -476,8 +492,6 @@ uint32_t open_song_not_found (view * vv)
         if ((ret = next_playlist(&vv->pl)))
             return ret;
     }
-    // TODO reset to empty list and song
-    // current_playlist = pl_list.cnt
     return ret;
 }
 

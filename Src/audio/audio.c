@@ -31,7 +31,7 @@ static inline void set_song_hint (void)
 static inline audio_error_t audio_start ()
 {
     init_mad();
-    if (open_song_not_found(&viewer))
+    if (open_song_not_found(&viewer, 0))
     {
         display_string_c(0, 152, (uint8_t*)"not opened", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
         return AUDIO_ERROR_IO;
@@ -208,7 +208,7 @@ uint32_t audio_process ()
                     display_string_c(0, 152, (uint8_t *)"can't get next song", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
                     return ret;
                 }
-                if ((ret = open_song_not_found(&viewer)))
+                if ((ret = open_song_not_found(&viewer, 0)))
                 {
                     display_string_c(0, 152, (uint8_t *)"not opened", &Font16, LCD_COLOR_WHITE, LCD_COLOR_RED);
                     return ret;
