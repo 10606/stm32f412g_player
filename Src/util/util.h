@@ -14,6 +14,16 @@ static inline uint32_t max (uint32_t a, uint32_t b)
     return (a > b)? a : b;
 }
 
+static inline int32_t min_i (int32_t a, int32_t b)
+{
+    return (a < b)? a : b;
+}
+
+static inline int32_t max_i (int32_t a, int32_t b)
+{
+    return (a > b)? a : b;
+}
+
 static inline char check_near (uint32_t pos_a, uint32_t pos_b, uint32_t max_pos_a, uint32_t view_pos_a, uint32_t border_pos_a)
 {
     if (max_pos_a <= view_pos_a)

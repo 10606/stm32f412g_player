@@ -138,7 +138,7 @@ void TIM2_IRQHandler (void)
             joystick_state.process[i] = 0;
         }
     }
-    
+ 
     if (HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_2) == GPIO_PIN_RESET)
         HAL_GPIO_WritePin(GPIOE, GPIO_PIN_2, GPIO_PIN_SET);
     else
