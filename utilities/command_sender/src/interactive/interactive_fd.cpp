@@ -1,7 +1,7 @@
 #include "interactive.h"
 #include "interactive_command.h"
-#include "usb_command_process.h"
-#include "headers.h"
+#include "usb_commands.h"
+#include "display.h"
 
 #include <vector>
 #include <string>

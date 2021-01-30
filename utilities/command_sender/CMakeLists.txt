@@ -15,7 +15,7 @@ set(compile_flags
 set(root_code_path
     ../../../../../
 )
-set (usb_command_path
+set(usb_command_path
     ${root_code_path}/stm32/stm32cubemx/f412g_player/Src/usb
 )
 
@@ -28,11 +28,11 @@ include_directories(
 )
 
 add_executable(player_send_command
-    commnad_sender.cpp
-    send_by_name.cpp
-    check_string.cpp
-    #interactive.cpp
-    interactive_fd.cpp
-    headers.cpp
+    src/commnad_sender.cpp
+    src/command_line/send_by_name.cpp
+    src/command_line/check_string.cpp
+    src/interactive/interactive_fd.cpp
+    src/interactive/display.cpp
+    src/interactive/colors.cpp
 )
 

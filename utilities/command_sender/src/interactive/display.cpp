@@ -1,5 +1,6 @@
-#include "headers.h"
+#include "display.h"
 
+#include "colors.h"
 #include <stdint.h>
 #include <vector>
 
@@ -58,168 +59,6 @@ struct base
     static const constexpr coord volume_1{name_offset + pl_name_sz + count_offset + 4 + 2 + 5, 2};
 };
 
-
-struct color
-{
-    static const std::string defaul_color; 
-
-    static const std::string white; 
-    static const std::string red; 
-    static const std::string cyan;
-    static const std::string green;
-    static const std::string yellow;
-};
-
-const std::string color::defaul_color = "\033[00;00m"; 
-
-const std::string color::white = "\033[00;37m"; 
-const std::string color::red = "\033[00;31m"; 
-const std::string color::cyan = "\033[00;36m";
-const std::string color::green = "\033[00;32m";
-const std::string color::yellow = "\033[00;33m";
-
-
-struct colors
-{
-    static const std::vector  //cmd
-    <
-        std::vector //line
-        <
-            std::vector //current
-            <
-                std::vector //s
-                <
-                    std::string
-                >
-            >
-        >
-    > table;
-};
-
-
-const std::vector  //cmd
-<
-    std::vector //line
-    <
-        std::vector //current
-        <
-            std::vector //s
-            <
-                std::string
-            >
-        >
-    >
-> colors::table = 
-{
-    {},
-    
-    { //cur_song_info
-        { //group
-            {{color::green}}
-        },
-        { //song
-            {{color::green}}
-        }
-    },
-    
-    { //displayed_song_info
-        { //group
-            { //not selected
-                {
-                    color::white, //0
-                    color::cyan, //selected
-                    color::red, //played
-                    color::cyan //selected and played
-                }
-            },
-            { //selected
-                {
-                    color::cyan, //0
-                    color::green, //selected
-                    color::yellow, //played
-                    color::green //selected and played
-                }
-            }
-        },
-        { //song
-            { //not selected
-                {
-                    color::white, //0
-                    color::cyan, //selected
-                    color::red, //played
-                    color::red //selected and played
-                }
-            },
-            { //selected
-                {
-                    color::cyan, //0
-                    color::green, //selected
-                    color::yellow, //played
-                    color::yellow //selected and played
-                }
-            }
-        }
-    },
-    
-    { //pl_list_info
-        { //first line
-            { //not selected
-                {
-                    color::white, //0
-                    color::cyan, //selected
-                    color::red, //played
-                    color::cyan //selected and played
-                }
-            },
-            { //selected
-                {
-                    color::cyan, //0
-                    color::green, //selected
-                    color::yellow, //played
-                    color::green //selected and played
-                }
-            }
-        },
-        { //second line
-            { //not selected
-                {
-                    color::white, //0
-                    color::cyan, //selected
-                    color::red, //played
-                    color::red //selected and played
-                }
-            },
-            { //selected
-                {
-                    color::cyan, //0
-                    color::green, //selected
-                    color::yellow, //played
-                    color::yellow //selected and played
-                }
-            }
-        }
-    },
-    
-    { //volume_info
-        { //volume
-            { //not selected
-                {color::white}
-            },
-            { //selected
-                {color::cyan}
-            }
-        },
-        { //state
-            { //not selected
-                {color::white}
-            },
-            { //selected
-                {color::cyan}
-            }
-        }
-    }
-};
-
 inline void set_color (bool current, char cmd, bool line, char s = 0)
 {
     if ((cmd > 0x05) || (cmd < 0))
@@ -257,6 +96,13 @@ bool is_spaces (std::string const & str)
     return 1;
 }
 
+struct msg_sizes
+{
+    static uint32_t const cur_song = song_name_sz + 1 + group_name_sz + 1 + 1;
+    static uint32_t const displayed_song = name_offset + group_name_sz + 1 + name_offset + song_name_sz + 1 + 3;
+    static uint32_t const pl_list = name_offset + pl_name_sz + count_offset + 4 + 3;
+    static uint32_t const volume = volume_width + volume_width + 1;
+};
 
 void extract (std::string & data, size_t & state)
 {
@@ -275,7 +121,7 @@ void extract (std::string & data, size_t & state)
         switch (data[pos])
         {
             case cur_song_info:
-                if (pos + song_name_sz + 1 + group_name_sz + 1 + 1 > data.size())
+                if (pos + msg_sizes::cur_song > data.size())
                     goto end_for;
                 set_cursor(base::cur_song_0);
                 set_color(0, cur_song_info, 0);
@@ -284,11 +130,11 @@ void extract (std::string & data, size_t & state)
                 set_color(0, cur_song_info, 1);
                 std::cout << data.substr(pos + 1, song_name_sz + 1);
                 std::cout << color::defaul_color;
-                pos += song_name_sz + 1 + group_name_sz + 1 + 1;
+                pos += msg_sizes::cur_song;
                 break;
 
             case displayed_song_info:
-                if (pos + name_offset + group_name_sz + 1 + name_offset + song_name_sz + 1 + 3 > data.size())
+                if (pos + msg_sizes::displayed_song > data.size())
                     goto end_for;
                 //std::cout << ((data[pos + 1] & 1)? 's' : ' ') << " " << static_cast <size_t> (data[pos + 2]) << "\n";
                 set_cursor(base::disp_song_0 + static_cast <size_t> (data[pos + 2]) * base::disp_song_a);
@@ -298,11 +144,11 @@ void extract (std::string & data, size_t & state)
                 set_color(state == 1, displayed_song_info, 1, data[pos + 1]);
                 std::cout << data.substr(pos + 3 + name_offset + group_name_sz + 1, name_offset + song_name_sz + 1);
                 std::cout << color::defaul_color;
-                pos += name_offset + group_name_sz + 1 + name_offset + song_name_sz + 1 + 3;
+                pos += msg_sizes::displayed_song;
                 break;
 
             case pl_list_info:
-                if (pos + name_offset + pl_name_sz + count_offset + 4 + 3 > data.size())
+                if (pos + msg_sizes::pl_list > data.size())
                     goto end_for;
                 //std::cout << (data[pos + 1]? 's' : ' ') << " " << data[pos + 2] << "\n";
                 set_cursor(base::pl_list_0 + static_cast <size_t> (data[pos + 2]) * base::pl_list_a);
@@ -315,11 +161,11 @@ void extract (std::string & data, size_t & state)
                     std::cout << "  -------------------------------  ";
                 }
                 std::cout << color::defaul_color;
-                pos += name_offset + pl_name_sz + count_offset + 4 + 3;
+                pos += msg_sizes::pl_list;
                 break;
 
             case volume_info:
-                if (pos + volume_width + volume_width + 1 > data.size())
+                if (pos + msg_sizes::volume > data.size())
                     goto end_for;
                 set_cursor(base::volume_0);
                 set_color(state == 2, volume_info, 0);
@@ -328,7 +174,7 @@ void extract (std::string & data, size_t & state)
                 set_color(state == 2, volume_info, 1);
                 std::cout << data.substr(pos + 1 + volume_width, 5/*volume_width*/);
                 std::cout << color::defaul_color;
-                pos += volume_width + volume_width + 1;
+                pos += msg_sizes::volume;
                 break;
 
             case state_info:

@@ -128,41 +128,41 @@ uint32_t get_pcm_sound (file_descriptor * _file, uint8_t * pbuf, uint32_t NbrOfD
 
     while (frames < NbrOfData)
     {
-        uint32_t keep = 0;
+        uint32_t amount_safe_from_buffer = 0;
         if ((mad_data.stream.next_frame != NULL) && (mad_data.stream.error == MAD_ERROR_NONE))
-            keep = mad_data.stream.bufend - mad_data.stream.next_frame;
+            amount_safe_from_buffer = mad_data.stream.bufend - mad_data.stream.next_frame;
         else if (mad_data.stream.error != MAD_ERROR_BUFLEN)
-            keep = 0; //FIXME
+            amount_safe_from_buffer = 0; //maybe mp3_input_buffer_size - mp3_frame_size;
         else if (mad_data.stream.next_frame != NULL)
-            keep = mad_data.stream.bufend - mad_data.stream.next_frame;
+            amount_safe_from_buffer = mad_data.stream.bufend - mad_data.stream.next_frame;
         else if ((mad_data.stream.bufend - mad_data.stream.buffer) < (long)mp3_input_buffer_size)
-            keep = mad_data.stream.bufend - mad_data.stream.buffer;
+            amount_safe_from_buffer = mad_data.stream.bufend - mad_data.stream.buffer;
         else
-            keep = mp3_input_buffer_size - mp3_frame_size;
+            amount_safe_from_buffer = mp3_input_buffer_size - mp3_frame_size;
 
         if (audio_ctl.seeked)
         {
-            keep = 0;
+            amount_safe_from_buffer = 0;
             audio_ctl.seeked = 0;
         }
         
-        if (keep == mp3_input_buffer_size)
-            keep = mp3_input_buffer_size - mp3_frame_size;
+        if (amount_safe_from_buffer == mp3_input_buffer_size)
+            amount_safe_from_buffer = mp3_input_buffer_size - mp3_frame_size;
         
-        if (keep)
-            memmove(mp3_input_buffer.buffer, mad_data.stream.bufend - keep, keep);
+        if (amount_safe_from_buffer)
+            memmove(mp3_input_buffer.buffer, mad_data.stream.bufend - amount_safe_from_buffer, amount_safe_from_buffer);
 
-        uint32_t rb = get_all_data(_file, mp3_input_buffer.buffer + keep, mp3_input_buffer_size - keep);
-        mp3_input_buffer.size = keep + rb;
+        uint32_t rb = get_all_data(_file, mp3_input_buffer.buffer + amount_safe_from_buffer, mp3_input_buffer_size - amount_safe_from_buffer);
+        mp3_input_buffer.size = amount_safe_from_buffer + rb;
         total_read += rb;
 
-        if (rb + keep < mp3_input_buffer_size)
+        if (rb + amount_safe_from_buffer < mp3_input_buffer_size)
         {
-            memset(mp3_input_buffer.buffer + keep + rb, 0, MAD_BUFFER_GUARD);
-            keep += MAD_BUFFER_GUARD;
+            memset(mp3_input_buffer.buffer + amount_safe_from_buffer + rb, 0, MAD_BUFFER_GUARD);
+            amount_safe_from_buffer += MAD_BUFFER_GUARD;
         }
 
-        mad_stream_buffer(&mad_data.stream, mp3_input_buffer.buffer, rb + keep);
+        mad_stream_buffer(&mad_data.stream, mp3_input_buffer.buffer, rb + amount_safe_from_buffer);
 
         uint32_t tries = 0;
         while ((frames < NbrOfData) && (tries < 100))

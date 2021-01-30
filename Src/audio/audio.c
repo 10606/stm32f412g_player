@@ -204,7 +204,7 @@ uint32_t audio_process ()
                 }
             }
             error_state = AUDIO_ERROR_EOF;
-            need_redraw |= 1; //TODO only if state == D_PLAYLIST && playlist_compare
+            need_redraw |= 1;
         }
 
         uint8_t * buffer;
