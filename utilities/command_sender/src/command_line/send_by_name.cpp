@@ -27,7 +27,7 @@ bool send (std::ofstream & f, std::string const & command)
     {
         if (best_v != 0)
         {
-            std::cout << command << " -> " << str_commands[best_i];
+            std::cout << command << " -> " << str_commands[best_i] << '\n';
         }
         f.put(best_i);
         return 1;

@@ -18,7 +18,7 @@ int main (int argc, char ** argv)
             {
                 if (!send(stm32, argv[i]))
                 {
-                    std::cerr << argv[i] << " ";
+                    std::cerr << argv[i] << "\n";
                 }
             }
         }

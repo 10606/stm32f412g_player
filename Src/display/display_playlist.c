@@ -4,7 +4,7 @@
 #include "display_string.h"
 #include "usb_send.h"
 
-void display_cur_song (playlist * pl_p, char to_screen)
+void display_cur_song (playlist * pl_p, char to_screen, uint8_t * need_redraw)
 {
     char cur_song_name[song_name_sz + 1];
     char cur_group_name[group_name_sz + 1];
@@ -17,20 +17,20 @@ void display_cur_song (playlist * pl_p, char to_screen)
     {
         display_string(5, 20, cur_group_name, &Font16, &yb);
         display_string(5, 40, cur_song_name, &Font16, &yb);
-        audio_process();
+        audio_process(need_redraw);
     }
     send_cur_song(cur_song_name, cur_group_name);
 }
 
-void display_playlist (playlist_view * plv, playlist * pl_p, int state, char to_screen)
+void display_playlist (playlist_view * plv, playlist * pl_p, int state, char to_screen, uint8_t * need_redraw)
 {
     uint32_t y_pos = list_offset + line_offset * playlist_view_cnt;
     if (to_screen)
         fill_rect(0, y_pos, 240, 240 - y_pos, LCD_COLOR_WHITE);
-    display_cur_song(pl_p, to_screen);
+    display_cur_song(pl_p, to_screen, need_redraw);
     HAL_Delay(1);
     send_state(state);
-    audio_process();
+    audio_process(need_redraw);
     
     char song_name[playlist_view_cnt][song_name_sz + 1];
     char group_name[playlist_view_cnt][group_name_sz + 1];
@@ -87,7 +87,7 @@ void display_playlist (playlist_view * plv, playlist * pl_p, int state, char to_
             display_string(4, list_offset + line_offset * i, s_group, &Font12, &c_group);
             display_string(4, list_offset + in_line_offset + line_offset * i, s_song, &Font12, &c_song);
         }
-        audio_process();
+        audio_process(need_redraw);
         send_displayed_song(s_group, s_song, selected[i], i);
     }
 }

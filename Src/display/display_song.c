@@ -17,7 +17,7 @@ void display_start_image ()
     ST7789H2_DrawRGBImage(0, 0, 240, 240, err_picture_address);
 }
 
-void display_song_volume (playlist * pl, audio_ctl_t * actl, state_song_view_t * state, char to_screen) 
+void display_song_volume (playlist * pl, audio_ctl_t * actl, state_song_view_t * state, char to_screen, uint8_t * need_redraw) 
 {
     char c_state = ' ';
     switch (*state)
@@ -44,13 +44,13 @@ void display_song_volume (playlist * pl, audio_ctl_t * actl, state_song_view_t *
     {
         display_string(200, list_offset, s_volume, &Font12, &bw);
         display_string(200, list_offset + in_line_offset, s_state, &Font12, &bw);
-        audio_process();
+        audio_process(need_redraw);
     }
     HAL_Delay(1);
     send_volume(s_volume, s_state);
 }
 
-void display_picture ()
+void display_picture (uint8_t * need_redraw)
 {
     uint32_t parts = 5;
     uint32_t p_size = (240 - picture_offset + parts - 1) / parts;
@@ -61,19 +61,19 @@ void display_picture ()
         if (part + 1 == parts)
             p_size = (240 - picture_offset) - (parts - 1) * p_old_size;
         ST7789H2_DrawRGBImage(0, picture_offset + p_old_size * part, 240, p_size, song_picture_address + 2 * 240 * part * p_old_size);
-        audio_process();
+        audio_process(need_redraw);
     }
 }
 
-void display_song (playlist * pl, audio_ctl_t * actl, state_song_view_t * state, char to_screen) 
+void display_song (playlist * pl, audio_ctl_t * actl, state_song_view_t * state, char to_screen, uint8_t * need_redraw) 
 {
     if (to_screen)
     {
-        display_picture();
-        audio_process();
+        display_picture(need_redraw);
+        audio_process(need_redraw);
     }
-    display_cur_song(pl, to_screen);
-    display_song_volume(pl, actl, state, to_screen);
-    audio_process();
+    display_cur_song(pl, to_screen, need_redraw);
+    display_song_volume(pl, actl, state, to_screen, need_redraw);
+    audio_process(need_redraw);
 }
 

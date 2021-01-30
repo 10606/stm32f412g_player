@@ -6,12 +6,12 @@
 #include "usb_send.h"
 #include <stdint.h>
 
-void display_pl_list (pl_list * pll, uint32_t playing_pl, playlist * pl_p, char to_screen)
+void display_pl_list (pl_list * pll, uint32_t playing_pl, playlist * pl_p, char to_screen, uint8_t * need_redraw)
 {
     uint32_t y_pos = list_offset + line_offset * plb_view_cnt;
     if (to_screen)
         fill_rect(0, y_pos, 240, 240 - y_pos, LCD_COLOR_WHITE);
-    display_cur_song(pl_p, to_screen);
+    display_cur_song(pl_p, to_screen, need_redraw);
     
     char playlist_name[plb_view_cnt][pl_name_sz + 1];
     char number[plb_view_cnt][3 + 1];
@@ -68,7 +68,7 @@ void display_pl_list (pl_list * pll, uint32_t playing_pl, playlist * pl_p, char 
             display_string(4, list_offset + line_offset * i, s_playlist, &Font12, &c_group);
             display_string(4, list_offset + in_line_offset + line_offset * i, empty, &Font12, &c_song);
         }
-        audio_process();
+        audio_process(need_redraw);
         send_pl_list(s_playlist, selected[i], i);
     }
 }

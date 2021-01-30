@@ -46,6 +46,7 @@
 #include "display.h"
 #include "display_string.h"
 #include "display_init.h"
+#include "player.h"
 #include "audio.h"
 #include "play.h"
 #include "view.h"
@@ -210,7 +211,7 @@ int main (void)
         }
 
         counter = 0;
-        audio_play();
+        main_player();
         counter++;
 
         audio_destruct();

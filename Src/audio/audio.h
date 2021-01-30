@@ -10,12 +10,10 @@
 #define audio_buffer_size       (mp3_frames_in_buffer * decoded_mp3_frame_size)
 #define audio_default_volume    70
 
-typedef enum {
-    AUDIO_ERROR_NONE = 0,
-    AUDIO_ERROR_NOTREADY,
-    AUDIO_ERROR_IO,
-    AUDIO_ERROR_EOF,
-} audio_error_t;
+#define audio_error_none        0
+#define audio_error_notready    4001
+#define audio_error_io          4002
+#define audio_error_eof         4003
 
 typedef enum {
     AUDIO_STATE_IDLE = 0,
@@ -45,9 +43,9 @@ extern audio_ctl_t  audio_ctl;
 
 
 void audio_init ();
-void audio_play ();
 void audio_destruct ();
-uint32_t audio_process ();
+uint32_t audio_start ();
+uint32_t audio_process (uint8_t * need_redraw);
 
 #endif
 

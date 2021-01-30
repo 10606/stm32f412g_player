@@ -43,7 +43,7 @@ typedef struct view
 uint32_t init_view (view * vv, char (* path)[12], uint32_t len, audio_ctl_t * audio_ctl);
 uint32_t destroy_view (view * vv);
 uint32_t process_view (view * vv, uint8_t * need_redraw);
-void display_view (view * vv);
+void display_view (view * vv, uint8_t * need_redraw);
 
 uint32_t process_view_up (view * vv, uint8_t * need_redraw);
 uint32_t process_view_down (view * vv, uint8_t * need_redraw);

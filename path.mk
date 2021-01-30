@@ -125,6 +125,7 @@ external_sources =  \
 # main
 main_sources = \
 	Src/main/main.c \
+	Src/main/player.c \
 	Src/main/stm32f4xx_it.c  \
 	Src/main/system_stm32f4xx.c
 	

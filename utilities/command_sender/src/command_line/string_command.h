@@ -22,7 +22,7 @@ const char * const str_command_prev_song = "prev_song";
 
 const char * const str_commands[] =
 {
-    "",                     //0x00
+    "do_nothing",           //0x00
 
     str_command_up,         //0x01
     str_command_down,       //0x02

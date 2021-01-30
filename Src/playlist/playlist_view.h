@@ -8,8 +8,6 @@
 #define playlist_border_cnt 3
 #define playlist_view_cnt (2 * playlist_border_cnt + 1)
 
-#define empty_playlist 10003
-
 typedef struct playlist_view
 {
     light_playlist lpl;
