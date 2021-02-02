@@ -158,6 +158,8 @@ static inline uint32_t new_song_or_repeat ()
         }
         if ((ret = open_song_not_found(&viewer, 0)))
         {
+            fake_song_and_playlist(&viewer);
+            memset(audio_ctl.buff, 0, audio_buffer_size);
             display_error("err open song");
             return ret;
         }

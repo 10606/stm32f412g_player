@@ -106,7 +106,8 @@ USB_lib_sources = \
 # LCD
 LCD_sources = \
 	$(LCD_display)/display_string.c \
-	$(LCD_display)/display_init.c
+	$(LCD_display)/display_init.c \
+	$(LCD_display)/st7789h2_driver.c
 
 # external sources
 external_sources =  \

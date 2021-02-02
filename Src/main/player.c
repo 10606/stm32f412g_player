@@ -31,17 +31,18 @@ void main_player ()
         }
         check_buttons();
       
-        if (need_redraw)
-        {
-            need_redraw = 0;
-            display_view(&viewer, &need_redraw);
-        }
         if ((ret = process_view(&viewer, &need_redraw)))
             ;//break;
         if (usb_process(&viewer, &need_redraw))
             ; //break;
         touch_check(&touch_state, &viewer, &need_redraw);
         
+        if (need_redraw)
+        {
+            need_redraw = 0;
+            display_view(&viewer, &need_redraw);
+        }
+
         if (BSP_SD_IsDetected() != SD_PRESENT)
         {
             deinit_mad();

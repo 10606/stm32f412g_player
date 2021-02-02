@@ -495,3 +495,12 @@ uint32_t open_song_not_found (view * vv, char direction)
     return ret;
 }
 
+void fake_song_and_playlist (view * vv)
+{
+    destroy_playlist(&vv->pl);
+    init_fake_file_descriptor(&vv->fd_pl);
+    init_playlist(&vv->pl, &vv->fd_pl); // noexcept if fake_file_descriptor
+    
+    init_fake_file_descriptor(&vv->audio_ctl->audio_file);
+}
+

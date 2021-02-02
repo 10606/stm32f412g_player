@@ -7,9 +7,14 @@ const int32_t offset_limit = line_offset - 5;
 const int32_t offset_add = line_offset;
 const int32_t offset_add_speed = 10;
 
-void touch_region (int32_t x, int32_t y, uint32_t * direction_mask, view * vv, uint8_t * need_redraw)
+void touch_region 
+(
+    old_touch_state * ots,
+    view * vv, 
+    uint8_t * need_redraw
+)
 {
-    if (y < list_offset)
+    if (ots->start_y < list_offset)
         process_view_play_pause (vv, need_redraw);
     else
         process_view_right(vv, need_redraw);
@@ -17,20 +22,18 @@ void touch_region (int32_t x, int32_t y, uint32_t * direction_mask, view * vv, u
 
 int32_t move_left 
 (
-    int32_t x, 
-    int32_t y, 
+    old_touch_state * ots,
     int32_t offset, 
     char speed, 
-    uint32_t * direction_mask,
     view * vv, 
     uint8_t * need_redraw
 )
 {
-    if ((*direction_mask & (1 << LEFT_DIRECTION)) || 
+    if ((ots->direction_mask & (1 << LEFT_DIRECTION)) || 
         (!speed && (offset < offset_limit)) ||
         (speed && (offset < offset_add_speed)))
         return 0;
-    *direction_mask = 1 << LEFT_DIRECTION;
+    ots->direction_mask = 1 << LEFT_DIRECTION;
     process_view_center(vv, need_redraw);
     if (speed)
         return offset_add_speed;
@@ -40,20 +43,18 @@ int32_t move_left
 
 int32_t move_right 
 (
-    int32_t x, 
-    int32_t y, 
+    old_touch_state * ots,
     int32_t offset,
     char speed, 
-    uint32_t * direction_mask,
     view * vv,
     uint8_t * need_redraw
 )
 {
-    if ((*direction_mask & (1 << RIGHT_DIRECTION)) || 
+    if ((ots->direction_mask & (1 << RIGHT_DIRECTION)) || 
         (!speed && offset < offset_limit) ||
         (speed && (offset < offset_add_speed)))
         return 0;
-    *direction_mask = 1 << RIGHT_DIRECTION;
+    ots->direction_mask = 1 << RIGHT_DIRECTION;
     process_view_left(vv, need_redraw);
     if (speed)
         return offset_add_speed;
@@ -63,11 +64,9 @@ int32_t move_right
 
 int32_t move_up 
 (
-    int32_t x, 
-    int32_t y, 
+    old_touch_state * ots,
     int32_t offset, 
     char speed, 
-    uint32_t * direction_mask,
     view * vv, 
     uint8_t * need_redraw
 )
@@ -75,7 +74,7 @@ int32_t move_up
     if ((!speed && offset < offset_limit) ||
         (speed && (offset < offset_add_speed)))
         return 0;
-    *direction_mask = 0;
+    ots->direction_mask = 0;
     if (speed)
     {
         process_view_down(vv, need_redraw);
@@ -101,11 +100,9 @@ int32_t move_up
 
 int32_t move_down 
 (
-    int32_t x, 
-    int32_t y, 
+    old_touch_state * ots,
     int32_t offset, 
     char speed, 
-    uint32_t * direction_mask,
     view * vv, 
     uint8_t * need_redraw
 )
@@ -113,7 +110,7 @@ int32_t move_down
     if ((!speed && offset < offset_limit) ||
         (speed && (offset < offset_add_speed)))
         return 0;
-    *direction_mask = 0;
+    ots->direction_mask = 0;
     if (speed)
     {
         process_view_up(vv, need_redraw);

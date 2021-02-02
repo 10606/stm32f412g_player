@@ -2,7 +2,7 @@
 
 #include "util.h"
 #include "audio.h"
-#include "st7789h2/st7789h2.h"
+#include "st7789h2_driver.h"
 #include "display_string.h"
 #include "usb_send.h"
 
@@ -14,7 +14,7 @@ void display_song_hint ()
 
 void display_start_image ()
 {
-    ST7789H2_DrawRGBImage(0, 0, 240, 240, err_picture_address);
+    draw_RGB_image(0, 0, 240, 240, err_picture_address);
 }
 
 void display_song_volume (playlist * pl, audio_ctl_t * actl, state_song_view_t * state, char to_screen, uint8_t * need_redraw) 
@@ -60,7 +60,7 @@ void display_picture (uint8_t * need_redraw)
     {
         if (part + 1 == parts)
             p_size = (240 - picture_offset) - (parts - 1) * p_old_size;
-        ST7789H2_DrawRGBImage(0, picture_offset + p_old_size * part, 240, p_size, song_picture_address + 2 * 240 * part * p_old_size);
+        draw_RGB_image(0, picture_offset + p_old_size * part, 240, p_size, song_picture_address + 2 * 240 * part * p_old_size);
         audio_process(need_redraw);
     }
 }
