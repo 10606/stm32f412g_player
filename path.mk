@@ -17,7 +17,7 @@ USB_driver = $(STM32_middleware)/ST/STM32_USB_Device_Library
 
 FAT32_driver = $(root)/FAT32_driver_char11/src
 LCD_display = $(root)/LCD_display
-MAD = Src/audio/mp3
+MAD = src/audio/mp3
 
 
 
@@ -26,36 +26,26 @@ MAD = Src/audio/mp3
 
 # HAL driver
 HAL_driver_sources = \
-	$(HAL_driver)/stm32f4xx_hal_pcd.c \
-	$(HAL_driver)/stm32f4xx_hal_pcd_ex.c \
-	$(HAL_driver)/stm32f4xx_hal_dfsdm.c \
 	$(HAL_driver)/stm32f4xx_hal.c \
-	$(HAL_driver)/stm32f4xx_hal_hcd.c \
+	$(HAL_driver)/stm32f4xx_ll_fsmc.c \
+	$(HAL_driver)/stm32f4xx_ll_sdmmc.c \
 	$(HAL_driver)/stm32f4xx_ll_usb.c \
+	$(HAL_driver)/stm32f4xx_hal_cortex.c \
+	$(HAL_driver)/stm32f4xx_hal_gpio.c \
 	$(HAL_driver)/stm32f4xx_hal_rcc.c \
 	$(HAL_driver)/stm32f4xx_hal_rcc_ex.c \
-	$(HAL_driver)/stm32f4xx_hal_flash.c \
-	$(HAL_driver)/stm32f4xx_hal_flash_ex.c \
-	$(HAL_driver)/stm32f4xx_hal_flash_ramfunc.c \
-	$(HAL_driver)/stm32f4xx_hal_gpio.c \
-	$(HAL_driver)/stm32f4xx_hal_dma_ex.c \
 	$(HAL_driver)/stm32f4xx_hal_dma.c \
-	$(HAL_driver)/stm32f4xx_hal_pwr.c \
-	$(HAL_driver)/stm32f4xx_hal_pwr_ex.c \
-	$(HAL_driver)/stm32f4xx_hal_cortex.c \
-	$(HAL_driver)/stm32f4xx_hal_exti.c \
-	$(HAL_driver)/stm32f4xx_ll_fsmc.c \
-	$(HAL_driver)/stm32f4xx_hal_sram.c \
+	$(HAL_driver)/stm32f4xx_hal_dma_ex.c \
 	$(HAL_driver)/stm32f4xx_hal_i2c.c \
 	$(HAL_driver)/stm32f4xx_hal_i2c_ex.c \
 	$(HAL_driver)/stm32f4xx_hal_i2s.c \
 	$(HAL_driver)/stm32f4xx_hal_i2s_ex.c \
-	$(HAL_driver)/stm32f4xx_hal_qspi.c \
-	$(HAL_driver)/stm32f4xx_ll_sdmmc.c \
-	$(HAL_driver)/stm32f4xx_hal_sd.c \
+	$(HAL_driver)/stm32f4xx_hal_pcd.c \
+	$(HAL_driver)/stm32f4xx_hal_pcd_ex.c \
 	$(HAL_driver)/stm32f4xx_hal_tim.c \
 	$(HAL_driver)/stm32f4xx_hal_tim_ex.c \
-	$(HAL_driver)/stm32f4xx_hal_uart.c
+	$(HAL_driver)/stm32f4xx_hal_sd.c \
+	$(HAL_driver)/stm32f4xx_hal_sram.c
 
 # MAD
 MAD_sources = \
@@ -74,8 +64,6 @@ BSP_sources = \
 	$(BSP_src)/f412g_disco/stm32412g_discovery_sd.c \
 	$(BSP_src)/f412g_disco/stm32412g_discovery_audio.c \
 	$(BSP_src)/f412g_disco/stm32412g_discovery_ts.c \
-	$(BSP_src)/Components/ls016b8uy/ls016b8uy.c \
-	$(BSP_src)/Components/st7789h2/st7789h2.c \
 	$(BSP_src)/Components/wm8994/wm8994.c \
 	$(BSP_src)/Components/ft6x06/ft6x06.c
 
@@ -107,7 +95,8 @@ USB_lib_sources = \
 LCD_sources = \
 	$(LCD_display)/display_string.c \
 	$(LCD_display)/display_init.c \
-	$(LCD_display)/st7789h2_driver.c
+	$(LCD_display)/st7789h2_driver.c \
+	$(LCD_display)/display_init_st7789h2.c
 
 # external sources
 external_sources =  \
@@ -125,52 +114,52 @@ external_sources =  \
 
 # main
 main_sources = \
-	Src/main/main.c \
-	Src/main/player.c \
-	Src/main/stm32f4xx_it.c  \
-	Src/main/system_stm32f4xx.c
+	src/main/main.c \
+	src/main/player.c \
+	src/main/stm32f4xx_it.c  \
+	src/main/system_stm32f4xx.c
 	
 # USB
 USB_sources = \
-	Src/usb/usb_command_process.c \
-	Src/usb/usbd_cdc_if.c \
-	Src/usb/usbd_conf.c \
-	Src/usb/usbd_desc.c \
-	Src/usb/usb_device.c \
-	Src/usb/usb_send.c
+	src/usb/usb_command_process.c \
+	src/usb/usbd_cdc_if.c \
+	src/usb/usbd_conf.c \
+	src/usb/usbd_desc.c \
+	src/usb/usb_device.c \
+	src/usb/usb_send.c
 
 # display
 display_sources = \
-	Src/display/display_playlist.c \
-	Src/display/display_pl_list.c \
-	Src/display/display_song.c \
-	Src/display/display_error.c
+	src/display/display_playlist.c \
+	src/display/display_pl_list.c \
+	src/display/display_song.c \
+	src/display/display_error.c
 
 # playlist
 playlist_sources = \
-	Src/playlist/light_playlist.c \
-	Src/playlist/playlist.c \
-	Src/playlist/playlist_common.c \
-	Src/playlist/playlist_view.c \
-	Src/pl_list/pl_list.c
+	src/playlist/light_playlist.c \
+	src/playlist/playlist.c \
+	src/playlist/playlist_common.c \
+	src/playlist/playlist_view.c \
+	src/pl_list/pl_list.c
 
 # user input
 user_input_sources = \
-	Src/joystick/joystick.c \
-	Src/touch/touchscreen.c \
-	Src/touch/moving.c
+	src/joystick/joystick.c \
+	src/touch/touchscreen.c \
+	src/touch/moving.c
 
 # audio
 audio_sources = \
-	Src/audio/audio.c \
-	Src/audio/mp3.c \
-	Src/audio/id3.c
+	src/audio/audio.c \
+	src/audio/mp3.c \
+	src/audio/id3.c
 
 # local sources
 local_sources =  \
 	$(main_sources) \
-	Src/sd_card/sd_card_operation.c  \
-	Src/view/view.c \
+	src/sd_card/sd_card_operation.c  \
+	src/view/view.c \
 	$(audio_sources) \
 	$(display_sources) \
 	$(playlist_sources) \
@@ -190,7 +179,6 @@ external_includes = \
 	-I$(BSP_src)/f412g_disco \
 	-I$(BSP_src)/Components \
 	-I$(BSP_src)/Components\Common \
-	-I$(BSP_src)/Components\st7789h2 \
 	-I$(BSP_src)/Components\ls016b8uy \
 	-I$(BSP_src)/Components/wm8994 \
 	-I$(HAL_driver)/../Inc/ \
@@ -203,18 +191,18 @@ external_includes = \
 #######################################
 # local includes
 local_includes = \
-	-ISrc/main \
-	-ISrc/joystick \
-	-ISrc/playlist \
-	-ISrc/view \
-	-ISrc/pl_list \
-	-ISrc/display \
-	-ISrc/touch \
-	-ISrc/usb \
-	-ISrc/audio/mp3 \
-	-ISrc/audio \
-	-ISrc/util \
-	-ISrc/sd_card
+	-Isrc/main \
+	-Isrc/joystick \
+	-Isrc/playlist \
+	-Isrc/view \
+	-Isrc/pl_list \
+	-Isrc/display \
+	-Isrc/touch \
+	-Isrc/usb \
+	-Isrc/audio/mp3 \
+	-Isrc/audio \
+	-Isrc/util \
+	-Isrc/sd_card
 
 
 

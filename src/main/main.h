@@ -46,7 +46,7 @@
 #define __MAIN_H
 
 #include "stm32412g_discovery.h"
-#include "stm32412g_discovery_lcd.h"
+//#include "stm32412g_discovery_lcd.h"
 #include "stm32412g_discovery_sd.h"
 #include "stm32412g_discovery_audio.h"
 #include "stm32412g_discovery_ts.h"
