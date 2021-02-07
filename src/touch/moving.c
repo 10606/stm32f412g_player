@@ -82,19 +82,15 @@ int32_t move_up
     }
     else
     {
-        if (offset >= 2 * offset_add)
-        {
-            uint32_t cnt = offset / offset_add;
-            uint32_t new_pos = vv->plv.pos_selected + cnt;
-            seek_playlist_view (&vv->plv, new_pos);
-            *need_redraw = 1;
-            return offset_add * cnt;
-        }
-        else
+        int32_t ans = 0;
+        do 
         {
             process_view_down(vv, need_redraw);
-            return offset_add;
+            ans += offset_add;
+            offset -= offset_add;
         }
+        while (offset >= offset_add);
+        return ans;
     }
 }
 
@@ -118,19 +114,15 @@ int32_t move_down
     }
     else
     {
-        if (offset >= 2 * offset_add)
+        int32_t ans = 0;
+        do 
         {
-            uint32_t cnt = offset / offset_add;
-            uint32_t new_pos = vv->plv.pos_selected + vv->plv.lpl.header.cnt_songs - cnt;
-            seek_playlist_view (&vv->plv, new_pos);
-            *need_redraw = 1;
-            return offset_add * cnt;
+            process_view_down(vv, need_redraw);
+            ans += offset_add;
+            offset -= offset_add;
         }
-        else
-        {
-            process_view_up(vv, need_redraw);
-            return offset_add;
-        }
+        while (offset >= offset_add);
+        return ans;
     }
 }
 
