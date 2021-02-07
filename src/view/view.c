@@ -13,6 +13,7 @@ uint32_t init_view (view * vv, char (* path)[12], uint32_t len, audio_ctl_t * au
 {
     vv->audio_ctl = audio_ctl;
     vv->state = D_PL_LIST;
+    vv->old_state = D_PL_LIST;
     vv->state_song_view = S_VOLUME;
     vv->playing_playlist = max_plb_files;
     vv->selected_playlist = max_plb_files;
@@ -69,7 +70,8 @@ void display_view (view * vv, uint8_t * need_redraw)
 
     display_playlist(&vv->plv, &vv->pl, vv->state, ts_playlist, need_redraw);
     display_pl_list(&vv->pll, vv->playing_playlist, &vv->pl, ts_pl_list, need_redraw);
-    display_song(&vv->pl, vv->audio_ctl, &vv->state_song_view, ts_song, need_redraw);
+    display_song(&vv->pl, vv->audio_ctl, &vv->state_song_view, ts_song, (vv->old_state != D_SONG), need_redraw);
+    vv->old_state = vv->state;
 }
 
 uint32_t process_view_play_pause (view * vv, uint8_t * need_redraw)

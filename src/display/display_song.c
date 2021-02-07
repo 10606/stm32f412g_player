@@ -65,9 +65,9 @@ void display_picture (uint8_t * need_redraw)
     }
 }
 
-void display_song (playlist * pl, audio_ctl_t * actl, state_song_view_t * state, char to_screen, uint8_t * need_redraw) 
+void display_song (playlist * pl, audio_ctl_t * actl, state_song_view_t * state, char to_screen, char redraw_picture, uint8_t * need_redraw) 
 {
-    if (to_screen)
+    if (to_screen && redraw_picture) // don't redraw picture if not need
     {
         display_picture(need_redraw);
         audio_process(need_redraw);

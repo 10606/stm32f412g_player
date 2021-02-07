@@ -25,6 +25,7 @@ typedef enum state_t
 typedef struct view
 {
     state_t state;
+    state_t old_state;
     state_song_view_t state_song_view;
     uint32_t playing_playlist;
     uint32_t selected_playlist;
