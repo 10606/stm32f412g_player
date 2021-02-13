@@ -46,6 +46,7 @@
 #include "display.h"
 #include "display_string.h"
 #include "display_init.h"
+#include "ts_touchscreen.h"
 #include "player.h"
 #include "audio.h"
 #include "play.h"
@@ -112,8 +113,8 @@ void init_base () //joystick, led, LCD
     
     display_init();
     display_start_image();
-    BSP_PB_Init(BUTTON_WAKEUP, BUTTON_MODE_GPIO);
-    BSP_TS_Init(240, 240);
+    //BSP_PB_Init(BUTTON_WAKEUP, BUTTON_MODE_GPIO);
+    ts_init(TS_ORIENTATION_LANDSCAPE);
 }
 
 uint32_t init_fs (char (* path)[12], uint32_t len)

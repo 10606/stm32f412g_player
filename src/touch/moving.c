@@ -117,7 +117,7 @@ int32_t move_down
         int32_t ans = 0;
         do 
         {
-            process_view_down(vv, need_redraw);
+            process_view_up(vv, need_redraw);
             ans += offset_add;
             offset -= offset_add;
         }

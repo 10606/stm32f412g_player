@@ -6,8 +6,6 @@
 uint32_t start_partition_sector = 1;
 uint32_t read_sector (uint32_t sector_number, void * buffer)
 {
-    uint32_t ans = 1;
-
     if (BSP_SD_ReadBlocks((uint32_t*)buffer,
                         (uint32_t) (sector_number),
                         1, SD_TIMEOUT) == MSD_OK)
@@ -18,9 +16,10 @@ uint32_t read_sector (uint32_t sector_number, void * buffer)
         {
             --tried;
         }
-        ans = 0;
+        if (tried != 0)
+            return 0;
     }
-    return ans;
+    return 1;
 }
 
 static inline uint32_t sd_status ()

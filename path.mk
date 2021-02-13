@@ -17,6 +17,7 @@ USB_driver = $(STM32_middleware)/ST/STM32_USB_Device_Library
 
 FAT32_driver = $(root)/FAT32_driver_char11/src
 LCD_display = $(root)/LCD_display
+TS_touch_screen = $(root)/TS_touch_screen
 MAD = src/audio/mp3
 
 
@@ -63,7 +64,6 @@ BSP_sources = \
 	$(BSP_src)/f412g_disco/stm32412g_discovery.c \
 	$(BSP_src)/f412g_disco/stm32412g_discovery_sd.c \
 	$(BSP_src)/f412g_disco/stm32412g_discovery_audio.c \
-	$(BSP_src)/f412g_disco/stm32412g_discovery_ts.c \
 	$(BSP_src)/Components/wm8994/wm8994.c \
 	$(BSP_src)/Components/ft6x06/ft6x06.c
 
@@ -98,6 +98,10 @@ LCD_sources = \
 	$(LCD_display)/st7789h2_driver.c \
 	$(LCD_display)/display_init_st7789h2.c
 
+# touch screen
+TS_sources = \
+	$(TS_touch_screen)/ts_touchscreen.c
+
 # external sources
 external_sources =  \
 	$(MAD_sources) \
@@ -105,6 +109,7 @@ external_sources =  \
 	$(HAL_driver_sources) \
 	$(FAT32_sources) \
 	$(LCD_sources) \
+	$(TS_sources) \
 	$(fonts_sources) \
 	$(USB_lib_sources)
 
@@ -186,6 +191,7 @@ external_includes = \
 	-I$(CMSIS)/Include/ \
 	-I$(FAT32_driver) \
 	-I$(LCD_display)/ \
+	-I$(TS_touch_screen)/ \
 	-I$(fonts) 
 
 #######################################

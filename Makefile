@@ -60,7 +60,8 @@ C_DEFS =  \
 	-DUSE_HAL_DRIVER \
 	-DSTM32F412Zx \
 	-DHAVE_CONFIG_H \
-	-DFPM_DEFAULT
+	-DFPM_DEFAULT #\
+	-DTS_AUTO_CALIBRATION_SUPPORTED=1
 
 
 ######################################
