@@ -32,7 +32,7 @@ typedef struct audio_ctl_t {
     uint8_t buff[audio_buffer_size];
     buffer_state_t state;
     audio_playback_state_t audio_state;
-    uint32_t volume;
+    int32_t volume;
     uint32_t pause_status;
     uint32_t audio_freq;
     char repeat_mode;

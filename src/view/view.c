@@ -1,5 +1,6 @@
 #include "view.h"
 
+#include "util.h"
 #include "joystick.h"
 #include "stm32412g_discovery_audio.h"
 #include "display.h"
@@ -74,6 +75,135 @@ void display_view (view * vv, uint8_t * need_redraw)
     vv->old_state = vv->state;
 }
 
+uint32_t process_view_change_volume (view * vv, uint8_t * need_redraw, int32_t value)
+{
+    if (vv->audio_ctl->volume + value > 100)
+        vv->audio_ctl->volume = 100;
+    else if (vv->audio_ctl->volume + value < 0)
+        vv->audio_ctl->volume = 0;
+    else 
+        vv->audio_ctl->volume += value;
+    BSP_AUDIO_OUT_SetVolume(vv->audio_ctl->volume);
+    display_song_volume(&vv->pl, vv->audio_ctl, &vv->state_song_view, (vv->state == D_SONG), need_redraw);
+    return 0;
+}
+
+uint32_t process_view_inc_volume (view * vv, uint8_t * need_redraw)
+{
+    return process_view_change_volume(vv, need_redraw, 1);
+}
+
+uint32_t process_view_dec_volume (view * vv, uint8_t * need_redraw)
+{
+    return process_view_change_volume(vv, need_redraw, -1);
+}
+
+uint32_t process_view_seek (view * vv, uint8_t * need_redraw, uint32_t value, uint8_t direction /* 0 - forward, 1 - backward */)
+{
+    uint32_t ret, new_pos;
+    new_pos = current_position(&vv->audio_ctl->audio_file);
+    new_pos = direction? 
+        sub_in_bound(new_pos, 0, vv->audio_ctl->audio_file.size, value) :
+        add_in_bound(new_pos, 0, vv->audio_ctl->audio_file.size, value);
+    vv->audio_ctl->seeked = 1;
+    ret = f_seek(&vv->audio_ctl->audio_file, new_pos);
+    if (ret)
+        return ret;
+    return 0;
+}
+
+uint32_t process_view_seek_forward (view * vv, uint8_t * need_redraw)
+{
+    return process_view_seek(vv, need_redraw, seek_value, 0);
+}
+
+uint32_t process_view_seek_backward (view * vv, uint8_t * need_redraw)
+{
+    return process_view_seek(vv, need_redraw, seek_value, 1);
+}
+
+uint32_t process_view_change_song (view * vv, uint8_t * need_redraw, uint8_t direction /* 0 - next, 1 - prev */)
+{
+    static uint32_t (* const do_on_playlist[2]) (playlist *) =
+    {
+        next_playlist,
+        prev_playlist
+    };
+    uint32_t ret;
+    ret = do_on_playlist[direction](&vv->pl);
+    if (ret)
+        return ret;
+    else
+    {
+        deinit_mad();
+        init_mad();
+        if ((ret = open_song_not_found(vv, direction))) 
+            return ret;
+    }
+    *need_redraw = 1;
+    return 0;
+}
+
+uint32_t process_view_prev_song (view * vv, uint8_t * need_redraw)
+{
+    return process_view_change_song(vv, need_redraw, 1);
+}
+
+uint32_t process_view_next_song (view * vv, uint8_t * need_redraw)
+{
+    return process_view_change_song(vv, need_redraw, 0);
+}
+
+uint32_t process_view_up_down (view * vv, uint8_t * need_redraw, uint8_t direction /* 0 - down, 1 - up */)
+{
+    static void (* const do_on_pl_list[2]) (pl_list *) = 
+    {
+        down_pl_list,
+        up_pl_list
+    };
+    static uint32_t (* const do_on_playlist_view[2]) (playlist_view *) = 
+    {
+        down,
+        up
+    };
+    
+    switch (vv->state)
+    {
+    case D_PL_LIST:
+        do_on_pl_list[direction](&vv->pll);
+        *need_redraw = 1;
+        break;
+
+    case D_PLAYLIST:
+        *need_redraw = 1;
+        return do_on_playlist_view[direction](&vv->plv);
+        
+    case D_SONG:
+        switch (vv->state_song_view)
+        {
+        case S_VOLUME:
+            return process_view_change_volume(vv, need_redraw, direction? 1 : -1);
+            
+        case S_SEEK:
+            return process_view_seek(vv, need_redraw, seek_value, 1 - direction);
+
+        case S_NEXT_PREV:
+            return process_view_change_song(vv, need_redraw, direction);
+        }
+    }
+    return 0;
+}
+
+uint32_t process_view_up (view * vv, uint8_t * need_redraw)
+{
+    return process_view_up_down(vv, need_redraw, 1);
+}
+
+uint32_t process_view_down (view * vv, uint8_t * need_redraw)
+{
+    return process_view_up_down(vv, need_redraw, 0);
+}
+
 uint32_t process_view_play_pause (view * vv, uint8_t * need_redraw)
 {
     if (vv->audio_ctl->pause_status == 1)
@@ -90,157 +220,6 @@ uint32_t process_view_play_pause (view * vv, uint8_t * need_redraw)
     return 0;
 }
 
-uint32_t process_view_inc_volume (view * vv, uint8_t * need_redraw)
-{
-    vv->audio_ctl->volume += 1;
-    if (vv->audio_ctl->volume > 100)
-        vv->audio_ctl->volume = 100;
-    BSP_AUDIO_OUT_SetVolume(vv->audio_ctl->volume);
-    display_song_volume(&vv->pl, vv->audio_ctl, &vv->state_song_view, (vv->state == D_SONG), need_redraw);
-    return 0;
-}
-
-uint32_t process_view_seek_forward (view * vv, uint8_t * need_redraw)
-{
-    uint32_t ret, new_pos;
-    new_pos = current_position(&vv->audio_ctl->audio_file);
-    if ((vv->audio_ctl->audio_file.size < seek_value) ||
-        (new_pos > vv->audio_ctl->audio_file.size - seek_value))
-        new_pos = vv->audio_ctl->audio_file.size;
-    else
-        new_pos += seek_value;
-    vv->audio_ctl->seeked = 1;
-    ret = f_seek(&vv->audio_ctl->audio_file, new_pos);
-    if (ret)
-    {
-        return ret;
-    }
-    return 0;
-}
-
-uint32_t process_view_prev_song (view * vv, uint8_t * need_redraw)
-{
-    uint32_t ret;
-    ret = prev_playlist(&vv->pl);
-    if (ret)
-    {
-        return ret;
-    }
-    else
-    {
-        deinit_mad();
-        init_mad();
-        if ((ret = open_song_not_found(vv, 1))) 
-            return ret;
-    }
-    *need_redraw = 1;
-    return 0;
-}
-
-uint32_t process_view_up (view * vv, uint8_t * need_redraw)
-{
-    switch (vv->state)
-    {
-    case D_PL_LIST:
-        up_pl_list(&vv->pll);
-        *need_redraw = 1;
-        break;
-
-    case D_PLAYLIST:
-        up(&vv->plv);
-        *need_redraw = 1;
-        break;
-        
-    case D_SONG:
-        switch (vv->state_song_view)
-        {
-        case S_VOLUME:
-            return process_view_inc_volume(vv, need_redraw);
-            
-        case S_SEEK:
-            return process_view_seek_forward(vv, need_redraw);
-
-        case S_NEXT_PREV:
-            return process_view_prev_song(vv, need_redraw);
-        }
-        break;
-    }
-    return 0;
-}
-
-uint32_t process_view_dec_volume (view * vv, uint8_t * need_redraw)
-{
-    if (vv->audio_ctl->volume < 1)
-        vv->audio_ctl->volume = 0;
-    else
-        vv->audio_ctl->volume -= 1;
-    BSP_AUDIO_OUT_SetVolume(vv->audio_ctl->volume);
-    display_song_volume(&vv->pl, vv->audio_ctl, &vv->state_song_view, (vv->state == D_SONG), need_redraw);
-    return 0;
-}
-
-uint32_t process_view_seek_backward (view * vv, uint8_t * need_redraw)
-{
-    uint32_t ret, new_pos;
-    new_pos = current_position(&vv->audio_ctl->audio_file);
-    if (new_pos < seek_value)
-        new_pos = 0;
-    else
-        new_pos -= seek_value;
-    vv->audio_ctl->seeked = 1;
-    ret = f_seek(&vv->audio_ctl->audio_file, new_pos);
-    if (ret)
-        return ret;
-    return 0;
-}
-
-uint32_t process_view_next_song (view * vv, uint8_t * need_redraw)
-{
-    uint32_t ret;
-    ret = next_playlist(&vv->pl);
-    if (ret)
-        return ret;
-    else
-    {
-        deinit_mad();
-        init_mad();
-        if ((ret = open_song_not_found(vv, 0)))
-            return ret;
-    }
-    *need_redraw = 1;
-    return 0;
-}
-
-uint32_t process_view_down (view * vv, uint8_t * need_redraw)
-{
-    switch (vv->state)
-    {
-    case D_PL_LIST:
-        down_pl_list(&vv->pll);
-        *need_redraw = 1;
-        break;
-
-    case D_PLAYLIST:
-        down(&vv->plv);
-        *need_redraw = 1;
-        break;
-        
-    case D_SONG:
-        switch (vv->state_song_view)
-        {
-        case S_VOLUME:
-            return process_view_dec_volume(vv, need_redraw);
-            
-        case S_SEEK:
-            return process_view_seek_backward(vv, need_redraw);
-
-        case S_NEXT_PREV:
-            return process_view_next_song(vv, need_redraw);
-        }
-        break;
-    }
-    return 0;
-}
 
 uint32_t process_view_left (view * vv, uint8_t * need_redraw)
 {
@@ -381,27 +360,11 @@ uint32_t process_view_center (view * vv, uint8_t * need_redraw)
 
 static inline char check_button_state (uint32_t joy_button)
 {
-    char ans = 
-        ((joystick_state.process[joy_button] >= 1) &&
-         (joystick_state.prev_processed[joy_button] == 0)) ||
-        ((joystick_state.process[joy_button] >= 8) &&
-         (joystick_state.prev_processed[joy_button] == 1)) ||
-        ((joystick_state.process[joy_button] >= 1) &&
-         (joystick_state.prev_processed[joy_button] == 2));
+    static uint8_t const cost[3] = {1, 8, 1}; // first second next
+    char ans = joystick_state.process[joy_button] >= cost[joystick_state.prev_processed[joy_button]];
     if (ans)
     {
-        switch (joystick_state.prev_processed[joy_button])
-        {
-            case 0:
-                joystick_state.process[joy_button] -= 1;
-                break;
-            case 1:
-                joystick_state.process[joy_button] -= 8;
-                break;
-            case 2:
-                joystick_state.process[joy_button] -= 1;
-                break;
-        }
+        joystick_state.process[joy_button] -= cost[joystick_state.prev_processed[joy_button]];
         joystick_state.prev_processed[joy_button]++;
         if (joystick_state.prev_processed[joy_button] > 2)
             joystick_state.prev_processed[joy_button] = 2;
@@ -411,45 +374,36 @@ static inline char check_button_state (uint32_t joy_button)
 
 uint32_t process_view (view * vv, uint8_t * need_redraw)
 {
+    static uint32_t (* const process_view_do[joystick_states_cnt]) (view *, uint8_t *) = 
+    {
+        process_view_up,
+        process_view_down,
+        process_view_left,
+        process_view_right,
+        process_view_center
+    };
+    static enum joystick_buttons buttons[joystick_states_cnt] = 
+    {
+        joy_button_up,
+        joy_button_down,
+        joy_button_left,
+        joy_button_right,
+        joy_button_center
+    };
     char flag = 1;
     uint32_t ret = 0;
     while (flag)
     {
         flag = 0;
-        if (check_button_state(joy_button_up))
+        for (uint32_t i = 0; i != joystick_states_cnt; ++i)
         {
-            flag = 1;
-            ret = process_view_up(vv, need_redraw);
-            if (ret)
-                return ret;
-        }
-        if (check_button_state(joy_button_down))
-        {
-            flag = 1;
-            ret = process_view_down(vv, need_redraw);
-            if (ret)
-                return ret;
-        }
-        if (check_button_state(joy_button_left))
-        {
-            flag = 1;
-            ret = process_view_left(vv, need_redraw);
-            if (ret)
-                return ret;
-        }
-        if (check_button_state(joy_button_right))
-        {
-            flag = 1;
-            ret = process_view_right(vv, need_redraw);
-            if (ret)
-                return ret;
-        }
-        if (check_button_state(joy_button_center))
-        {
-            flag = 1;
-            ret = process_view_center(vv, need_redraw);
-            if (ret)
-                return ret;
+            if (check_button_state(buttons[i]))
+            {
+                flag = 1;
+                ret = process_view_do[i](vv, need_redraw);
+                if (ret)
+                    return ret;
+            }
         }
     }
     return ret;
