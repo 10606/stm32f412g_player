@@ -17,10 +17,10 @@ typedef enum state_song_view_t
 
 typedef enum state_t
 {
-    D_PL_LIST,
-    D_PLAYLIST,
-    D_SONG
-} state_t;
+    D_PL_LIST = 0,
+    D_PLAYLIST = 1,
+    D_SONG = 2
+} state_t; // WARNING on change: process_view_left (view * vv, uint8_t * need_redraw)
 
 typedef struct view
 {

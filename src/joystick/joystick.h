@@ -12,7 +12,7 @@ enum joystick_buttons
     joy_button_right = 3,
     joy_button_center = 4,
     joystick_states_cnt = 5
-};
+}; // WARNING on change: process_view (view * vv, uint8_t * need_redraw)
 
 typedef struct joystick_state_t
 {

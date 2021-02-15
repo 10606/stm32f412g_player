@@ -48,26 +48,9 @@ uint32_t destroy_view (view * vv)
 
 void display_view (view * vv, uint8_t * need_redraw)
 {
-    char ts_playlist = 0;
-    char ts_pl_list = 0;
-    char ts_song = 0;
-    switch (vv->state)
-    {
-    case D_PL_LIST:
-        ts_pl_list = 1;
-        break;
-
-    case D_PLAYLIST:
-        ts_playlist = 1;
-        break;
-        
-    case D_SONG:
-        ts_song = 1;
-        break;
-
-    default:
-        break;
-    }
+    char ts_playlist = (vv->state == D_PLAYLIST);
+    char ts_pl_list = (vv->state == D_PL_LIST);
+    char ts_song = (vv->state == D_SONG);
 
     display_playlist(&vv->plv, &vv->pl, vv->state, ts_playlist, need_redraw);
     display_pl_list(&vv->pll, vv->playing_playlist, &vv->pl, ts_pl_list, need_redraw);
@@ -223,20 +206,10 @@ uint32_t process_view_play_pause (view * vv, uint8_t * need_redraw)
 
 uint32_t process_view_left (view * vv, uint8_t * need_redraw)
 {
-    switch (vv->state)
+    if (vv->state != D_PL_LIST)
     {
-    case D_PL_LIST:
-        break;
-
-    case D_PLAYLIST:
-        vv->state = D_PL_LIST;
+        vv->state--;
         *need_redraw = 1;
-        break;
-        
-    case D_SONG:
-        vv->state = D_PLAYLIST;
-        *need_redraw = 1;
-        break;
     }
     return 0;
 }

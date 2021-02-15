@@ -1,6 +1,7 @@
 #ifndef USB_COMMANDS_H
 #define USB_COMMANDS_H
 
+// WARNING on change: usb_process (view * vv, uint8_t * need_redraw)
 
 #define command_up 0x01
 #define command_down 0x02

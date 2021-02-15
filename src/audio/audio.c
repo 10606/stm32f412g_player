@@ -169,13 +169,9 @@ static inline uint32_t new_song_or_repeat ()
 
 uint32_t audio_process (uint8_t * need_redraw)
 {
-    uint32_t error_state = audio_error_none;  
-  
-    switch (audio_ctl.audio_state)
+    if (audio_ctl.audio_state == AUDIO_STATE_PLAYING)
     {
-    case AUDIO_STATE_PLAYING:
         display_time();
-
         //end of song reached
         if (current_position(&audio_ctl.audio_file) >= audio_ctl.audio_file.size)
         {
@@ -186,13 +182,10 @@ uint32_t audio_process (uint8_t * need_redraw)
         }
 
         next_pcm_part();
-        break;
-    
-    default:
-        error_state = audio_error_notready;
-        break;
+        return audio_error_none;
     }
-    return error_state;
+    else
+        return audio_error_notready;
 }
 
 
