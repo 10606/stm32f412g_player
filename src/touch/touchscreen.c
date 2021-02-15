@@ -5,6 +5,8 @@
 #include "ts_touchscreen.h"
 #include <stdlib.h>
 
+uint32_t touch_tick_counter = 0;
+
 //TODO calibrate
 const int32_t e_left = 0;
 const int32_t e_right = 240;
@@ -12,11 +14,12 @@ const int32_t e_top = 30;
 const int32_t e_bottom = 190;
 
 //TODO calibrate
-const int32_t e_x_offset = 10;
-const int32_t e_y_offset = 10;
+const int32_t e_x_offset = 5;
+const int32_t e_y_offset = 5;
 const int32_t e_x_soft_offset = 2;
 const int32_t e_y_soft_offset = 2;
-const int32_t e_direction_likelyhood = 2;
+const int32_t e_direction_likelyhood_v = 4;
+const int32_t e_direction_likelyhood_d = 3;
 
 const uint32_t e_speed_multiplier = 1600;
 const int32_t e_min_speed_cnt = 4;
@@ -61,16 +64,20 @@ static inline direction_t get_direction (old_touch_state const * ots, int32_t x,
     //    return NON_DIRECTION;
     int32_t diff_x = x - ots->old_x; 
     int32_t diff_y = y - ots->old_y; 
-    if (abs(diff_x) * e_direction_likelyhood <= abs(diff_y))
+    if (abs(diff_x) * e_direction_likelyhood_v <= abs(diff_y) * e_direction_likelyhood_d)
     {
+        if (diff_y == 0)
+            return NON_DIRECTION;
         if (diff_y < 0)
             return UP_DIRECTION;
         else
             return DOWN_DIRECTION;
     }
 
-    if (abs(diff_y) * e_direction_likelyhood <= abs(diff_x))
+    if (abs(diff_y) * e_direction_likelyhood_v <= abs(diff_x) * e_direction_likelyhood_d)
     {
+        if (diff_x == 0)
+            return NON_DIRECTION;
         if (diff_x < 0)
             return LEFT_DIRECTION;
         else
@@ -86,8 +93,7 @@ static void unpressed (old_touch_state * ots, view * vv, uint8_t * need_redraw)
     if (!ots->pressed)
         return;
 
-    uint32_t delta_time = HAL_GetTick() - ots->time;
-    int32_t multiplier = e_speed_multiplier / delta_time;
+    int32_t multiplier = 16 / touch_tick_counter;
     ots->dolg_x *= multiplier;
     ots->dolg_y *= multiplier;
     if (abs(ots->dolg_x) / e_x_offset <= e_min_speed_cnt)
@@ -106,27 +112,17 @@ static void unpressed (old_touch_state * ots, view * vv, uint8_t * need_redraw)
         flag = 0;
         switch (direction)
         {
-        case DOWN_DIRECTION:
-            offset = move_down(ots, ots->dolg_y, 1, vv, need_redraw);
-            ots->dolg_y = max_i(ots->dolg_y - offset, 0);
-            ots->moved = 1;
-            flag = 1;
-            break;
         case UP_DIRECTION:
-            offset = move_up(ots, -ots->dolg_y, 1, vv, need_redraw);
-            ots->dolg_y = min_i(ots->dolg_y + offset, 0);
-            ots->moved = 1;
-            flag = 1;
-            break;
-        case RIGHT_DIRECTION:
-            offset = move_right(ots, ots->dolg_x, 1, vv, need_redraw);
-            ots->dolg_x = max_i(ots->dolg_x - offset, 0);
+        case DOWN_DIRECTION:
+            offset = do_move[direction](ots, abs(ots->dolg_y), 1, vv, need_redraw);
+            ots->dolg_y -= nearest_to_zero(ots->dolg_y, offset);
             ots->moved = 1;
             flag = 1;
             break;
         case LEFT_DIRECTION:
-            offset = move_left(ots, -ots->dolg_x, 1, vv, need_redraw);
-            ots->dolg_x = min_i(ots->dolg_x + offset, 0);;
+        case RIGHT_DIRECTION:
+            offset = do_move[direction](ots, abs(ots->dolg_x), 1, vv, need_redraw);
+            ots->dolg_x -= nearest_to_zero(ots->dolg_x, offset);
             ots->moved = 1;
             flag = 1;
             break;
@@ -135,10 +131,8 @@ static void unpressed (old_touch_state * ots, view * vv, uint8_t * need_redraw)
         }
     }
 
-    if (ots->pressed && !ots->moved)
-    {
+    if (!ots->moved)
         touch_region(ots, vv, need_redraw);
-    }
 
     ots->pressed = 0;
     ots->moved = 0;
@@ -154,41 +148,27 @@ static void pressed (int32_t x1, int32_t y1, old_touch_state * ots, view * vv, u
         if (is_moved(ots, x1, y1))
             ots->moved = 1;
         else
-        {
-            ots->dolg_x = x1 - ots->old_x;
-            ots->dolg_y = y1 - ots->old_y;
-            return;
-        }
-        
+            direction = NON_DIRECTION;
+
         switch (direction)
         {
         case UP_DIRECTION:
-            offset = move_up(ots, ots->old_y - y1, 0, vv, need_redraw);
-            ots->old_x = x1;
-            ots->old_y -= min_i(offset, ots->old_y - y1);
-            ots->dolg_x = 0;
-            ots->dolg_y = y1 - ots->old_y;
-            break;
         case DOWN_DIRECTION:
-            offset = move_down(ots, y1 - ots->old_y, 0, vv, need_redraw);
+            offset = do_move[direction](ots, abs(y1 - ots->old_y), 0, vv, need_redraw);
             ots->old_x = x1;
-            ots->old_y += min_i(offset, y1 - ots->old_y);
+            ots->old_y += nearest_to_zero(offset, y1 - ots->old_y);
             ots->dolg_x = 0;
-            ots->dolg_y = y1 - ots->old_y;
+            ots->dolg_y = offset;
+            ots->moved = 1;
             break;
         case LEFT_DIRECTION:
-            offset = move_left(ots, ots->old_x - x1, 0, vv, need_redraw);
-            ots->old_x -= min_i(offset, ots->old_x - x1);
-            ots->old_y = y1;
-            ots->dolg_x = x1 - ots->old_x;
-            ots->dolg_y = 0;
-            break;
         case RIGHT_DIRECTION:
-            offset = move_right(ots, x1 - ots->old_x, 0, vv, need_redraw);
-            ots->old_x += min_i(offset, x1 - ots->old_x);
+            offset = do_move[direction](ots, abs(x1 - ots->old_x), 0, vv, need_redraw);
+            ots->old_x += nearest_to_zero(offset, x1 - ots->old_x);
             ots->old_y = y1;
-            ots->dolg_x = x1 - ots->old_x;
+            ots->dolg_x = offset;
             ots->dolg_y = 0;
+            ots->moved = 1;
             break;
         case NON_DIRECTION:
             ots->dolg_x = x1 - ots->old_x;
@@ -206,13 +186,13 @@ static void pressed (int32_t x1, int32_t y1, old_touch_state * ots, view * vv, u
         ots->dolg_y = 0;
         ots->direction_mask = 0;
         ots->pressed = 1;
-        ots->time = HAL_GetTick();
+        touch_tick_counter = 0;
     }
 }
 
 void touch_check (old_touch_state * ots, view * vv, uint8_t * need_redraw)
 {
-    TS_StateTypeDef  ts_state = {0};
+    TS_StateTypeDef ts_state = {0};
     ts_touch_detect(&ts_state);
     if (ts_state.touchDetected)
     {

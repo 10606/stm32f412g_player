@@ -48,5 +48,14 @@ int32_t move_down
     uint8_t * need_redraw
 );
 
+extern int32_t (* const do_move[5]) 
+(
+    old_touch_state * ots,
+    int32_t offset, 
+    char speed, 
+    view * vv, 
+    uint8_t * need_redraw
+);
+
 #endif
 

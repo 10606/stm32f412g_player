@@ -44,6 +44,7 @@
 extern I2S_HandleTypeDef haudio_i2s;
 extern SD_HandleTypeDef uSdHandle;
 extern PCD_HandleTypeDef hpcd_USB_OTG_FS;
+extern uint32_t touch_tick_counter;
 
 
 /******************************************************************************/
@@ -138,6 +139,9 @@ void TIM2_IRQHandler (void)
             joystick_state.process[i] = 0;
         }
     }
+
+    if (touch_tick_counter < 10)
+        touch_tick_counter++;
  
     if (HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_2) == GPIO_PIN_RESET)
         HAL_GPIO_WritePin(GPIOE, GPIO_PIN_2, GPIO_PIN_SET);

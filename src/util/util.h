@@ -2,6 +2,7 @@
 #define UTIL_H
 
 #include <stdint.h>
+#include <math.h>
 #include "audio.h"
 
 static inline uint32_t min (uint32_t a, uint32_t b)
@@ -40,6 +41,18 @@ static inline uint32_t sub_in_bound (uint32_t value, uint32_t a, uint32_t b, uin
     if (value - add < a)
         return a;
     return value - add;
+}
+
+static inline int32_t nearest_to_zero (int32_t a, int32_t b)
+{
+    if ((a <= 0) != (b <= 0))
+        return 0;
+    if ((a == 0) || (b == 0))
+        return 0;
+    if ((a <= 0) != (a < b))
+        return b;
+    else
+        return a;
 }
 
 static inline char check_near (uint32_t pos_a, uint32_t pos_b, uint32_t max_pos_a, uint32_t view_pos_a, uint32_t border_pos_a)
