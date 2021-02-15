@@ -98,13 +98,13 @@ uint32_t process_view_dec_volume (view * vv, uint8_t * need_redraw)
     return process_view_change_volume(vv, need_redraw, -1);
 }
 
-uint32_t process_view_seek (view * vv, uint8_t * need_redraw, uint32_t value, uint8_t direction /* 0 - forward, 1 - backward */)
+uint32_t process_view_seek (view * vv, uint8_t * need_redraw, uint32_t value, uint8_t direction /* 0 - backward, 1 - forward */)
 {
     uint32_t ret, new_pos;
     new_pos = current_position(&vv->audio_ctl->audio_file);
     new_pos = direction? 
-        sub_in_bound(new_pos, 0, vv->audio_ctl->audio_file.size, value) :
-        add_in_bound(new_pos, 0, vv->audio_ctl->audio_file.size, value);
+        add_in_bound(new_pos, 0, vv->audio_ctl->audio_file.size, value) :
+        sub_in_bound(new_pos, 0, vv->audio_ctl->audio_file.size, value);
     vv->audio_ctl->seeked = 1;
     ret = f_seek(&vv->audio_ctl->audio_file, new_pos);
     if (ret)
@@ -114,12 +114,12 @@ uint32_t process_view_seek (view * vv, uint8_t * need_redraw, uint32_t value, ui
 
 uint32_t process_view_seek_forward (view * vv, uint8_t * need_redraw)
 {
-    return process_view_seek(vv, need_redraw, seek_value, 0);
+    return process_view_seek(vv, need_redraw, seek_value, 1);
 }
 
 uint32_t process_view_seek_backward (view * vv, uint8_t * need_redraw)
 {
-    return process_view_seek(vv, need_redraw, seek_value, 1);
+    return process_view_seek(vv, need_redraw, seek_value, 0);
 }
 
 uint32_t process_view_change_song (view * vv, uint8_t * need_redraw, uint8_t direction /* 0 - next, 1 - prev */)
@@ -185,7 +185,7 @@ uint32_t process_view_up_down (view * vv, uint8_t * need_redraw, uint8_t directi
             return process_view_change_volume(vv, need_redraw, direction? 1 : -1);
             
         case S_SEEK:
-            return process_view_seek(vv, need_redraw, seek_value, 1 - direction);
+            return process_view_seek(vv, need_redraw, seek_value, direction);
 
         case S_NEXT_PREV:
             return process_view_change_song(vv, need_redraw, direction);

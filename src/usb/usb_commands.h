@@ -13,10 +13,11 @@
 #define command_select 0x05
 
 #define commnad_play_pause 0x06
-#define command_repeat 0x09
 
 #define commnad_volume_up 0x07
 #define command_volume_down 0x08
+
+#define command_repeat 0x09
 
 #define command_seek_forward 0x0a
 #define command_seek_backward 0x0b
