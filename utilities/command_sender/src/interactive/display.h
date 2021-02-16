@@ -5,11 +5,7 @@
 #include <string>
 #include <iostream>
 
-const char cur_song_info = 0x01;
-const char displayed_song_info = 0x02;
-const char pl_list_info = 0x03;
-const char volume_info = 0x04;
-const char state_info = 0x05;
+#include "usb_commands.h"
 
 const size_t song_name_sz = 28;
 const size_t group_name_sz = 28;

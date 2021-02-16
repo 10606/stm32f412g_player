@@ -331,20 +331,6 @@ uint32_t process_view_center (view * vv, uint8_t * need_redraw)
     return 0;
 }
 
-static inline char check_button_state (uint32_t joy_button)
-{
-    static uint8_t const cost[3] = {1, 8, 1}; // first second next
-    char ans = joystick_state.process[joy_button] >= cost[joystick_state.prev_processed[joy_button]];
-    if (ans)
-    {
-        joystick_state.process[joy_button] -= cost[joystick_state.prev_processed[joy_button]];
-        joystick_state.prev_processed[joy_button]++;
-        if (joystick_state.prev_processed[joy_button] > 2)
-            joystick_state.prev_processed[joy_button] = 2;
-    }
-    return ans;
-}
-
 uint32_t process_view (view * vv, uint8_t * need_redraw)
 {
     static uint32_t (* const process_view_do[joystick_states_cnt]) (view *, uint8_t *) = 

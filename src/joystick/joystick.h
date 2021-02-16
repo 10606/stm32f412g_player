@@ -23,6 +23,7 @@ typedef struct joystick_state_t
 extern joystick_state_t joystick_state;
 
 void check_buttons ();
+uint8_t check_button_state (uint32_t joy_button);
 
 
 #endif
