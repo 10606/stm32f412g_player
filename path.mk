@@ -165,6 +165,7 @@ local_sources =  \
 	$(main_sources) \
 	src/sd_card/sd_card_operation.c  \
 	src/view/view.c \
+	src/view/process_view.c \
 	$(audio_sources) \
 	$(display_sources) \
 	$(playlist_sources) \
