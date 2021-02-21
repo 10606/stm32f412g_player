@@ -15,6 +15,8 @@ extern "C"
 #include <stdexcept>
 #include <algorithm>
 
+#include "utf8_automat.h"
+
 extern "C"
 {
     std::ifstream partition_with_FAT;
@@ -98,109 +100,82 @@ private:
     std::unique_ptr <char[]> storage;
 };
 
-template <typename Char_T>
-std::basic_string <Char_T> utf8_to_utf16 (std::string const & utf8)
+
+std::vector <uint32_t> utf8_to_ucs4 (std::string const & utf8)
 {
     std::vector <uint32_t> unicode;
-    size_t i = 0;
-    while (i < utf8.size())
+    utf8_automat aut;
+    for (size_t i = 0; i != utf8.size(); ++i)
     {
-        uint32_t uni;
-        size_t todo;
-        unsigned char ch = utf8[i++];
-        if (ch <= 0x7F)
-        {
-            uni = ch;
-            todo = 0;
-        }
-        else if (ch <= 0xBF)
-        {
-            throw std::logic_error("not a UTF-8 string");
-        }
-        else if (ch <= 0xDF)
-        {
-            uni = ch & 0x1F;
-            todo = 1;
-        }
-        else if (ch <= 0xEF)
-        {
-            uni = ch & 0x0F;
-            todo = 2;
-        }
-        else if (ch <= 0xF7)
-        {
-            uni = ch & 0x07;
-            todo = 3;
-        }
-        else
-        {
-            throw std::logic_error("not a UTF-8 string");
-        }
-        for (size_t j = 0; j < todo; ++j)
-        {
-            if (i == utf8.size())
-                throw std::logic_error("not a UTF-8 string");
-            unsigned char ch = utf8[i++];
-            if (ch < 0x80 || ch > 0xBF)
-                throw std::logic_error("not a UTF-8 string");
-            uni <<= 6;
-            uni += ch & 0x3F;
-        }
-        if (uni >= 0xD800 && uni <= 0xDFFF)
-            throw std::logic_error("not a UTF-8 string");
-        if (uni > 0x10FFFF)
-            throw std::logic_error("not a UTF-8 string");
+        utf8_automat::state_t st = aut.next(utf8[i]);
+        if (st == utf8_automat::err)
+            throw std::runtime_error("not a UTF-8 string");
+        if (st == utf8_automat::none)
+            continue;
+        if (i + 1 == utf8.size())
+            throw std::runtime_error("not a UTF-8 string (unexpected end)");
+        uint32_t uni = aut.get_ans();
         unicode.push_back(uni);
     }
-    std::basic_string <Char_T> utf16;
+    return unicode;
+}
+
+std::basic_string <uint16_t> utf8_to_utf16 (std::string const & utf8)
+{
+    std::vector <uint32_t> unicode = utf8_to_ucs4(utf8);
+    std::basic_string <uint16_t> utf16;
     for (size_t i = 0; i < unicode.size(); ++i)
     {
         uint32_t uni = unicode[i];
         if (uni <= 0xFFFF)
         {
-            utf16 += (Char_T)uni;
+            utf16 += (uint16_t)uni;
         }
         else
         {
             uni -= 0x10000;
-            utf16 += (Char_T)((uni >> 10) + 0xD800);
-            utf16 += (Char_T)((uni & 0x3FF) + 0xDC00);
+            utf16 += (uint16_t)((uni >> 10) + 0xD800);
+            utf16 += (uint16_t)((uni & 0x3FF) + 0xDC00);
         }
     }
     return utf16;
 }
-/*
-inline std::string utf8_to_utf16 (std::string const & value)
-{
-    //TODO
-    std::string answer;
-    for (char c : value)
-    {
-        answer += (c);
-        answer += (char)0;
-    }
-    return answer;
-}
-*/
 
-template <typename Char_T>
+std::basic_string <uint16_t> utf8_to_ucs2 (std::string const & utf8)
+{
+    std::vector <uint32_t> unicode = utf8_to_ucs4(utf8);
+    std::basic_string <uint16_t> ucs2;
+    for (size_t i = 0; i < unicode.size(); ++i)
+    {
+        uint32_t uni = unicode[i];
+        if (uni <= 0xFFFF)
+            ucs2 += (uint16_t)uni;
+        else
+        {
+            // skip
+        }
+    }
+    return ucs2;
+}
+
+
 converted_path make_long_path (std::vector <std::string> const & path)
 {
-    std::vector <std::basic_string <Char_T> > wpath;
+    std::vector <std::basic_string <uint16_t> > wpath;
     for (std::string const & p : path)
     {
-        wpath.push_back(utf8_to_utf16 <Char_T> (p));
+        wpath.push_back(utf8_to_ucs2(p));
     }
     size_t max_size = 0;
-    for (std::basic_string <Char_T> const & p : wpath)
+    for (std::basic_string <uint16_t> const & p : wpath)
     {
         max_size = std::max(max_size, p.size());
     }
-    max_size *= sizeof(Char_T);
+    max_size *= sizeof(uint16_t);
     converted_path answer(path.size(), max_size + 2);
     for (size_t i = 0; i != wpath.size(); ++i)
     {
-        std::memcpy(answer.path[i], reinterpret_cast <char const *> (wpath[i].c_str()), sizeof(Char_T) * (wpath[i].size() + 1));
+        std::memcpy(answer.path[i], reinterpret_cast <char const *> (wpath[i].c_str()), sizeof(uint16_t) * (wpath[i].size() + 1));
     }
     return answer;
 }
@@ -289,7 +264,7 @@ void write_all (std::ostream & out, std::istream & in, std::string const & name)
             try
             {
                 std::vector <std::string> s_path = split_path(path);
-                converted_path l_path = make_long_path <int16_t> (s_path);
+                converted_path l_path = make_long_path(s_path);
                 std::unique_ptr <char[][12]> c_path = convert_path(l_path);
                 song_header song;
                 write_group_song_names(s_path.back(), &song);

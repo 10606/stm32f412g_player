@@ -30,6 +30,7 @@ include_directories(
     ${FAT32_driver_path}
     ${FAT32_driver_path}/lfn
     ${playlist_path}
+    ../characters
 )
 
 link_directories(
@@ -49,6 +50,7 @@ add_library(libFAT
 
 add_executable(convert_playlist
     convert_playlist.cpp 
+    ../characters/utf8_automat.cpp
 )
 
 target_link_libraries(convert_playlist
