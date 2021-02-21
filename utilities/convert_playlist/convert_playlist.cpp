@@ -16,6 +16,7 @@ extern "C"
 #include <algorithm>
 
 #include "utf8_automat.h"
+#include "fill_char_set.h"
 
 extern "C"
 {
@@ -111,9 +112,11 @@ std::vector <uint32_t> utf8_to_ucs4 (std::string const & utf8)
         if (st == utf8_automat::err)
             throw std::runtime_error("not a UTF-8 string");
         if (st == utf8_automat::none)
+        {
+            if (i + 1 == utf8.size())
+                throw std::runtime_error("not a UTF-8 string (unexpected end)");
             continue;
-        if (i + 1 == utf8.size())
-            throw std::runtime_error("not a UTF-8 string (unexpected end)");
+        }
         uint32_t uni = aut.get_ans();
         unicode.push_back(uni);
     }
@@ -221,8 +224,26 @@ get_group_song_names
     return std::make_pair <std::string const &, char const (&) [1]> (answer, "");
 }
 
-void write (char * dst, std::string const & src, uint32_t size, char fill = ' ')
+// utf8 -> ucs4 -> my_custom_code_table
+std::basic_string <uint8_t> convert_to_custom_char_table (std::string const & value)
 {
+    static std::map <uint32_t, uint8_t> rev_map = fill_rev_char_map();
+    std::basic_string <uint8_t> ans;
+    std::vector <uint32_t> ucs4 = utf8_to_ucs4(value);
+    for (uint32_t v : ucs4)
+    {
+        std::map <uint32_t, uint8_t> :: const_iterator it = rev_map.find(v);
+        if (it == rev_map.end())
+            ans += 0x20; // ' '
+        else
+            ans += it->second;
+    }
+    return ans;
+}
+
+void write (char * dst, std::string const & _src, uint32_t size, char fill = ' ')
+{
+    std::basic_string <uint8_t> src = convert_to_custom_char_table(_src);
     std::memcpy(dst, src.c_str(), std::min <uint32_t> (src.size(), size));
     if (src.size() < size)
     {

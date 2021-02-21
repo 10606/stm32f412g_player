@@ -67,3 +67,23 @@ void fill_char_set (std::array <uint32_t, 256> & char_set)
         char_set[i + 192] = tail[i];
 }
 
+std::map <uint32_t, uint8_t> rev_char_map (std::array <uint32_t, 256> const & char_set)
+{
+    std::map <uint32_t, uint8_t> ans;
+    uint8_t index = 0;
+    do
+    {
+        ans[char_set[index]] = index;
+        index++;
+    }
+    while (index != 0);
+    return ans;
+}
+
+std::map <uint32_t, uint8_t> fill_rev_char_map ()
+{
+    std::array <uint32_t, 256> char_set;
+    fill_char_set(char_set);
+    return rev_char_map(char_set);
+}
+
