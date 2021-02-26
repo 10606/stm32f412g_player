@@ -4,7 +4,6 @@
 root = ../../..
 
 utilities = $(root)/Utilities
-fonts = $(utilities)/Fonts
 
 BSP_src = $(root)/stm32/BSP
 
@@ -17,6 +16,7 @@ USB_driver = $(STM32_middleware)/ST/STM32_USB_Device_Library
 
 FAT32_driver = $(root)/FAT32_driver_char11/src
 LCD_display = $(root)/LCD_display
+fonts = $(LCD_display)/fonts
 TS_touch_screen = $(root)/TS_touch_screen
 MAD = src/audio/mp3
 
@@ -78,11 +78,13 @@ FAT32_sources = \
 
 # fonts
 fonts_sources = \
-	$(fonts)/font24.c \
-	$(fonts)/font20.c \
-	$(fonts)/font16.c \
-	$(fonts)/font12.c \
-	$(fonts)/font8.c 
+	$(fonts)/font_24.c \
+	$(fonts)/font_22.c \
+	$(fonts)/font_20.c \
+	$(fonts)/font_18.c \
+	$(fonts)/font_16.c \
+	$(fonts)/font_14.c \
+	$(fonts)/font_12.c
 
 # USB lib
 USB_lib_sources = \

@@ -8,8 +8,8 @@
 
 void display_song_hint ()
 {
-    fill_rect(0, headband_height, 240, 240 - headband_height, LCD_COLOR_WHITE);
-    fill_rect(0, 0, 240, headband_height, LCD_COLOR_BLUE);
+    fill_rect(0, headband_height, 240, 240 - headband_height, lcd_color_white);
+    fill_rect(0, 0, 240, headband_height, lcd_color_blue);
 }
 
 void display_start_image ()
@@ -37,13 +37,13 @@ void display_song_volume (playlist * pl, audio_ctl_t * actl, state_song_view_t *
     
     char s_volume[volume_width];
     char s_state[volume_width];
-    color_t bw = {LCD_COLOR_BLUE, LCD_COLOR_WHITE};
+    color_t bw = {lcd_color_blue, lcd_color_white};
     snprintf(s_volume, sizeof(s_volume), " %3lu%%", (actl->volume % 101));
     snprintf(s_state, sizeof(s_state), "  %c %c", (actl->repeat_mode? 'r' : ' '), c_state);
     if (to_screen)
     {
-        display_string(200, list_offset, s_volume, &Font12, &bw);
-        display_string(200, list_offset + in_line_offset, s_state, &Font12, &bw);
+        display_string(200, list_offset, s_volume, &font_12, &bw);
+        display_string(200, list_offset + in_line_offset, s_state, &font_12, &bw);
         audio_process(need_redraw);
     }
     HAL_Delay(1);

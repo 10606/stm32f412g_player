@@ -1,5 +1,6 @@
 #include "audio.h"
 
+#include "fonts.h"
 #include "util.h"
 #include "mp3.h"
 #include "stm32412g_discovery_audio.h"
@@ -127,7 +128,7 @@ static inline void display_time ()
         total_time.sec,
         total_time.ms
     );
-    display_string_center_c(0, 60, str, &Font12, LCD_COLOR_BLUE, LCD_COLOR_WHITE);
+    display_string_center_c(0, 60, str, &font_12, lcd_color_blue, lcd_color_white);
 }
 
 static inline uint32_t new_song_or_repeat ()

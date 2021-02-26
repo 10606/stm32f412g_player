@@ -1,5 +1,6 @@
 #include "display.h"
 
+#include "fonts.h"
 #include "audio.h"
 #include "display_string.h"
 #include "usb_send.h"
@@ -12,11 +13,11 @@ void display_cur_song (playlist * pl_p, char to_screen, uint8_t * need_redraw)
     cur_song_name[song_name_sz] = 0;
     memcpy(cur_group_name, pl_p->song.group_name, group_name_sz);
     cur_group_name[group_name_sz] = 0;
-    color_t yb = {LCD_COLOR_YELLOW, LCD_COLOR_BLUE};
+    color_t yb = {lcd_color_yellow, lcd_color_blue};
     if (to_screen)
     {
-        display_string(5, 20, cur_group_name, &Font16, &yb);
-        display_string(5, 40, cur_song_name, &Font16, &yb);
+        display_string(5, 20, cur_group_name, &font_16, &yb);
+        display_string(5, 40, cur_song_name, &font_16, &yb);
         audio_process(need_redraw);
     }
     send_cur_song(cur_song_name, cur_group_name);
@@ -26,7 +27,7 @@ void display_playlist (playlist_view * plv, playlist * pl_p, int state, char to_
 {
     uint32_t y_pos = list_offset + line_offset * playlist_view_cnt;
     if (to_screen)
-        fill_rect(0, y_pos, 240, 240 - y_pos, LCD_COLOR_WHITE);
+        fill_rect(0, y_pos, 240, 240 - y_pos, lcd_color_white);
     display_cur_song(pl_p, to_screen, need_redraw);
     HAL_Delay(1);
     send_state(state);
@@ -62,30 +63,30 @@ void display_playlist (playlist_view * plv, playlist * pl_p, int state, char to_
         switch (selected[i])
         {
             case 3:
-                back_color_group = LCD_COLOR_BLUE;
-                text_color_group = LCD_COLOR_YELLOW;
-                back_color_song = LCD_COLOR_BLUE;
-                text_color_song = LCD_COLOR_GREEN;
+                back_color_group = lcd_color_blue;
+                text_color_group = lcd_color_yellow;
+                back_color_song = lcd_color_blue;
+                text_color_song = lcd_color_green;
                 break;
             case 2:
-                back_color_song = back_color_group = LCD_COLOR_WHITE;
-                text_color_song = text_color_group = LCD_COLOR_RED;
+                back_color_song = back_color_group = lcd_color_white;
+                text_color_song = text_color_group = lcd_color_red;
                 break;
             case 1:
-                back_color_song = back_color_group = LCD_COLOR_BLUE;
-                text_color_song = text_color_group = LCD_COLOR_WHITE;
+                back_color_song = back_color_group = lcd_color_blue;
+                text_color_song = text_color_group = lcd_color_white;
                 break;
             default:
-                back_color_song = back_color_group = LCD_COLOR_WHITE;
-                text_color_song = text_color_group = LCD_COLOR_BLUE;
+                back_color_song = back_color_group = lcd_color_white;
+                text_color_song = text_color_group = lcd_color_blue;
         }
 
         color_t c_group = {text_color_group, back_color_group};
         color_t c_song = {text_color_song, back_color_song};
         if (to_screen)
         {
-            display_string(4, list_offset + line_offset * i, s_group, &Font12, &c_group);
-            display_string(4, list_offset + in_line_offset + line_offset * i, s_song, &Font12, &c_song);
+            display_string(4, list_offset + line_offset * i, s_group, &font_12, &c_group);
+            display_string(4, list_offset + in_line_offset + line_offset * i, s_song, &font_12, &c_song);
         }
         audio_process(need_redraw);
         send_displayed_song(s_group, s_song, selected[i], i);
