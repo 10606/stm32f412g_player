@@ -42,7 +42,6 @@ void audio_init ()
   
     if (BSP_AUDIO_OUT_Init(OUTPUT_DEVICE_HEADPHONE, audio_ctl.volume, audio_ctl.audio_freq) != 0)
         display_error("err init audio codec");
-    
 }
 
 void audio_destruct ()
@@ -128,7 +127,7 @@ static inline void display_time ()
         total_time.sec,
         total_time.ms
     );
-    display_string_center_c(0, 60, str, &font_12, lcd_color_blue, lcd_color_white);
+    display_string_center_c(0, time_offset, str, &font_12, lcd_color_blue, lcd_color_white);
 }
 
 static inline uint32_t new_song_or_repeat ()

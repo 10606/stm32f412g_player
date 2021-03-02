@@ -16,8 +16,8 @@ void display_cur_song (playlist * pl_p, char to_screen, uint8_t * need_redraw)
     color_t yb = {lcd_color_yellow, lcd_color_blue};
     if (to_screen)
     {
-        display_string(5, 20, cur_group_name, &font_16, &yb);
-        display_string(5, 40, cur_song_name, &font_16, &yb);
+        display_string(10, song_name_offset, cur_group_name, &font_16, &yb);
+        display_string(10, song_name_offset + in_song_name_offset, cur_song_name, &font_16, &yb);
         audio_process(need_redraw);
     }
     send_cur_song(cur_song_name, cur_group_name);

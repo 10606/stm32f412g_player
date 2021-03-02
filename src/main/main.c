@@ -103,12 +103,12 @@ void init_base () //joystick, led, LCD
     {
         GPIO_InitTypeDef GPIO_init = {0};
         __HAL_RCC_GPIOE_CLK_ENABLE();
-        HAL_GPIO_WritePin(GPIOE, GPIO_PIN_2, GPIO_PIN_SET);
         GPIO_init.Pin = GPIO_PIN_2;
         GPIO_init.Mode = GPIO_MODE_OUTPUT_PP;
         GPIO_init.Pull = GPIO_PULLDOWN;
         GPIO_init.Speed = GPIO_SPEED_FREQ_LOW;
         HAL_GPIO_Init(GPIOE, &GPIO_init);
+        HAL_GPIO_WritePin(GPIOE, GPIO_PIN_2, GPIO_PIN_SET);
     }
     
     display_init();
@@ -194,13 +194,13 @@ uint32_t init (char (* path)[12], uint32_t len, uint32_t index)
     ret = init_audio(path, len);
     if (ret)
         return ret;
-    init_timer();
     init_usb();
     return 0;
 }
 
 int main (void)
 {
+    init_timer();
     init_base();
     uint32_t counter = 0;
     while (1)

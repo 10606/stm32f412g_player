@@ -39,7 +39,6 @@ HAL_driver_sources = \
 	$(HAL_driver)/stm32f4xx_hal_dma_ex.c \
 	$(HAL_driver)/stm32f4xx_hal_i2c.c \
 	$(HAL_driver)/stm32f4xx_hal_i2c_ex.c \
-	$(HAL_driver)/stm32f4xx_hal_i2s.c \
 	$(HAL_driver)/stm32f4xx_hal_i2s_ex.c \
 	$(HAL_driver)/stm32f4xx_hal_pcd.c \
 	$(HAL_driver)/stm32f4xx_hal_pcd_ex.c \
@@ -172,6 +171,7 @@ local_sources =  \
 	$(display_sources) \
 	$(playlist_sources) \
 	$(user_input_sources) \
+	src/FAKE/_hal_i2s.c \
 	$(USB_sources)
 
 

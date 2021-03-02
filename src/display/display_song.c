@@ -1,5 +1,6 @@
 #include "display.h"
 
+#include <stdio.h>
 #include "util.h"
 #include "audio.h"
 #include "st7789h2_driver.h"
