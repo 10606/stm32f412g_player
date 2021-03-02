@@ -37,7 +37,7 @@ uint32_t init_pl_list (pl_list * pll, char (* dir_name)[12], size_t len_name)
     uint32_t index = 0;
     uint32_t res;
 
-    res = open(&dir, dir_name, len_name);
+    res = open(&FAT_info, &dir, dir_name, len_name);
   
     if (res != 0)
     {
@@ -76,7 +76,7 @@ uint32_t init_pl_list (pl_list * pll, char (* dir_name)[12], size_t len_name)
     for (uint32_t i = 0; i != pll->cnt; ++i)
     {
         memcpy(pll->root_path[pll->path_len - 1], pll->pl_path[i], 12);
-        res = open(&file, pll->root_path, pll->path_len);
+        res = open(&FAT_info, &file, pll->root_path, pll->path_len);
         if (res != 0)
         {
             pll->cnt = i;

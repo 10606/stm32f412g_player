@@ -60,7 +60,7 @@ uint32_t open_song (view * vv)
     }
 
     uint32_t ret;
-    if ((ret = open(&vv->audio_ctl->audio_file, vv->pl.path, vv->pl.song.path_len)))
+    if ((ret = open(&FAT_info, &vv->audio_ctl->audio_file, vv->pl.path, vv->pl.song.path_len)))
         return ret;
     vv->audio_ctl->seeked = 1;
     get_length(&vv->audio_ctl->audio_file, &vv->audio_ctl->info);
@@ -69,16 +69,20 @@ uint32_t open_song (view * vv)
     return 0;
 }
 
-uint32_t open_song_not_found (view * vv, char direction)
+uint32_t open_song_not_found (view * vv, uint8_t direction)
 {
+    uint32_t (* np_playlist[2]) (playlist * pl) = 
+    {
+        next_playlist,
+        prev_playlist
+    };
+    
     uint32_t ret = 0;
-    for (uint32_t i = 0; i != vv->pl.header.cnt_songs; direction? --i : ++i)
+    for (uint32_t i = 0; i != vv->pl.header.cnt_songs; ++i)
     {
         if ((ret = open_song(vv)))
         {
-            if (ret == not_found)
-                continue;
-            else
+            if (ret != not_found)
                 return ret;
         }
         else
@@ -86,7 +90,7 @@ uint32_t open_song_not_found (view * vv, char direction)
             return 0;
         }
         
-        if ((ret = next_playlist(&vv->pl)))
+        if ((ret = np_playlist[direction](&vv->pl)))
             return ret;
     }
     return ret;

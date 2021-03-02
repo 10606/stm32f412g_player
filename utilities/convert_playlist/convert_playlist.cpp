@@ -21,7 +21,7 @@ extern "C"
 extern "C"
 {
     std::ifstream partition_with_FAT;
-    uint32_t start_partition_sector = 1;
+    uint32_t const start_partition_sector = 1;
 
     uint32_t read_sector (uint32_t sector_number, void * buffer)
     {
@@ -51,6 +51,8 @@ extern "C"
             return 1;
         }
     }
+    
+    FAT_info_t FAT_info;
 }
 
 
@@ -188,7 +190,7 @@ std::unique_ptr <char[][12]> convert_path (converted_path const & path)
     std::unique_ptr <char[][12]> answer(new char [path.path.size()][12]);
     file_descriptor fd;
     uint32_t ret;
-    if ((ret = open_lfn(&fd, path.path.data(), answer.get(), path.path.size())) != 0)
+    if ((ret = open_lfn(&FAT_info, &fd, path.path.data(), answer.get(), path.path.size())) != 0)
     {
         throw std::runtime_error(std::to_string(ret) + " while open file");
     }
@@ -333,7 +335,7 @@ int main (int argc, char ** argv)
     
     partition_with_FAT = std::ifstream("/dev/mmcblk0");
     
-    if (init_fatfs())
+    if (init_fatfs(&FAT_info, 512, start_partition_sector, read_sector))
     {
         std::cerr << "init FATfs error\n";
         return 1;

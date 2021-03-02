@@ -69,6 +69,7 @@
 
 
 view viewer;
+FAT_info_t FAT_info;
 
 void SystemClock_Config (void);
 void Error_Handler (void);
@@ -125,8 +126,7 @@ uint32_t init_fs (char (* path)[12], uint32_t len)
     while (sd_card_init())
     {}
     // open filesystem
-    global_info.sector_size = 512;
-    if (init_fatfs())
+    if (init_fatfs(&FAT_info, 512, start_partition_sector, read_sector))
     {
         display_error("err init fatfs");
         return 2;

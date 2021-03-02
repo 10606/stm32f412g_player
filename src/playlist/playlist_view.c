@@ -311,7 +311,7 @@ uint32_t open_playlist
     uint32_t ret;
     file_descriptor fd;
     copy_file_descriptor(&fd, plv->lpl.fd);
-    if ((ret = open(plv->lpl.fd, path, path_len)))
+    if ((ret = open(&FAT_info, plv->lpl.fd, path, path_len)))
         return ret;
     // trivially destructible
     if ((ret = init_playlist_view(plv, plv->lpl.fd)))

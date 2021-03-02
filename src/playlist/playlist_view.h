@@ -4,9 +4,12 @@
 #include "playlist.h"
 #include "light_playlist.h"
 #include "playlist_structures.h"
+#include "FAT.h"
 
 #define playlist_border_cnt 3
 #define playlist_view_cnt (2 * playlist_border_cnt + 1)
+
+extern FAT_info_t FAT_info;
 
 typedef struct playlist_view
 {
