@@ -236,6 +236,8 @@ static inline uint32_t view_to_playing_playlist (view * vv, uint8_t * need_redra
                 copy_file_descriptor(vv->plv.lpl.fd, &old_fd);
                 return ret;
             }
+            seek_pl_list(&vv->pll, vv->playing_playlist);
+            vv->selected_playlist = vv->playing_playlist;
         }
         ret = seek_playlist_view(&vv->plv, vv->pl.pos);
         if (ret)
@@ -258,7 +260,17 @@ uint32_t process_view_center (view * vv, uint8_t * need_redraw)
     {
     case D_PL_LIST:
         if (pl_list_check_near(&vv->pll, vv->playing_playlist))
+        {
+            uint32_t old_pos = vv->pll.current_pos;
+            seek_pl_list(&vv->pll, vv->playing_playlist);
+            uint32_t ret = open_selected_pl_list(&vv->pll, &vv->plv, &vv->selected_playlist);
+            if (ret)
+            {
+                seek_pl_list(&vv->pll, old_pos);
+                return ret;
+            }
             vv->state = D_PLAYLIST;
+        }
         else
             seek_pl_list(&vv->pll, vv->playing_playlist);
         *need_redraw = 1;
