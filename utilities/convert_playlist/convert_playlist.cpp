@@ -14,6 +14,7 @@ extern "C"
 #include <vector>
 #include <stdexcept>
 #include <algorithm>
+#include <set>
 
 #include "utf8_automat.h"
 #include "fill_char_set.h"
@@ -197,29 +198,95 @@ std::unique_ptr <char[][12]> convert_path (converted_path const & path)
     return answer;
 }
 
+
+std::string remove_bad (std::string const & value, std::vector <std::string> const & bad)
+{
+    if (bad.empty())
+        return value;
+
+    std::string answer;
+    std::set <std::pair <size_t, size_t> > to_remove; // pos, index
+    for (size_t i = 0; i != bad.size(); ++i)
+        to_remove.insert({value.find(bad[i]), i});
+    
+    for (size_t i = 0; i < value.size(); )
+    {
+        std::set <std::pair <size_t, size_t> > ::iterator it = to_remove.begin();
+        size_t new_i = i;
+        while (it->first <= i)
+        {
+            size_t pos = it->first;
+            size_t index = it->second;
+            to_remove.erase(it);
+            to_remove.insert({value.find(bad[index], pos + 1), index});
+            
+            if (pos + bad[index].size() > new_i)
+                new_i = pos + bad[index].size();
+        }
+        
+        if (new_i == i)
+            answer += value[i++];
+        else
+            i = new_i;
+    }
+    
+    return answer;
+}
+
+std::vector <std::string> bad_in_name =
+{
+    "(promusic.me)",
+    "muzlostyle.ru"
+};
+
+
+
+std::pair <std::string, std::string> 
+split_string
+(std::string const & value, size_t pos, size_t p_size)
+{
+    std::string group;
+    std::string song;
+    
+    if (pos + p_size < value.size())
+    {
+        size_t pos_2 = pos + p_size;
+        size_t end_pos = value.rfind('.');
+        if (end_pos < pos_2)
+            end_pos = std::string::npos;
+        song = value.substr(pos_2, end_pos - pos_2);
+    }
+    else
+        song = "";
+    
+    if (pos >= 1)
+        group = value.substr(0, pos);
+    else
+        group = "";
+    
+    return std::make_pair(remove_bad(group, bad_in_name), remove_bad(song, bad_in_name));
+}
+
+
 std::pair <std::string, std::string> 
 get_group_song_names 
 (std::string const & value)
 {
     if (value.size() < 4)
-    {
-        return std::make_pair(value, "");
-    }
+        return std::make_pair("", value);
+    size_t b3_pos = value.rfind("_-_");
+    if (b3_pos != std::string::npos)
+        return split_string(value, b3_pos, 3);
+    size_t b2_pos = value.rfind("__");
+    if (b2_pos != std::string::npos)
+        return split_string(value, b2_pos, 2);
+    
     for (size_t i = 1; i != value.size(); ++i)
     {
         if ((value[i]   == '_' || value[i]   == '-') &&
             (value[i-1] == '_' || value[i-1] == '-'))
         {
-            if (i + 1 < value.size())
-            {
-                std::string group = value.substr(0, i - 1);
-                std::string song = value.substr(i + 1, value.find('.', i+1) - i - 1);
-                return std::make_pair(group, song);
-            }
-            else
-            {
-                return std::make_pair(value.substr(0, i-1), "");
-            }
+            return split_string(value, i - 1, 2);
         }
     }
     std::string answer = value.substr(0, value.find('.'));
@@ -326,7 +393,7 @@ int main (int argc, char ** argv)
 {
     if (argc <= 2)
     {
-        std::cout << argv[0] << "<playlist_src> <playlist_dst.plb>" << std::endl;
+        std::cout << argv[0] << " <playlist_src> <playlist_dst.plb>" << std::endl;
         return 1;
     }
     
