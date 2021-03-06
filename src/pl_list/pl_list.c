@@ -120,23 +120,28 @@ void seek_pl_list (pl_list * pll, uint32_t pos)
     pll->current_pos = pos % pll->cnt;
 }
 
-uint32_t open_selected_pl_list (pl_list * pll, playlist_view * plv, uint32_t * selected_pl)
+uint32_t open_index_pl_list (pl_list * pll, playlist_view * plv, uint32_t index, uint32_t * selected_pl)
 {
     if (pll->cnt == 0)
         return 0;
-    if (*selected_pl == pll->current_pos)
+    if (*selected_pl == index)
         return 0;
     char old_path [12];
     memcpy(old_path, pll->root_path[pll->path_len - 1], 12);
-    memcpy(pll->root_path[pll->path_len - 1], pll->pl_path[pll->current_pos], 12);
+    memcpy(pll->root_path[pll->path_len - 1], pll->pl_path[index], 12);
     uint32_t ret = open_playlist(plv, pll->root_path, pll->path_len);
     if (ret)
     {
         memcpy(pll->root_path[pll->path_len - 1], old_path, 12);
         return ret;
     }
-    *selected_pl = pll->current_pos;
+    *selected_pl = index;
     return 0;
+}
+
+uint32_t open_selected_pl_list (pl_list * pll, playlist_view * plv, uint32_t * selected_pl)
+{
+    return open_index_pl_list(pll, plv, pll->current_pos, selected_pl);
 }
 
 void fill_name (char * dst, char * src, uint32_t size)

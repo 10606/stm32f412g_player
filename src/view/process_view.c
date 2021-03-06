@@ -261,14 +261,9 @@ uint32_t process_view_center (view * vv, uint8_t * need_redraw)
     case D_PL_LIST:
         if (pl_list_check_near(&vv->pll, vv->playing_playlist))
         {
-            uint32_t old_pos = vv->pll.current_pos;
-            seek_pl_list(&vv->pll, vv->playing_playlist);
-            uint32_t ret = open_selected_pl_list(&vv->pll, &vv->plv, &vv->selected_playlist);
+            uint32_t ret = open_index_pl_list(&vv->pll, &vv->plv, vv->playing_playlist, &vv->selected_playlist);
             if (ret)
-            {
-                seek_pl_list(&vv->pll, old_pos);
                 return ret;
-            }
             vv->state = D_PLAYLIST;
         }
         else

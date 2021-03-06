@@ -26,6 +26,7 @@ void destroy_pl_list (pl_list * pll);
 void up_pl_list (pl_list * pll);
 void down_pl_list (pl_list * pll);
 void seek_pl_list (pl_list * pll, uint32_t pos);
+uint32_t open_index_pl_list (pl_list * pll, playlist_view * plv, uint32_t index, uint32_t * selected_pl);
 uint32_t open_selected_pl_list (pl_list * pll, playlist_view * plv, uint32_t * selected_pl);
 char pl_list_check_near (pl_list * pll, uint32_t pos);
 
