@@ -49,7 +49,7 @@
 //#include "stm32412g_discovery_lcd.h"
 #include "lcd_colors.h"
 #include "stm32412g_discovery_sd.h"
-//#include "stm32412g_discovery_audio.h"
+#include "stm32412g_discovery_audio.h"
 //#include "stm32412g_discovery_ts.h"
 #include <stdlib.h>
 #include "view.h"

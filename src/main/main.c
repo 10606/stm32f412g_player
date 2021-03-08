@@ -200,8 +200,8 @@ uint32_t init (char (* path)[12], uint32_t len, uint32_t index)
 
 int main (void)
 {
-    init_timer();
     init_base();
+    init_timer();
     uint32_t counter = 0;
     while (1)
     {
