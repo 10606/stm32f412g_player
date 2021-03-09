@@ -267,7 +267,10 @@ uint32_t process_view_center (view * vv, uint8_t * need_redraw)
             vv->state = D_PLAYLIST;
         }
         else
-            seek_pl_list(&vv->pll, vv->playing_playlist);
+        {
+            if (vv->playing_playlist != max_plb_files)
+                seek_pl_list(&vv->pll, vv->playing_playlist);
+        }
         *need_redraw = 1;
         break;
         
@@ -308,21 +311,15 @@ uint32_t process_view (view * vv, uint8_t * need_redraw)
         joy_button_right,
         joy_button_center
     };
-    char flag = 1;
-    uint32_t ret = 0;
-    while (flag)
+    for (uint32_t i = 0; i != joystick_states_cnt; ++i)
     {
-        flag = 0;
-        for (uint32_t i = 0; i != joystick_states_cnt; ++i)
+        if (check_button_state(buttons[i]))
         {
-            if (check_button_state(buttons[i]))
-            {
-                flag = 1;
-                ret = process_view_do[i](vv, need_redraw);
-                if (ret)
-                    return ret;
-            }
+            uint32_t ret = process_view_do[i](vv, need_redraw);
+            if (ret)
+                return ret;
         }
     }
-    return ret;
+    return 0;
 }
+
