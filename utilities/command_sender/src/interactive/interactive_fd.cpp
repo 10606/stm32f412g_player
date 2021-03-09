@@ -34,6 +34,14 @@ void sigint_handler (int signal)
     std::cout.flush();
 }
 
+void cl_term_and_exit ()
+{
+    std::cout << "\033[0;0H\n";
+    tcsetattr(STDIN_FILENO, TCSANOW, &term_config);
+    std::cout << "\033[?25h";
+    std::cout.flush();
+    std::exit(0);
+}
 
 struct escape_buffer
 {
@@ -94,10 +102,7 @@ struct escape_buffer
                 //std::cout << "i " << static_cast <int> (i) << "\n";
                 if (i == 0x0f)
                 {
-                    tcsetattr(STDIN_FILENO, TCSANOW, &term_config);
-                    std::cout << "\033[?25h";
-                    std::cout.flush();
-                    std::exit(0);
+                    cl_term_and_exit();
                 }
                 //std::cerr << "send " << static_cast <uint32_t> (i) << "\n";
                 if (to_write.empty())
@@ -165,7 +170,19 @@ struct escape_buffer
                 //std::cout << "read " <<  std::hex << static_cast <int> (ch) << "\n";
                 put(ch);
             }
+            if ((event[i].events & EPOLLHUP) || (event[i].events & EPOLLRDHUP))
+            {
+                throw std::runtime_error("closed");
+            }
         }
+    }
+
+    ~escape_buffer ()
+    {
+        if (epoll != -1)
+            close(epoll);
+        if (fd != -1)
+            close(fd);
     }
     
     int fd;
@@ -215,9 +232,7 @@ void interactive (std::string const & path)
     }
     catch (...)
     {
-        tcsetattr(STDIN_FILENO, TCSANOW, &term_config);
-        std::cout << "\033[?25h";
-        std::cout.flush();
+        cl_term_and_exit();
     }
 }
 
