@@ -236,7 +236,16 @@ std::string remove_bad (std::string const & value, std::vector <std::string> con
 std::vector <std::string> bad_in_name =
 {
     "(promusic.me)",
-    "muzlostyle.ru"
+    "muzlostyle.ru",
+    "(larkabout.net)",
+    "(mp3CC.biz)",
+    "(zaycev.net)",
+    "(mp3no.com)",
+    "(playmus.cc)",
+    "(playvk.com)",
+    "(44outdoors.com)",
+    "(seehall.me)",
+    "(zoop.su)"
 };
 
 
