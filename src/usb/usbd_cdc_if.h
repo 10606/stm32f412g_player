@@ -118,8 +118,6 @@ typedef struct buffer_t
 } buffer_t;
 extern volatile buffer_t rx_buffer;
 
-uint32_t receive_callback (volatile uint8_t * buf, uint32_t len);
-
 /* USER CODE END EXPORTED_FUNCTIONS */
 
 /**

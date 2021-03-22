@@ -1,31 +1,31 @@
 #include "audio.h"
 
-#include "fonts.h"
-#include "util.h"
-#include "mp3.h"
+#include "lcd_display.h"
 #include "stm32412g_discovery_audio.h"
 #include "display.h"
-#include "display_string.h"
+#include "mp3.h"
 #include <stdio.h>
 #include <stdint.h>
 
-#define str_time_size 100
+size_t const str_time_size = 100;
 
 audio_ctl_t  audio_ctl;
 
 uint32_t audio_start ()
 {
     init_mad();
-    if (open_song_not_found(&viewer, 0))
+    uint32_t ret;
+    ret = open_song_not_found(&viewer, 0);
+    if (ret)
     {
+        deinit_mad();
         display_error("err open song at start");
-        return audio_error_io;
+        return ret;
     }
 
     memset(audio_ctl.buff, 0, audio_buffer_size);
     BSP_AUDIO_OUT_Play((uint16_t*)&audio_ctl.buff[0], audio_buffer_size);
-    audio_ctl.audio_state = AUDIO_STATE_PLAYING;      
-    return audio_error_none;
+    return 0;
 }
 
 
@@ -47,7 +47,6 @@ void audio_init ()
 void audio_destruct ()
 {
     BSP_AUDIO_OUT_DeInit();
-    deinit_mad();
 }
 
 typedef struct tik_t
@@ -86,19 +85,19 @@ static inline void next_pcm_part ()
 {
     uint32_t bytesread;
     uint8_t * buffer;
-    /* 1st half buffer played; so fill it and continue playing from bottom*/
-    if (audio_ctl.state == BUFFER_OFFSET_HALF)
+    // 1st half buffer played; so fill it and continue playing from bottom
+    if (audio_ctl.state == buffer_offset_half)
         buffer = audio_ctl.buff;
-    /* 2nd half buffer played; so fill it and continue playing from top */    
-    if (audio_ctl.state == BUFFER_OFFSET_FULL)
+    // 2nd half buffer played; so fill it and continue playing from top
+    if (audio_ctl.state == buffer_offset_full)
         buffer = audio_ctl.buff + (audio_buffer_size / 2);
 
-    if ((audio_ctl.state == BUFFER_OFFSET_FULL) ||
-        (audio_ctl.state == BUFFER_OFFSET_HALF))
+    if ((audio_ctl.state == buffer_offset_full) ||
+        (audio_ctl.state == buffer_offset_half))
     {
         bytesread = get_pcm_sound(&audio_ctl.audio_file, buffer, audio_buffer_size / 2);
         if (bytesread > 0)
-            audio_ctl.state = BUFFER_OFFSET_NONE;
+            audio_ctl.state = buffer_offset_none;
         else
         {
             //ignore
@@ -134,8 +133,7 @@ static inline uint32_t new_song_or_repeat ()
 {
     if (!is_fake_file_descriptor(&audio_ctl.audio_file))
     {
-        deinit_mad();
-        init_mad();
+        reuse_mad();
     }
     // play song again
     if (audio_ctl.repeat_mode)
@@ -169,36 +167,28 @@ static inline uint32_t new_song_or_repeat ()
 
 uint32_t audio_process (uint8_t * need_redraw)
 {
-    if (audio_ctl.audio_state == AUDIO_STATE_PLAYING)
+    display_time();
+    //end of song reached
+    if (current_position(&audio_ctl.audio_file) >= audio_ctl.audio_file.size)
     {
-        display_time();
-        //end of song reached
-        if (current_position(&audio_ctl.audio_file) >= audio_ctl.audio_file.size)
-        {
-            uint32_t ret;
-            if ((ret = new_song_or_repeat()))
-                return ret;
-            *need_redraw |= 1;
-        }
-
-        next_pcm_part();
-        return audio_error_none;
+        uint32_t ret;
+        if ((ret = new_song_or_repeat()))
+            return ret;
+        *need_redraw |= 1;
     }
-    else
-        return audio_error_notready;
+    next_pcm_part();
+    return 0;
 }
 
 
 void BSP_AUDIO_OUT_TransferComplete_CallBack (void)
 {
-    if (audio_ctl.audio_state == AUDIO_STATE_PLAYING)
-        audio_ctl.state = BUFFER_OFFSET_FULL;
+    audio_ctl.state = buffer_offset_full;
 }
 
 void BSP_AUDIO_OUT_HalfTransfer_CallBack (void)
 {
-    if (audio_ctl.audio_state == AUDIO_STATE_PLAYING)
-        audio_ctl.state = BUFFER_OFFSET_HALF;
+    audio_ctl.state = buffer_offset_half;
 }
 
 void BSP_AUDIO_OUT_Error_CallBack (void)

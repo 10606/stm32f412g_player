@@ -1,22 +1,63 @@
 #include "view.h"
 
+#include "stm32412g_discovery_audio.h"
 #include "display.h"
 #include "util.h"
 #include "joystick.h"
-#include "stm32412g_discovery_audio.h"
+#include "mp3.h"
 
-void init_mad ();
-void deinit_mad ();
+inline state_t prev (state_t const & value)
+{
+    switch (value)
+    {
+    case D_PL_LIST:
+        return D_PL_LIST;
+    case D_PLAYLIST:
+        return D_PL_LIST;
+    case D_SONG:
+        return D_PLAYLIST;
+    }
+}
+
+inline state_t next (state_t const & value)
+{
+    switch (value)
+    {
+    case D_PL_LIST:
+        return D_PLAYLIST;
+    case D_PLAYLIST:
+        return D_SONG;
+    case D_SONG:
+        return D_SONG;
+    }
+}
+
+inline state_song_view_t roll (state_song_view_t const & value)
+{
+    switch (value)
+    {
+    case S_VOLUME:
+        return S_SEEK;
+    case S_SEEK:
+        return S_NEXT_PREV;
+    case S_NEXT_PREV:
+        return S_VOLUME;
+    }
+}
 
 uint32_t seek_value = (1024 * 32);
 
-uint32_t process_view_change_volume (view * vv, uint8_t * need_redraw, int32_t value)
+uint32_t process_view_change_volume (view * vv, uint8_t * need_redraw, int8_t value)
 {
+    if (value > 100)
+        value = 100;
+    if (value < -100)
+        value = -100;
     if (vv->audio_ctl->volume + value > 100)
         vv->audio_ctl->volume = 100;
-    else if (vv->audio_ctl->volume + value < 0)
+    else if (vv->audio_ctl->volume < -value)
         vv->audio_ctl->volume = 0;
-    else 
+    else
         vv->audio_ctl->volume += value;
     BSP_AUDIO_OUT_SetVolume(vv->audio_ctl->volume);
     display_song_volume(&vv->pl, vv->audio_ctl, &vv->state_song_view, (vv->state == D_SONG), need_redraw);
@@ -70,8 +111,7 @@ uint32_t process_view_change_song (view * vv, uint8_t * need_redraw, uint8_t dir
         return ret;
     else
     {
-        deinit_mad();
-        init_mad();
+        reuse_mad();
         if ((ret = open_song_not_found(vv, direction))) 
             return ret;
     }
@@ -160,7 +200,7 @@ uint32_t process_view_left (view * vv, uint8_t * need_redraw)
 {
     if (vv->state != D_PL_LIST)
     {
-        vv->state--;
+        vv->state = prev(vv->state);
         *need_redraw = 1;
     }
     return 0;
@@ -187,8 +227,7 @@ static inline uint32_t play_new_playlist (view * vv)
     }
 
     vv->playing_playlist = vv->selected_playlist;
-    deinit_mad();
-    init_mad();
+    reuse_mad();
     return 0;
 }
 
@@ -212,7 +251,7 @@ uint32_t process_view_right (view * vv, uint8_t * need_redraw)
         break;
         
     case D_SONG:
-        vv->state_song_view = ((vv->state_song_view + 1) % state_song_view_cnt);
+        vv->state_song_view = roll(vv->state_song_view);
         display_song_volume(&vv->pl, vv->audio_ctl, &vv->state_song_view, 1, need_redraw);
         break;
     }

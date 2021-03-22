@@ -6,9 +6,6 @@
 #include "audio.h"
 #include "playlist.h"
 #include "pl_list.h"
-#include "main.h"
-#include "FAT.h"
-#include "stm32412g_discovery_audio.h"
 #include <stdint.h>
 
 void display_cur_song (playlist * pl_p, char to_screen, uint8_t * need_redraw);
@@ -34,7 +31,7 @@ void display_song_hint ();
 
 #define picture_offset 65
 #define headband_height  65
-#define song_picture_address (void *)0x08080000
-#define err_picture_address (void *)0x080c0000
+#define song_picture_address (uint16_t *)0x08080000
+#define err_picture_address (uint16_t *)0x080c0000
 #endif
 

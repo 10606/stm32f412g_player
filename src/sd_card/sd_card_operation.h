@@ -2,7 +2,7 @@
 #define SD_CARD_OPERATION_H
 
 #include "stm32412g_discovery_sd.h"
-#include "stdint.h"
+#include <stdint.h>
 
 #if defined(SDMMC_DATATIMEOUT)
 #define SD_TIMEOUT SDMMC_DATATIMEOUT

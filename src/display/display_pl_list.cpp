@@ -1,8 +1,8 @@
 #include "display.h"
 
+#include "lcd_display.h"
 #include "audio.h"
 #include "pl_list.h"
-#include "display_string.h"
 #include "usb_send.h"
 #include <stdint.h>
 
@@ -37,8 +37,8 @@ void display_pl_list (pl_list * pll, uint32_t playing_pl, playlist * pl_p, char 
         memcpy(s_playlist + count_offset, count[i], 3);
         s_playlist[count_offset + 3] = 0;
 
-        uint32_t back_color_group, text_color_group;
-        uint32_t back_color_song, text_color_song;
+        uint16_t back_color_group, text_color_group;
+        uint16_t back_color_song, text_color_song;
         
         switch (selected[i])
         {

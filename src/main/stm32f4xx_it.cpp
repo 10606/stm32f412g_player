@@ -35,16 +35,19 @@
   ******************************************************************************
   */
 
-#include <stdint.h>
-#include "main.h"
-#include "joystick.h"
+#include "stm32412g_discovery_audio.h"
 #include "stm32f4xx_it.h"
+#include <stdint.h>
+#include "joystick.h"
 
 /* uSD handler declared in "stm32412g_discovery_sd.c" file */
+extern "C"
+{
 extern I2S_HandleTypeDef haudio_i2s;
 extern SD_HandleTypeDef uSdHandle;
 extern PCD_HandleTypeDef hpcd_USB_OTG_FS;
 extern uint32_t touch_tick_counter;
+}
 
 
 /******************************************************************************/

@@ -1,7 +1,7 @@
 #include "sd_card_operation.h"
 
 #include "stm32412g_discovery_sd.h"
-#include "stdint.h"
+#include <stdint.h>
 
 uint32_t start_partition_sector = 1;
 uint32_t read_sector (uint32_t sector_number, void * buffer)

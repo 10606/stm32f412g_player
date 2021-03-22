@@ -1,8 +1,8 @@
 #include "display.h"
 
-#include "fonts.h"
+#include "lcd_display.h"
+#include "stm32f4xx_hal_gpio.h"
 #include "audio.h"
-#include "display_string.h"
 #include "usb_send.h"
 
 void display_cur_song (playlist * pl_p, char to_screen, uint8_t * need_redraw)
@@ -57,8 +57,8 @@ void display_playlist (playlist_view * plv, playlist * pl_p, int state, char to_
         memcpy(s_song + name_offset, song_name[i], song_name_sz);
         s_song[name_offset + song_name_sz] = 0;
     
-        uint32_t back_color_group, text_color_group;
-        uint32_t back_color_song, text_color_song;
+        uint16_t back_color_group, text_color_group;
+        uint16_t back_color_song, text_color_song;
         
         switch (selected[i])
         {

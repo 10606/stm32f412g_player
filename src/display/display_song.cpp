@@ -1,10 +1,8 @@
 #include "display.h"
 
+#include "lcd_display.h"
 #include <stdio.h>
-#include "util.h"
 #include "audio.h"
-#include "st7789h2_driver.h"
-#include "display_string.h"
 #include "usb_send.h"
 
 void display_song_hint ()
@@ -39,7 +37,7 @@ void display_song_volume (playlist * pl, audio_ctl_t * actl, state_song_view_t *
     char s_volume[volume_width];
     char s_state[volume_width];
     color_t bw = {lcd_color_blue, lcd_color_white};
-    snprintf(s_volume, sizeof(s_volume), " %3lu%%", (actl->volume % 101));
+    snprintf(s_volume, sizeof(s_volume), " %3u%%", actl->volume);
     snprintf(s_state, sizeof(s_state), "  %c %c", (actl->repeat_mode? 'r' : ' '), c_state);
     if (to_screen)
     {
@@ -61,7 +59,7 @@ void display_picture (uint8_t * need_redraw)
     {
         if (part + 1 == parts)
             p_size = (240 - picture_offset) - (parts - 1) * p_old_size;
-        draw_RGB_image(0, picture_offset + p_old_size * part, 240, p_size, song_picture_address + 2 * 240 * part * p_old_size);
+        draw_RGB_image(0, picture_offset + p_old_size * part, 240, p_size, song_picture_address + 240 * part * p_old_size);
         audio_process(need_redraw);
     }
 }

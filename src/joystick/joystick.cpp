@@ -1,5 +1,6 @@
 #include "joystick.h"
 
+#include "stm32412g_discovery.h"
 joystick_state_t joystick_state;
 
 void check_buttons ()

@@ -4,29 +4,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <math.h>
-#include "audio.h"
 
-static inline uint32_t min (uint32_t a, uint32_t b)
-{
-    return (a < b)? a : b;
-}
-
-static inline uint32_t max (uint32_t a, uint32_t b)
-{
-    return (a > b)? a : b;
-}
-
-static inline int32_t min_i (int32_t a, int32_t b)
-{
-    return (a < b)? a : b;
-}
-
-static inline int32_t max_i (int32_t a, int32_t b)
-{
-    return (a > b)? a : b;
-}
-
-static inline uint32_t add_in_bound (uint32_t value, uint32_t a, uint32_t b, uint32_t add)
+inline uint32_t add_in_bound (uint32_t value, uint32_t a, uint32_t b, uint32_t add)
 {
     if (value + add < value)
         return b;
@@ -35,7 +14,7 @@ static inline uint32_t add_in_bound (uint32_t value, uint32_t a, uint32_t b, uin
     return value + add;
 }
 
-static inline uint32_t sub_in_bound (uint32_t value, uint32_t a, uint32_t b, uint32_t add)
+inline uint32_t sub_in_bound (uint32_t value, uint32_t a, uint32_t b, uint32_t add)
 {
     if (value < add)
         return a;
@@ -44,7 +23,7 @@ static inline uint32_t sub_in_bound (uint32_t value, uint32_t a, uint32_t b, uin
     return value - add;
 }
 
-static inline int32_t nearest_to_zero (int32_t a, int32_t b)
+inline int32_t nearest_to_zero (int32_t a, int32_t b)
 {
     if (abs(a) < abs(b))
         return a;
@@ -52,7 +31,7 @@ static inline int32_t nearest_to_zero (int32_t a, int32_t b)
         return b;
 }
 
-static inline char check_near (uint32_t pos_a, uint32_t pos_b, uint32_t max_pos_a, uint32_t view_pos_a, uint32_t border_pos_a)
+inline char check_near (uint32_t pos_a, uint32_t pos_b, uint32_t max_pos_a, uint32_t view_pos_a, uint32_t border_pos_a)
 {
     if (max_pos_a <= view_pos_a)
         return 1;

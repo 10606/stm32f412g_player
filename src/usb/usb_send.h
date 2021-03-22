@@ -1,10 +1,9 @@
 #ifndef USB_SEND_H
 #define USB_SEND_H
 
+#include "usbd_cdc_if.h"
 #include "display.h"
 #include <stdint.h>
-
-uint8_t CDC_Transmit_FS (uint8_t * Buf, uint16_t Len);
 
 void send_cur_song 
 (

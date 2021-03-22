@@ -42,20 +42,26 @@
   *
   ******************************************************************************
   */
-#include "main.h"
-#include "display.h"
-#include "display_string.h"
-#include "display_init.h"
+extern "C" 
+{
+void SystemClock_Config (void);
+void Error_Handler (void);
+}
+#include "lcd_display.h"
+#include "stm32f4xx_hal_gpio.h"
+#include "usb_device.h"
+#include "usbd_cdc_if.h"
 #include "ts_touchscreen.h"
+#include "FAT.h"
+#include "sd_card_operation.h"
+#include "display.h"
 #include "player.h"
 #include "audio.h"
 #include "play.h"
 #include "view.h"
-#include "FAT.h"
-#include "sd_card_operation.h"
-#include "stm32f4xx_hal_gpio.h"
-#include "usb_device.h"
-#include "usbd_cdc_if.h"
+
+view viewer;
+FAT_info_t FAT_info;
 
 
 #define joy_center_pin           GPIO_PIN_0
@@ -67,12 +73,6 @@
 #define joy_down_pin             GPIO_PIN_1
 #define joy_up_down_gpio_port    GPIOG
 
-
-view viewer;
-FAT_info_t FAT_info;
-
-void SystemClock_Config (void);
-void Error_Handler (void);
 
 
 void init_base () //joystick, led, LCD

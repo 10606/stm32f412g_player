@@ -1,6 +1,5 @@
 #include "usb_command_process.h"
 
-#include "stm32412g_discovery_audio.h"
 #include "view.h"
 #include "display.h"
 #include <stdint.h>

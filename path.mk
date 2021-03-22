@@ -43,7 +43,8 @@ HAL_driver_sources_ = \
 	stm32f4xx_hal_tim.c \
 	stm32f4xx_hal_tim_ex.c \
 	stm32f4xx_hal_sd.c \
-	stm32f4xx_hal_sram.c
+	stm32f4xx_hal_sram.c \
+	stm32f4xx_hal_uart.c 
 HAL_driver_sources = $(addprefix $(HAL_driver)/, $(HAL_driver_sources_))
 
 # MAD
@@ -125,64 +126,64 @@ external_sources =  \
 
 # main
 main_sources_ = \
-	main.c \
-	player.c \
-	stm32f4xx_it.c  \
+	main.cpp \
+	player.cpp \
+	stm32f4xx_it.cpp  \
 	system_stm32f4xx.c
 main_sources = $(addprefix src/main/, $(main_sources_))
 	
 # USB
 USB_sources_ = \
-	usb_command_process.c \
+	usb_command_process.cpp \
 	usbd_cdc_if.c \
 	usbd_conf.c \
 	usbd_desc.c \
 	usb_device.c \
-	usb_send.c
+	usb_send.cpp
 USB_sources = $(addprefix src/usb/, $(USB_sources_))
 
 # display
 display_sources_ = \
-	display_playlist.c \
-	display_pl_list.c \
-	display_song.c \
-	display_error.c
-display_sources = $(addprefix src/diaplay/, $(display_sources_))
+	display_playlist.cpp \
+	display_pl_list.cpp \
+	display_song.cpp \
+	display_error.cpp
+display_sources = $(addprefix src/display/, $(display_sources_))
 
 # playlist
 playlist_sources_ = \
-	light_playlist.c \
-	playlist.c \
-	playlist_common.c \
-	playlist_view.c
+	light_playlist.cpp \
+	playlist.cpp \
+	playlist_common.cpp \
+	playlist_view.cpp
 playlist_sources = \
 	$(addprefix src/playlist/, $(playlist_sources_)) \
-	src/pl_list/pl_list.c
+	src/pl_list/pl_list.cpp
 
 # user input
 user_input_sources = \
-	src/joystick/joystick.c \
-	src/touch/touchscreen.c \
-	src/touch/moving.c
+	src/joystick/joystick.cpp \
+	src/touch/touchscreen.cpp \
+	src/touch/moving.cpp
 
 # audio
 audio_sources_ = \
-	audio.c \
-	mp3.c \
-	id3.c
+	audio.cpp \
+	mp3.cpp \
+	id3.cpp
 audio_sources = $(addprefix src/audio/, $(audio_sources_))
 
 # local sources
 local_sources =  \
 	$(main_sources) \
-	src/sd_card/sd_card_operation.c  \
-	src/view/view.c \
-	src/view/process_view.c \
+	src/sd_card/sd_card_operation.cpp  \
+	src/view/view.cpp \
+	src/view/process_view.cpp \
 	$(audio_sources) \
-	$(display_sources) \
 	$(playlist_sources) \
 	$(user_input_sources) \
-	$(USB_sources)
+	$(USB_sources) \
+	$(display_sources)
 
 
 

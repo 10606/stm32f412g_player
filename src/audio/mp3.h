@@ -2,6 +2,7 @@
 #define AUDIO_MP3_H
 
 #include <stdint.h>
+
 #include "mad.h"
 #include "FAT.h"
 
@@ -23,11 +24,8 @@ typedef struct
 
 void init_mad ();
 void deinit_mad ();
+void reuse_mad ();
 uint32_t get_pcm_sound (file_descriptor * _file, uint8_t * buffer, uint32_t size);
-
-extern mp3_input_buffer_t mp3_input_buffer;
-extern mad_data_t mad_data;;
-
 
 #endif
 

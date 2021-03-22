@@ -1,13 +1,13 @@
 #include "mp3.h"
 
+#include "FAT.h"
+#include "lcd_display.h"
+#include "stm32412g_discovery_audio.h"
+#include "display.h"
+#include "audio.h"
+#include <algorithm>
 #include <string.h>
 #include <stdint.h>
-#include "audio.h"
-#include "FAT.h"
-#include "display.h"
-#include "display_string.h"
-#include "stm32412g_discovery_audio.h"
-#include "util.h"
 
 mp3_input_buffer_t mp3_input_buffer;
 mad_data_t mad_data;
@@ -24,6 +24,12 @@ void deinit_mad ()
     mad_synth_finish(&mad_data.synth);
     mad_frame_finish(&mad_data.frame);
     mad_stream_finish(&mad_data.stream);
+}
+
+void reuse_mad ()
+{
+    deinit_mad();
+    init_mad();
 }
 
 static uint32_t get_data (file_descriptor * _file, uint8_t * buffer, uint32_t size)
@@ -72,7 +78,7 @@ uint32_t fill_buffer
     struct mad_header const * header, 
     struct mad_pcm * pcm,
     uint8_t * buff, //[pcm->length * 4] //4608
-    uint32_t pcm_length_max
+    uint16_t pcm_length_max
 ) 
 {
     if (pcm->samplerate != audio_ctl.audio_freq)
@@ -82,7 +88,7 @@ uint32_t fill_buffer
     }
     mad_fixed_t const * left_ch = pcm->samples[0];
     mad_fixed_t const * right_ch = pcm->samples[1];
-    uint32_t samples = min(pcm->length, pcm_length_max);
+    uint32_t samples = std::min(pcm->length, pcm_length_max);
     if (pcm->channels == 2)
     {
         for (size_t cur_sample = 0; cur_sample != samples; ++cur_sample) 
@@ -180,8 +186,7 @@ uint32_t get_pcm_sound (file_descriptor * _file, uint8_t * pbuf, uint32_t NbrOfD
                 }
                 else
                 {
-                    deinit_mad();
-                    init_mad();
+                    reuse_mad();
                     goto break_for;
                 }
             }

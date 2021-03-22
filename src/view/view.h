@@ -1,26 +1,25 @@
 #ifndef VIEW_H
 #define VIEW_H
 
+#include "FAT.h"
 #include <stdint.h>
 #include "play.h"
 #include "pl_list.h"
-#include "FAT.h"
 #include "audio.h"
 
 typedef enum state_song_view_t
 {
-    S_VOLUME = 0,
-    S_SEEK = 1,
-    S_NEXT_PREV = 2
+    S_VOLUME,
+    S_SEEK,
+    S_NEXT_PREV
 } state_song_view_t;
-#define state_song_view_cnt 3
 
 typedef enum state_t
 {
-    D_PL_LIST = 0,
-    D_PLAYLIST = 1,
-    D_SONG = 2
-} state_t; // WARNING on change: process_view_left (view * vv, uint8_t * need_redraw)
+    D_PL_LIST,
+    D_PLAYLIST,
+    D_SONG
+} state_t;
 
 typedef struct view
 {
@@ -68,6 +67,8 @@ uint32_t open_song (view * vv);
 uint32_t open_song_not_found (view * vv, uint8_t direction); // direction == 1 - reverse
 
 void fake_song_and_playlist (view * vv);
+
+extern view viewer;
 
 #endif
 

@@ -1,6 +1,6 @@
 #include "display.h"
 
-#include "display_string.h"
+#include "lcd_display.h"
 
 void display_error (char const * msg)
 {

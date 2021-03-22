@@ -1,5 +1,6 @@
+#include "moving.h"
+
 #include "touchscreen.h"
-#include "stm32412g_discovery_audio.h"
 #include "view.h"
 #include "display.h"
 

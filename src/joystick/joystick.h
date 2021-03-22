@@ -2,7 +2,6 @@
 #define JOYSTICK_H
 
 #include <stdint.h>
-#include "stm32412g_discovery.h"
 
 enum joystick_buttons
 {

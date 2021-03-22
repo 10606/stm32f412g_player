@@ -1,13 +1,13 @@
 #include "pl_list.h"
 
-#include "util.h"
+#include "FAT.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include "util.h"
 #include "playlist.h"
 #include "playlist_view.h"
 #include "playlist_structures.h"
-#include "FAT.h"
 
 void destroy_pl_list (pl_list * pll)
 {
@@ -179,10 +179,10 @@ uint32_t print_pl_list
 (
     pl_list * pll, 
     uint32_t playing_pl,
-    char (* restrict playlist_name)[pl_name_sz + 1], 
-    char (* restrict number)[3 + 1],
-    char (* restrict count)[3 + 1], 
-    char * restrict selected
+    char (* playlist_name)[pl_name_sz + 1], 
+    char (* number)[3 + 1],
+    char (* count)[3 + 1], 
+    char * selected
 )
 {
     memset(selected, 0, plb_view_cnt);
