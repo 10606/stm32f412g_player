@@ -1,13 +1,14 @@
 #include "view.h"
 
 #include "display.h"
+#include "usb_send.h"
 
 uint32_t init_view (view * vv, char (* path)[12], uint32_t len, audio_ctl_t * audio_ctl)
 {
     vv->audio_ctl = audio_ctl;
-    vv->state = D_PL_LIST;
-    vv->old_state = D_PL_LIST;
-    vv->state_song_view = S_VOLUME;
+    vv->state = state_t::pl_list;
+    vv->old_state = vv->state;
+    vv->state_song_view = state_song_view_t::volume;
     vv->playing_playlist = max_plb_files;
     vv->selected_playlist = max_plb_files;
     vv->pl.fd = &vv->fd_pl;
@@ -40,13 +41,14 @@ uint32_t destroy_view (view * vv)
 
 void display_view (view * vv, uint8_t * need_redraw)
 {
-    char ts_playlist = (vv->state == D_PLAYLIST);
-    char ts_pl_list = (vv->state == D_PL_LIST);
-    char ts_song = (vv->state == D_SONG);
+    char ts_playlist = (vv->state == state_t::playlist);
+    char ts_pl_list = (vv->state == state_t::pl_list);
+    char ts_song = (vv->state == state_t::song);
 
-    display_playlist(&vv->plv, &vv->pl, vv->state, ts_playlist, need_redraw);
+    send_state(vv->state);
+    display_playlist(&vv->plv, &vv->pl, ts_playlist, need_redraw);
     display_pl_list(&vv->pll, vv->playing_playlist, &vv->pl, ts_pl_list, need_redraw);
-    display_song(&vv->pl, vv->audio_ctl, &vv->state_song_view, ts_song, (vv->old_state != D_SONG), need_redraw);
+    display_song(&vv->pl, vv->audio_ctl, vv->state_song_view, ts_song, (vv->old_state != state_t::song), need_redraw);
     vv->old_state = vv->state;
 }
 

@@ -10,12 +10,12 @@ inline state_t prev (state_t const & value)
 {
     switch (value)
     {
-    case D_PL_LIST:
-        return D_PL_LIST;
-    case D_PLAYLIST:
-        return D_PL_LIST;
-    case D_SONG:
-        return D_PLAYLIST;
+    case state_t::pl_list:
+        return state_t::pl_list;
+    case state_t::playlist:
+        return state_t::pl_list;
+    case state_t::song:
+        return state_t::playlist;
     }
 }
 
@@ -23,12 +23,12 @@ inline state_t next (state_t const & value)
 {
     switch (value)
     {
-    case D_PL_LIST:
-        return D_PLAYLIST;
-    case D_PLAYLIST:
-        return D_SONG;
-    case D_SONG:
-        return D_SONG;
+    case state_t::pl_list:
+        return state_t::playlist;
+    case state_t::playlist:
+        return state_t::song;
+    case state_t::song:
+        return state_t::song;
     }
 }
 
@@ -36,12 +36,12 @@ inline state_song_view_t roll (state_song_view_t const & value)
 {
     switch (value)
     {
-    case S_VOLUME:
-        return S_SEEK;
-    case S_SEEK:
-        return S_NEXT_PREV;
-    case S_NEXT_PREV:
-        return S_VOLUME;
+    case state_song_view_t::volume:
+        return state_song_view_t::seek;
+    case state_song_view_t::seek:
+        return state_song_view_t::next_prev;
+    case state_song_view_t::next_prev:
+        return state_song_view_t::volume;
     }
 }
 
@@ -60,7 +60,7 @@ uint32_t process_view_change_volume (view * vv, uint8_t * need_redraw, int8_t va
     else
         vv->audio_ctl->volume += value;
     BSP_AUDIO_OUT_SetVolume(vv->audio_ctl->volume);
-    display_song_volume(&vv->pl, vv->audio_ctl, &vv->state_song_view, (vv->state == D_SONG), need_redraw);
+    display_song_volume(&vv->pl, vv->audio_ctl, vv->state_song_view, (vv->state == state_t::song), need_redraw);
     return 0;
 }
 
@@ -144,25 +144,25 @@ uint32_t process_view_up_down (view * vv, uint8_t * need_redraw, uint8_t directi
     
     switch (vv->state)
     {
-    case D_PL_LIST:
+    case state_t::pl_list:
         do_on_pl_list[direction](&vv->pll);
         *need_redraw = 1;
         break;
 
-    case D_PLAYLIST:
+    case state_t::playlist:
         *need_redraw = 1;
         return do_on_playlist_view[direction](&vv->plv);
         
-    case D_SONG:
+    case state_t::song:
         switch (vv->state_song_view)
         {
-        case S_VOLUME:
+        case state_song_view_t::volume:
             return process_view_change_volume(vv, need_redraw, direction? 1 : -1);
             
-        case S_SEEK:
+        case state_song_view_t::seek:
             return process_view_seek(vv, need_redraw, seek_value, direction);
 
-        case S_NEXT_PREV:
+        case state_song_view_t::next_prev:
             return process_view_change_song(vv, need_redraw, direction);
         }
     }
@@ -198,7 +198,7 @@ uint32_t process_view_play_pause (view * vv, uint8_t * need_redraw)
 
 uint32_t process_view_left (view * vv, uint8_t * need_redraw)
 {
-    if (vv->state != D_PL_LIST)
+    if (vv->state != state_t::pl_list)
     {
         vv->state = prev(vv->state);
         *need_redraw = 1;
@@ -236,23 +236,23 @@ uint32_t process_view_right (view * vv, uint8_t * need_redraw)
     uint32_t ret;
     switch (vv->state)
     {
-    case D_PL_LIST:
-        vv->state = D_PLAYLIST;
+    case state_t::pl_list:
+        vv->state = state_t::playlist;
         ret = open_selected_pl_list(&vv->pll, &vv->plv, &vv->selected_playlist);
         if (ret)
             return ret;
         *need_redraw = 1;
         break;
 
-    case D_PLAYLIST:
+    case state_t::playlist:
         if ((ret = play_new_playlist(vv)))
             return ret;
         *need_redraw = 1;
         break;
         
-    case D_SONG:
+    case state_t::song:
         vv->state_song_view = roll(vv->state_song_view);
-        display_song_volume(&vv->pl, vv->audio_ctl, &vv->state_song_view, 1, need_redraw);
+        display_song_volume(&vv->pl, vv->audio_ctl, vv->state_song_view, 1, need_redraw);
         break;
     }
     return 0;
@@ -289,7 +289,7 @@ static inline uint32_t view_to_playing_playlist (view * vv, uint8_t * need_redra
 uint32_t process_toggle_repeat (view * vv, uint8_t * need_redraw)
 {
     vv->audio_ctl->repeat_mode ^= 1;
-    display_song_volume(&vv->pl, vv->audio_ctl, &vv->state_song_view, 1, need_redraw);
+    display_song_volume(&vv->pl, vv->audio_ctl, vv->state_song_view, 1, need_redraw);
     return 0;
 }
 
@@ -297,13 +297,13 @@ uint32_t process_view_center (view * vv, uint8_t * need_redraw)
 {
     switch (vv->state)
     {
-    case D_PL_LIST:
+    case state_t::pl_list:
         if (pl_list_check_near(&vv->pll, vv->playing_playlist))
         {
             uint32_t ret = open_index_pl_list(&vv->pll, &vv->plv, vv->playing_playlist, &vv->selected_playlist);
             if (ret)
                 return ret;
-            vv->state = D_PLAYLIST;
+            vv->state = state_t::playlist;
         }
         else
         {
@@ -313,10 +313,10 @@ uint32_t process_view_center (view * vv, uint8_t * need_redraw)
         *need_redraw = 1;
         break;
         
-    case D_PLAYLIST:
+    case state_t::playlist:
         if (playlist_check_near(&vv->plv, &vv->pl))
         {
-            vv->state = D_SONG;
+            vv->state = state_t::song;
             *need_redraw = 1;
         }
         else
@@ -325,7 +325,7 @@ uint32_t process_view_center (view * vv, uint8_t * need_redraw)
         }
         break;
         
-    case D_SONG:
+    case state_t::song:
         process_toggle_repeat(vv, need_redraw);
         break;
     }

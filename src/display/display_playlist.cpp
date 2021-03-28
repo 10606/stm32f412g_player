@@ -20,17 +20,16 @@ void display_cur_song (playlist * pl_p, char to_screen, uint8_t * need_redraw)
         display_string(10, song_name_offset + in_song_name_offset, cur_song_name, &font_16, &yb);
         audio_process(need_redraw);
     }
-    send_cur_song(cur_song_name, cur_group_name);
+    send_cur_song(cur_group_name, cur_song_name);
 }
 
-void display_playlist (playlist_view * plv, playlist * pl_p, int state, char to_screen, uint8_t * need_redraw)
+void display_playlist (playlist_view * plv, playlist * pl_p, char to_screen, uint8_t * need_redraw)
 {
     uint32_t y_pos = list_offset + line_offset * playlist_view_cnt;
     if (to_screen)
         fill_rect(0, y_pos, 240, 240 - y_pos, lcd_color_white);
     display_cur_song(pl_p, to_screen, need_redraw);
     HAL_Delay(1);
-    send_state(state);
     audio_process(need_redraw);
     
     char song_name[playlist_view_cnt][song_name_sz + 1];

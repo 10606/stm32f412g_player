@@ -6,20 +6,7 @@
 #include "play.h"
 #include "pl_list.h"
 #include "audio.h"
-
-typedef enum state_song_view_t
-{
-    S_VOLUME,
-    S_SEEK,
-    S_NEXT_PREV
-} state_song_view_t;
-
-typedef enum state_t
-{
-    D_PL_LIST,
-    D_PLAYLIST,
-    D_SONG
-} state_t;
+#include "view_states.h"
 
 typedef struct view
 {

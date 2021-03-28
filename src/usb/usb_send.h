@@ -3,12 +3,13 @@
 
 #include "usbd_cdc_if.h"
 #include "display.h"
+#include "view.h"
 #include <stdint.h>
 
 void send_cur_song 
 (
-    char cur_song_name[song_name_sz + 1], 
-    char cur_group_name[group_name_sz + 1]
+    char cur_group_name[group_name_sz + 1],
+    char cur_song_name[song_name_sz + 1]
 );
 
 void send_displayed_song 
@@ -34,7 +35,7 @@ void send_volume
 
 void send_state
 (
-    int state
+    state_t state
 );
 
 #endif

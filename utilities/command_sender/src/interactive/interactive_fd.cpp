@@ -1,8 +1,9 @@
 #include "interactive.h"
 #include "interactive_command.h"
 #include "usb_commands.h"
-#include "display.h"
+#include "term_display.h"
 
+#include <string_view>
 #include <vector>
 #include <string>
 #include <fstream>
@@ -50,7 +51,7 @@ struct escape_buffer
         epoll(epoll_create(3)),
         cur(),
         to_write(1, 0x0e),
-        state(4)
+        state()
     {
         if (fd == -1)
             throw std::runtime_error("fd = -1");
@@ -81,7 +82,6 @@ struct escape_buffer
 
     void is_in_expected ()
     {
-        //std::cout << "cur.size " << cur.size() << "\n";
         bool has_continue = 0;
         for (unsigned char i = 1; i != std::extent <decltype(int_commands)>::value; ++i)
         {
@@ -89,36 +89,24 @@ struct escape_buffer
             for (; j != std::min(cur.size(), std::strlen(int_commands[i])); ++j)
             {
                 if (int_commands[i][j] != cur[j])
-                {
                     break;
-                }
             }
             if (j == std::strlen(int_commands[i]))
             {
                 for (size_t k = 0; k != j; ++k)
-                {
                     cur.pop_front();
-                }
-                //std::cout << "i " << static_cast <int> (i) << "\n";
-                if (i == 0x0f)
-                {
+                if (std::string_view(int_commands[i]) == "q") 
                     cl_term_and_exit();
-                }
-                //std::cerr << "send " << static_cast <uint32_t> (i) << "\n";
                 if (to_write.empty())
                     mod_fd(EPOLLIN | EPOLLOUT);
                 to_write.push_back(i);
             }
             if (j == cur.size())
-            {
                 has_continue = 1;
-            }
         }
         
         if (!has_continue)
-        {
             cur.pop_front();
-        }
     }
     
     void put (char c)
@@ -129,17 +117,14 @@ struct escape_buffer
 
     void process ()
     {
-        //std::cout << ">> wait in epoll\n";
         epoll_event event[2];
         int cnt = epoll_wait(epoll, event, sizeof(event), -1); 
         if (cnt == -1)
             throw std::runtime_error("can't epoll wait");
-        //std::cout << "<< wait in epoll\n";
         for (int i = 0; i != cnt; ++i)
         {
             if ((event[i].events & EPOLLIN) && event[i].data.fd == fd)
             {
-                //std::cout << "== fd in\n";
                 char buffer[1024];
                 ssize_t ret = read(fd, buffer, sizeof(buffer));
                 if (ret == -1)
@@ -149,7 +134,6 @@ struct escape_buffer
             }
             if ((event[i].events & EPOLLOUT) && event[i].data.fd == fd)
             {
-                //std::cout << "== fd out\n";
                 ssize_t ret = write(fd, to_write.c_str(), to_write.size());
                 if (ret == -1)
                     throw std::runtime_error("can't write");
@@ -163,11 +147,8 @@ struct escape_buffer
             }
             if ((event[i].events & EPOLLIN) && event[i].data.fd == STDIN_FILENO)
             {
-                //std::cout << "== stdin\n";
                 char ch;
                 read(STDIN_FILENO, &ch, 1);
-                //char ch = getchar();
-                //std::cout << "read " <<  std::hex << static_cast <int> (ch) << "\n";
                 put(ch);
             }
             if ((event[i].events & EPOLLHUP) || (event[i].events & EPOLLRDHUP))
@@ -190,7 +171,7 @@ struct escape_buffer
     std::deque <char> cur;
     std::string to_write;
     std::string readed;
-    size_t state;
+    state_t state;
 };
 
 void interactive (std::string const & path)

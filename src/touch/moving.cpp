@@ -16,7 +16,7 @@ void touch_region
     uint8_t * need_redraw
 )
 {
-    if (ots->start_y < list_offset)
+    if (ots->start_y < static_cast <int32_t> (list_offset))
         process_view_play_pause (vv, need_redraw);
     else
         process_view_right(vv, need_redraw);
@@ -93,8 +93,8 @@ int32_t move_up_down
         return 0;
     ots->direction_mask = 0;
     int32_t ans;
-    // reverse direction on D_PL_LIST D_PLAYLIST
-    uint8_t process_view_direction = (vv->state == D_SONG)? direction : 1 - direction;
+    // reverse direction on pl_list and playlist
+    uint8_t process_view_direction = (vv->state == state_t::song)? direction : 1 - direction;
     process_view_up_down(vv, need_redraw, process_view_direction);
     ans = speed? offset_add_speed : offset_add;
     return direction? -ans : ans;

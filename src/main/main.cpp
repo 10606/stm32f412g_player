@@ -114,8 +114,6 @@ void init_base () //joystick, led, LCD
     
     display_init();
     display_start_image();
-    //BSP_PB_Init(BUTTON_WAKEUP, BUTTON_MODE_GPIO);
-    ts_init(TS_ORIENTATION_LANDSCAPE);
 }
 
 uint32_t init_fs (char (* path)[12], uint32_t len)
@@ -202,21 +200,29 @@ int main (void)
 {
     init_base();
     init_timer();
-    uint32_t counter = 0;
     while (1)
     {
-        char path[10][12] = {"MEDIA      "};
-        if (init(path, 1, 0))
+        try
         {
-            continue;
+            char path[10][12] = {"MEDIA      "};
+            if (init(path, 1, 0))
+            {
+                continue;
+            }
+
+            try
+            {
+                main_player();
+            }
+            catch (...)
+            {
+                audio_destruct();
+                destroy_view(&viewer);
+            }
         }
-
-        counter = 0;
-        main_player();
-        counter++;
-
-        audio_destruct();
-        destroy_view(&viewer);
+        catch (...)
+        {
+        }
     }
 }
 

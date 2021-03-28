@@ -107,7 +107,7 @@ LCD_sources = $(addprefix $(LCD_display)/, $(LCD_sources_))
 
 # touch screen
 TS_sources = \
-	$(TS_touch_screen)/ts_touchscreen.c
+	$(TS_touch_screen)/ts_touchscreen.cpp
 
 # external sources
 external_sources =  \

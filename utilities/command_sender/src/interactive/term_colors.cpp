@@ -1,4 +1,4 @@
-#include "colors.h"
+#include "term_colors.h"
 
 const std::string color::defaul_color = "\033[00;00m"; 
 

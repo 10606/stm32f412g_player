@@ -1,24 +1,20 @@
 #include "usb_send.h"
 
+#include "view.h"
 #include "display.h"
-
-char cur_song_info = 0x01;
-char displayed_song_info = 0x02;
-char pl_list_info = 0x03;
-char volume_info = 0x04;
-char state_info = 0x05;
+#include "usb_commands.h"
 
 void send_cur_song 
 (
-    char cur_song_name[song_name_sz + 1], 
-    char cur_group_name[group_name_sz + 1]
+    char cur_group_name[group_name_sz + 1],
+    char cur_song_name[song_name_sz + 1]
 )
 {
-    char buffer[song_name_sz + 1 + group_name_sz + 1 + 1];
-    buffer[0] = cur_song_info;
-    memcpy(buffer + 1, cur_song_name, song_name_sz + 1);
-    memcpy(buffer + 1 + song_name_sz + 1, cur_group_name, group_name_sz + 1);
-    CDC_Transmit_FS((uint8_t *)buffer, sizeof(buffer));
+    cur_song_info_t answer;
+    answer.cmd = cur_song_info;
+    memcpy(answer.line_0, cur_group_name, group_name_sz + 1);
+    memcpy(answer.line_1, cur_song_name, song_name_sz + 1);
+    CDC_Transmit_FS((uint8_t *)&answer, sizeof(answer));
 }
 
 void send_displayed_song 
@@ -29,28 +25,28 @@ void send_displayed_song
     uint32_t pos
 )
 {
-    char buffer[name_offset + group_name_sz + 1 + name_offset + song_name_sz + 1 + 3];
-    buffer[0] = displayed_song_info;
-    buffer[1] = selected;
-    buffer[2] = pos;
-    memcpy(buffer + 3, s_group, name_offset + group_name_sz + 1);
-    memcpy(buffer + 3 + name_offset + group_name_sz + 1, s_song, name_offset + song_name_sz + 1);
-    CDC_Transmit_FS((uint8_t *)buffer, sizeof(buffer));
+    displayed_song_info_t answer;
+    answer.cmd = displayed_song_info;
+    answer.selected = selected;
+    answer.pos = pos;
+    memcpy(answer.line_0, s_group, name_offset + group_name_sz + 1);
+    memcpy(answer.line_1, s_song, name_offset + song_name_sz + 1);
+    CDC_Transmit_FS((uint8_t *)&answer, sizeof(answer));
 }
 
 void send_pl_list
 (
-    char s_playlist[name_offset + pl_name_sz + count_offset + 4],
+    char s_playlist[sizeof(pl_list_info_t::name)],
     char selected, 
     uint32_t pos
 )
 {
-    char buffer[name_offset + pl_name_sz + count_offset + 4 + 3];
-    buffer[0] = pl_list_info;
-    buffer[1] = selected;
-    buffer[2] = pos;
-    memcpy(buffer + 3, s_playlist, name_offset + pl_name_sz + count_offset + 4);
-    CDC_Transmit_FS((uint8_t *)buffer, sizeof(buffer));
+    pl_list_info_t answer;
+    answer.cmd = pl_list_info;
+    answer.selected = selected;
+    answer.pos = pos;
+    memcpy(answer.name, s_playlist, sizeof(answer.name));
+    CDC_Transmit_FS((uint8_t *)&answer, sizeof(answer));
 }
 
 void send_volume
@@ -59,21 +55,21 @@ void send_volume
     char s_state[volume_width]
 )
 {
-    char buffer[volume_width + volume_width + 1];
-    buffer[0] = volume_info;
-    memcpy(buffer + 1, s_volume, volume_width);
-    memcpy(buffer + 1 + volume_width, s_state, volume_width);
-    CDC_Transmit_FS((uint8_t *)buffer, sizeof(buffer));
+    volume_info_t answer;
+    answer.cmd = volume_info;
+    memcpy(answer.line_0, s_volume, volume_width);
+    memcpy(answer.line_1, s_state, volume_width);
+    CDC_Transmit_FS((uint8_t *)&answer, sizeof(answer));
 }
 
 void send_state
 (
-    int state
+    state_t state
 )
 {
-    char buffer[2];
-    buffer[0] = state_info;
-    buffer[1] = state & 0xff;
-    CDC_Transmit_FS((uint8_t *)buffer, sizeof(buffer));
+    state_info_t answer;
+    answer.cmd = state_info;
+    answer.state = state;
+    CDC_Transmit_FS((uint8_t *)&answer, sizeof(answer));
 }
 

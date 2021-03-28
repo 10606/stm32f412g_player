@@ -16,26 +16,28 @@ void display_start_image ()
     draw_RGB_image(0, 0, 240, 240, err_picture_address);
 }
 
-void display_song_volume (playlist * pl, audio_ctl_t * actl, state_song_view_t * state, char to_screen, uint8_t * need_redraw) 
+void display_song_volume (playlist * pl, audio_ctl_t * actl, state_song_view_t state, char to_screen, uint8_t * need_redraw) 
 {
     char c_state = ' ';
-    switch (*state)
+    switch (state)
     {
-    case S_VOLUME:
+    case state_song_view_t::volume:
         c_state = 'v';
         break;
         
-    case S_SEEK:
+    case state_song_view_t::seek:
         c_state = 's';
         break;
     
-    case S_NEXT_PREV:
+    case state_song_view_t::next_prev:
         c_state = 'n';
         break;
     }
     
     char s_volume[volume_width];
     char s_state[volume_width];
+    memset(s_volume, ' ', sizeof(s_volume));
+    memset(s_state, ' ', sizeof(s_state));
     color_t bw = {lcd_color_blue, lcd_color_white};
     snprintf(s_volume, sizeof(s_volume), " %3u%%", actl->volume);
     snprintf(s_state, sizeof(s_state), "  %c %c", (actl->repeat_mode? 'r' : ' '), c_state);
@@ -64,7 +66,7 @@ void display_picture (uint8_t * need_redraw)
     }
 }
 
-void display_song (playlist * pl, audio_ctl_t * actl, state_song_view_t * state, char to_screen, char redraw_picture, uint8_t * need_redraw) 
+void display_song (playlist * pl, audio_ctl_t * actl, state_song_view_t state, char to_screen, char redraw_picture, uint8_t * need_redraw) 
 {
     if (to_screen && redraw_picture) // don't redraw picture if not need
     {

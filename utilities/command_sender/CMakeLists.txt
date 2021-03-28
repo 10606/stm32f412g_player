@@ -15,8 +15,8 @@ set(compile_flags
 set(root_code_path
     ../../../../../
 )
-set(usb_command_path
-    ${root_code_path}/stm32/stm32cubemx/f412g_player/src/usb
+set(player_path
+    ${root_code_path}/stm32/stm32cubemx/f412g_player/src/
 )
 
 set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${release_flags}")
@@ -24,7 +24,12 @@ set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${release_flags}")
 message("CMAKE_CXX_FLAGS" ${CMAKE_CXX_FLAGS})
 
 include_directories(
-    ${usb_command_path}
+    ${player_path}/main
+    ${player_path}/view
+    ${player_path}/usb
+    src/
+    src/command_line/
+    src/interactive/
 )
 
 add_executable(player_send_command
@@ -32,7 +37,7 @@ add_executable(player_send_command
     src/command_line/send_by_name.cpp
     src/command_line/check_string.cpp
     src/interactive/interactive_fd.cpp
-    src/interactive/display.cpp
-    src/interactive/colors.cpp
+    src/interactive/term_display.cpp
+    src/interactive/term_colors.cpp
 )
 

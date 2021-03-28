@@ -5,6 +5,8 @@
 #include "ts_touchscreen.h"
 #include <stdlib.h>
 
+touchscreen_ft6x06 ts_ft6x06;
+
 uint32_t touch_tick_counter = 0;
 
 //TODO calibrate
@@ -193,7 +195,7 @@ static void pressed (int32_t x1, int32_t y1, old_touch_state * ots, view * vv, u
 void touch_check (old_touch_state * ots, view * vv, uint8_t * need_redraw)
 {
     TS_StateTypeDef ts_state = {0};
-    ts_touch_detect(&ts_state);
+    ts_ft6x06.ts_touch_detect(&ts_state);
     if (ts_state.touchDetected)
     {
         int32_t x1 = normalize_x(ts_state.touchX[0]);

@@ -3,10 +3,7 @@
 
 #include <stdint.h>
 #include <string.h>
-
-#define pl_name_sz 20
-#define song_name_sz 28
-#define group_name_sz 28
+#include "char_sizes.h"
 
 typedef struct playlist_header
 {
