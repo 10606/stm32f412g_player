@@ -1,128 +1,177 @@
 #include "playlist.h"
 #include "playlist_common.h"
 
+#include <utility>
 uint32_t memory_limit = 101;
 
-uint32_t seek_playlist (playlist * pl, uint32_t pos)
+uint32_t playlist::seek (uint32_t new_pos)
 {
-    if (pl->header.cnt_songs == 0)
+    if (header.cnt_songs == 0)
         return 0;
 
-    pos %= pl->header.cnt_songs;
+    new_pos %= header.cnt_songs;
     uint32_t ret;
     song_header old_song_header;
-    memcpy(&old_song_header, &pl->song, sizeof(song_header));
+    memcpy(&old_song_header, &song, sizeof(song_header));
     {
-        ret = f_seek(pl->fd, sizeof(playlist_header) + pos * sizeof(song_header));
+        ret = f_seek(&fd, sizeof(playlist_header) + new_pos * sizeof(song_header));
         if (ret)
             return ret;
-        ret = read_song(&pl->song, pl->fd);
+        ret = read_song(&song, &fd);
         if (ret)
             return ret;
     }
 
-    if (pl->song.path_len > pl->path_sz)
+    if (song.path_len > path_sz)
     {
-        char (* tmp)[12] = (char (*)[12])malloc(pl->song.path_len * sizeof(char[12]));
+        char (* tmp)[12] = (char (*)[12])malloc(song.path_len * sizeof(char[12]));
         if (!tmp)
         {
-            memcpy(&pl->song, &old_song_header, sizeof(song_header));
+            memcpy(&song, &old_song_header, sizeof(song_header));
             return memory_limit;
         }
         
-        if (pl->path)
+        if (path)
         {
-            memmove(tmp, pl->path, old_song_header.path_len * sizeof(char[12]));
-            free(pl->path);
+            memmove(tmp, path, old_song_header.path_len * sizeof(char[12]));
+            free(path);
         }
-        pl->path = tmp;
-        pl->path_sz = pl->song.path_len;
+        path = tmp;
+        path_sz = song.path_len;
     }
     
     {
-        ret = f_seek(pl->fd, pl->song.path_offset);
+        ret = f_seek(&fd, song.path_offset);
         if (ret)
         {
-            memcpy(&pl->song, &old_song_header, sizeof(song_header));
+            memcpy(&song, &old_song_header, sizeof(song_header));
             return ret;
         }
         uint32_t rd;
-        ret = f_read_all_fixed(pl->fd, (char *)pl->path, pl->song.path_len * sizeof(char[12]), &rd);
+        ret = f_read_all_fixed(&fd, (char *)path, song.path_len * sizeof(char[12]), &rd);
         if (ret)
         {
-            memcpy(&pl->song, &old_song_header, sizeof(song_header));
+            memcpy(&song, &old_song_header, sizeof(song_header));
             return ret;
         }
     }
-    pl->pos = pos;
+    pos = new_pos;
     return 0;
 }
 
-uint32_t next_playlist (playlist * pl)
+uint32_t playlist::next ()
 {
-    if (pl->pos + 1 == pl->header.cnt_songs)
-        return seek_playlist(pl, 0);
+    if (pos + 1 == header.cnt_songs)
+        return seek(0);
     else
-        return seek_playlist(pl, pl->pos + 1);
+        return seek(pos + 1);
 }
     
-uint32_t prev_playlist (playlist * pl)
+uint32_t playlist::prev ()
 {
-    if (pl->pos == 0)
-        return seek_playlist(pl, pl->header.cnt_songs - 1);
+    if (pos == 0)
+        return seek(header.cnt_songs - 1);
     else
-        return seek_playlist(pl, pl->pos - 1);
+        return seek(pos - 1);
 }
     
-uint32_t init_playlist (playlist * pl, file_descriptor * fd)
+uint32_t playlist::_init_playlist ()
 {
-    pl->fd = fd;
-    pl->path = 0;
-    pl->path_sz = 0;
-    pl->pos = 0;
-    memset(pl->song.song_name, ' ', song_name_sz);
-    memset(pl->song.group_name, ' ', group_name_sz);
-    pl->header.cnt_songs = 0;
-    memset(pl->header.playlist_name, ' ', pl_name_sz);
+    path = 0;
+    path_sz = 0;
+    pos = 0;
+    memset(song.song_name, ' ', song_name_sz);
+    memset(song.group_name, ' ', group_name_sz);
+    header.cnt_songs = 0;
+    memset(header.playlist_name, ' ', pl_name_sz);
  
-    if (is_fake_file_descriptor(pl->fd))
+    if (is_fake_file_descriptor(&fd))
         return 0;
     
     uint32_t ret;
-    ret = f_seek(pl->fd, 0);
+    ret = f_seek(&fd, 0);
     if (ret) // fseek 0 don't fail
         return ret;
 
     playlist_header old_header;
-    memcpy(&old_header, &pl->header, sizeof(playlist_header));
-    ret = read_header(&pl->header, pl->fd);
+    memcpy(&old_header, &header, sizeof(playlist_header));
+    ret = read_header(&header, &fd);
     if (ret)
         return ret;
-    ret = seek_playlist(pl, 0);
+    ret = seek(0);
     if (ret)
     {
-        memcpy(&pl->header, &old_header, sizeof(playlist_header));
+        memcpy(&header, &old_header, sizeof(playlist_header));
         return ret;
     }
     return 0;
 }
 
-void move_playlist (playlist * dst, playlist * src)
+playlist::playlist ()
 {
-    memcpy(dst, src, sizeof(playlist));
-    src->path = 0;
-    src->path_sz = 0;
+    init_fake_file_descriptor(&fd);
+    _init_playlist();
 }
 
-void destroy_playlist (playlist * pl)
+uint32_t playlist::set_file (file_descriptor * _fd, uint32_t pos_selected)
 {
-    if (pl->path)
-        free(pl->path);
-    pl->path = 0;
+    uint32_t ret;
+    playlist old_pl(std::move(*this));
+    copy_file_descriptor_seek_0(&fd, _fd);
+    if ((ret = _init_playlist()) == 0)
+    {
+        if ((ret = seek(pos_selected)) == 0)
+            return 0;
+    }
+
+    *this = std::move(old_pl);
+    return ret;
 }
 
-char is_fake_playlist (playlist * pl)
+void playlist::move (playlist && other)
 {
-    return is_fake_file_descriptor(pl->fd);
+    copy_file_descriptor(&fd, &other.fd);
+    init_fake_file_descriptor(&other.fd);
+    
+    memcpy(&header, &other.header, sizeof(playlist_header));
+    memcpy(&song, &other.song, sizeof(song_header));
+}
+
+playlist::playlist (playlist && src)
+{
+    move(std::move(src));
+    pos = src.pos;
+    path_sz = src.path_sz;
+    path = src.path;
+    
+    src.path = nullptr;
+    src.path_sz = 0;
+}
+
+playlist & playlist::operator = (playlist && src)
+{
+    move(std::move(src));
+    std::swap(pos, src.pos);
+    std::swap(path_sz, src.path_sz);
+    std::swap(path, src.path);
+    return *this;
+}
+
+void playlist::make_fake ()
+{
+    free(path);
+    init_fake_file_descriptor(&fd);
+    _init_playlist();
+}
+
+playlist::~playlist ()
+{
+    free(path);
+    path = 0;
+}
+
+bool playlist::is_fake ()
+{
+    return is_fake_file_descriptor(&fd);
 }
 

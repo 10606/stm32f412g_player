@@ -17,9 +17,9 @@ void touch_region
 )
 {
     if (ots->start_y < static_cast <int32_t> (list_offset))
-        process_view_play_pause (vv, need_redraw);
+        vv->play_pause(need_redraw);
     else
-        process_view_right(vv, need_redraw);
+        vv->process_right(need_redraw);
 }
 
 int32_t move_left_right
@@ -32,10 +32,10 @@ int32_t move_left_right
     uint8_t direction // 0 left, 1 - right
 )
 {
-    uint32_t (* process_view_do[2]) (view * vv, uint8_t * need_redraw) =
+    uint32_t (view::* process_view_do[2]) (uint8_t * need_redraw) =
     {
-        process_view_center,
-        process_view_left
+        &view::process_center,
+        &view::process_left
     };
     enum direction_t dir[2] = 
     {
@@ -48,7 +48,7 @@ int32_t move_left_right
         (speed && (offset < offset_limit_speed)))
         return 0;
     ots->direction_mask = 1 << dir[direction];
-    process_view_do[direction](vv, need_redraw);
+    (vv->*process_view_do[direction])(need_redraw);
     int32_t ans;
     ans = speed? offset_add_speed : offset_add;
     return direction? ans : -ans;
@@ -95,7 +95,7 @@ int32_t move_up_down
     int32_t ans;
     // reverse direction on pl_list and playlist
     uint8_t process_view_direction = (vv->state == state_t::song)? direction : 1 - direction;
-    process_view_up_down(vv, need_redraw, process_view_direction);
+    vv->process_up_down(need_redraw, process_view_direction);
     ans = speed? offset_add_speed : offset_add;
     return direction? -ans : ans;
 }

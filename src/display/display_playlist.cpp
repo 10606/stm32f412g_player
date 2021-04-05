@@ -41,7 +41,7 @@ void display_playlist (playlist_view * plv, playlist * pl_p, char to_screen, uin
         // 3 - playing and selected
     char number[playlist_view_cnt][3 + 1];
     
-    print_playlist_view(plv, pl_p, song_name, group_name, selected, number);
+    plv->print(pl_p, song_name, group_name, selected, number);
     
     for (uint32_t i = 0; i != playlist_view_cnt; ++i)
     {

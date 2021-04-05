@@ -1,54 +1,79 @@
 #include "light_playlist.h"
 #include "playlist_common.h"
 
-uint32_t seek_light_playlist (light_playlist * pl, uint32_t pos)
+uint32_t light_playlist::seek (uint32_t _pos)
 {
-    if (pl->header.cnt_songs == 0)
+    if (header.cnt_songs == 0)
         return 0;
-    pos %= pl->header.cnt_songs;
-    pl->pos = pos;
+    _pos %= header.cnt_songs;
+    pos = _pos;
     uint32_t ret;
-    if ((ret = f_seek(pl->fd, sizeof(playlist_header) + pl->pos * sizeof(song_header))))
+    if ((ret = f_seek(&fd, sizeof(playlist_header) + pos * sizeof(song_header))))
         return ret;
-    if ((ret = read_song(&pl->song, pl->fd)))
+    if ((ret = read_song(&song, &fd)))
         return ret;
     return 0;
 }
 
-uint32_t next_light_playlist (light_playlist * pl)
+uint32_t light_playlist::next ()
 {
-    if (pl->header.cnt_songs == 0)
+    if (header.cnt_songs == 0)
         return 0;
-    if (pl->pos + 1 == pl->header.cnt_songs)
-        return seek_light_playlist(pl, 0);
+    if (pos + 1 == header.cnt_songs)
+        return seek(0);
     else
-        return read_song(&pl->song, pl->fd);
+        return read_song(&song, &fd);
 }
     
-uint32_t init_light_playlist (light_playlist * pl, file_descriptor * fd)
+light_playlist::light_playlist ()
 {
-    pl->fd = fd;
-    pl->pos = 0;
-    memset(pl->song.song_name, ' ', song_name_sz);
-    memset(pl->song.group_name, ' ', group_name_sz);
-    pl->header.cnt_songs = 0;
-    memset(pl->header.playlist_name, ' ', pl_name_sz);
+    init_fake_file_descriptor(&fd);
+    open_file();
+}
 
-    if (is_fake_file_descriptor(pl->fd))
+uint32_t light_playlist::open_file ()
+{
+    pos = 0;
+    memset(song.song_name, ' ', song_name_sz);
+    memset(song.group_name, ' ', group_name_sz);
+    header.cnt_songs = 0;
+    memset(header.playlist_name, ' ', pl_name_sz);
+
+    if (is_fake_file_descriptor(&fd))
         return 0;
     
     uint32_t ret;
     playlist_header old_header;
-    memcpy(&old_header, &pl->header, sizeof(playlist_header));
-    if ((ret = f_seek(pl->fd, 0)))
+    memcpy(&old_header, &header, sizeof(playlist_header));
+    if ((ret = f_seek(&fd, 0)))
         return ret;
-    if ((ret = read_header(&pl->header, pl->fd)))
+    if ((ret = read_header(&header, &fd)))
         return ret;
-    if ((ret = seek_light_playlist(pl, 0)))
+    if ((ret = seek(0)))
     {
-        memcpy(&pl->header, &old_header, sizeof(playlist_header));
+        memcpy(&header, &old_header, sizeof(playlist_header));
         return ret;
     }
     return 0;
+}
+
+void light_playlist::copy (light_playlist const & other)
+{
+    memcpy(&header, &other.header, sizeof(header));
+    memcpy(&song, &other.song, sizeof(song));
+    copy_file_descriptor(&fd, &other.fd);
+}
+
+light_playlist::light_playlist (light_playlist const & other) :
+    pos(other.pos)
+{
+    copy(other);
+}
+
+light_playlist & light_playlist::operator = (light_playlist const & other)
+{
+    copy(other);
+    pos = other.pos;
+    return *this;
 }
 

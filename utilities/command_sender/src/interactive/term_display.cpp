@@ -112,43 +112,43 @@ void display_lines (T const & data, bool is_my_state, std::pair <size_t, size_t>
 }
 
 template <typename T>
-std::optional <T> clone (std::string const & data, size_t & pos)
+std::optional <T> clone (std::deque <char> & data)
 {
     size_t my_size = sizeof(T);
-    if (pos + my_size > data.size())
+    if (my_size > data.size())
         return std::nullopt;
     T my_data;
-    memcpy(&my_data, data.c_str(), my_size);
-    pos += my_size;
+    for (size_t i = 0; i != my_size; ++i)
+        *(reinterpret_cast <char *> (&my_data) + i) = data[i];
+    data.erase(data.begin(), data.begin() + my_size);
     return my_data;
 }
 
-void extract (std::string & data, state_t & state)
+void extract (std::deque <char> & data, state_t & state)
 {
     if (data.empty())
         return;
     
-    size_t pos;
-    for (pos = 0; pos != data.size(); )
+    while (!data.empty())
     {
-        switch (data[pos])
+        switch (data.front())
         {
             case cur_song_info:
-                if (std::optional <cur_song_info_t> song_data = clone <cur_song_info_t> (data, pos))
+                if (std::optional <cur_song_info_t> song_data = clone <cur_song_info_t> (data))
                     display_lines(song_data.value(), 0);
                 else
                     goto end_for;
                 break;
 
             case displayed_song_info:
-                if (std::optional <displayed_song_info_t> song_data = clone <displayed_song_info_t> (data, pos))
+                if (std::optional <displayed_song_info_t> song_data = clone <displayed_song_info_t> (data))
                     display_lines(song_data.value(), state == state_t::playlist, base::disp_song_a);
                 else
                     goto end_for;
                 break;
 
             case pl_list_info:
-                if (std::optional <pl_list_info_t> pl_list_data = clone <pl_list_info_t> (data, pos))
+                if (std::optional <pl_list_info_t> pl_list_data = clone <pl_list_info_t> (data))
                 {
                     bool is_my_state = state == state_t::pl_list;
                     std::pair <size_t, size_t> base_pos = pl_list_data->pos * base::pl_list_a;
@@ -170,27 +170,25 @@ void extract (std::string & data, state_t & state)
                 break;
 
             case volume_info:
-                if (std::optional <volume_info_t> volume_data = clone <volume_info_t> (data, pos))
+                if (std::optional <volume_info_t> volume_data = clone <volume_info_t> (data))
                     display_lines(volume_data.value(), state == state_t::song);
                 else
                     goto end_for;
                 break;
 
             case state_info:
-                if (std::optional <state_info_t> state_info = clone <state_info_t> (data, pos))
+                if (std::optional <state_info_t> state_info = clone <state_info_t> (data))
                     state = state_info->state;
                 else
                     goto end_for;
                 break;
 
             default:
-                pos++;
+                data.pop_front();
                 break;
         }
     }
     end_for:
-    if (pos != 0)
-        data = data.substr(pos);
     std::cout.flush();
 }
 

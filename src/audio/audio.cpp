@@ -15,7 +15,7 @@ uint32_t audio_start ()
 {
     init_mad();
     uint32_t ret;
-    ret = open_song_not_found(&viewer, 0);
+    ret = viewer().open_song_not_found(0);
     if (ret)
     {
         deinit_mad();
@@ -149,14 +149,14 @@ static inline uint32_t new_song_or_repeat ()
     else //or next song
     {
         uint32_t ret;
-        if ((ret = next_playlist(&viewer.pl)))
+        if ((ret = viewer().pl.next()))
         {
             display_error("err get next song");
             return ret;
         }
-        if ((ret = open_song_not_found(&viewer, 0)))
+        if ((ret = viewer().open_song_not_found(0)))
         {
-            fake_song_and_playlist(&viewer);
+            viewer().fake_song_and_playlist();
             memset(audio_ctl.buff, 0, audio_buffer_size);
             display_error("err open song");
             return ret;
@@ -172,9 +172,10 @@ uint32_t audio_process (uint8_t * need_redraw)
     if (current_position(&audio_ctl.audio_file) >= audio_ctl.audio_file.size)
     {
         uint32_t ret;
+        uint8_t is_fake = is_fake_file_descriptor(&audio_ctl.audio_file);
         if ((ret = new_song_or_repeat()))
             return ret;
-        *need_redraw |= 1;
+        *need_redraw |= !is_fake || !is_fake_file_descriptor(&audio_ctl.audio_file);
     }
     next_pcm_part();
     return 0;

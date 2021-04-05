@@ -6,25 +6,33 @@
 #include "FAT.h"
 #include "playlist_structures.h"
 
-typedef struct playlist 
+struct playlist 
 {
-    playlist_header header;
-    file_descriptor * fd;
-    uint32_t pos;
+    playlist ();
+    playlist (playlist && other);
+    playlist & operator = (playlist && other);
+    ~playlist ();
+    
+    uint32_t set_file (file_descriptor * fd, uint32_t pos_selected);
+    uint32_t seek (uint32_t pos);
+    uint32_t next ();
+    uint32_t prev ();
+    void make_fake ();
+    bool is_fake ();
+
+    file_descriptor fd;
     song_header song;
+    playlist_header header;
     uint32_t path_sz;
     char (*path)[12];
-} playlist;
+    uint32_t pos;
+    
+private:
+    uint32_t _init_playlist ();
+    void move (playlist &&);
+};
 
 extern uint32_t memory_limit;
-
-uint32_t init_playlist (playlist * pl, file_descriptor * fd);
-uint32_t seek_playlist (playlist * pl, uint32_t pos);
-uint32_t next_playlist (playlist * pl);
-uint32_t prev_playlist (playlist * pl);
-void destroy_playlist (playlist * pl);
-void move_playlist (playlist * dst, playlist * src);
-char is_fake_playlist (playlist * pl);
 
 #endif
 

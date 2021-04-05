@@ -129,7 +129,7 @@ struct escape_buffer
                 ssize_t ret = read(fd, buffer, sizeof(buffer));
                 if (ret == -1)
                     throw std::runtime_error("can't read");
-                readed += std::string(buffer, ret);
+                readed.insert(readed.end(), buffer, buffer + ret);
                 extract(readed, state);
             }
             if ((event[i].events & EPOLLOUT) && event[i].data.fd == fd)
@@ -170,7 +170,7 @@ struct escape_buffer
     int epoll;
     std::deque <char> cur;
     std::string to_write;
-    std::string readed;
+    std::deque <char> readed;
     state_t state;
 };
 

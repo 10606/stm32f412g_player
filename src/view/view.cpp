@@ -2,87 +2,85 @@
 
 #include "display.h"
 #include "usb_send.h"
+#include <new>
 
-uint32_t init_view (view * vv, char (* path)[12], uint32_t len, audio_ctl_t * audio_ctl)
+view::view (audio_ctl_t * _audio_ctl)
 {
-    vv->audio_ctl = audio_ctl;
-    vv->state = state_t::pl_list;
-    vv->old_state = vv->state;
-    vv->state_song_view = state_song_view_t::volume;
-    vv->playing_playlist = max_plb_files;
-    vv->selected_playlist = max_plb_files;
-    vv->pl.fd = &vv->fd_pl;
-    
-    init_fake_file_descriptor(&vv->fd_plv);
-    init_fake_file_descriptor(&vv->fd_pl);
-    
+    audio_ctl = _audio_ctl;
+    state = state_t::pl_list;
+    old_state = state;
+    state_song_view = state_song_view_t::volume;
+    playing_playlist = max_plb_files;
+    selected_playlist = max_plb_files;
+}
+
+uint32_t view::init (char (* path)[12], uint32_t len)
+{
     uint32_t ret;
-    ret = init_pl_list(&vv->pll, path, len);
+    ret = init_pl_list(&pll, path, len);
     if (ret)
         return ret;
 
-    ret = init_playlist_view(&vv->plv, &vv->fd_plv);
+    ret = plv.init();
     if (ret)
         return ret;
     
-    ret = play(&vv->plv, &vv->pl);
+    ret = plv.play(&pl);
     if (ret)
         return ret;
-    vv->playing_playlist = vv->selected_playlist;
+    playing_playlist = selected_playlist;
     return 0;
 }
 
-uint32_t destroy_view (view * vv)
+view::~view ()
 {
-    destroy_pl_list(&vv->pll);
-    destroy_playlist(&vv->pl);
-    return 0;
+    destroy_pl_list(&pll);
 }
 
-void display_view (view * vv, uint8_t * need_redraw)
+void view::display (uint8_t * need_redraw)
 {
-    char ts_playlist = (vv->state == state_t::playlist);
-    char ts_pl_list = (vv->state == state_t::pl_list);
-    char ts_song = (vv->state == state_t::song);
+    char ts_playlist = (state == state_t::playlist);
+    char ts_pl_list = (state == state_t::pl_list);
+    char ts_song = (state == state_t::song);
 
-    send_state(vv->state);
-    display_playlist(&vv->plv, &vv->pl, ts_playlist, need_redraw);
-    display_pl_list(&vv->pll, vv->playing_playlist, &vv->pl, ts_pl_list, need_redraw);
-    display_song(&vv->pl, vv->audio_ctl, vv->state_song_view, ts_song, (vv->old_state != state_t::song), need_redraw);
-    vv->old_state = vv->state;
+    send_state(state);
+    display_playlist(&plv, &pl, ts_playlist, need_redraw);
+    display_pl_list(&pll, playing_playlist, &pl, ts_pl_list, need_redraw);
+    display_song(&pl, audio_ctl, state_song_view, ts_song, (old_state != state_t::song), need_redraw);
+    old_state = state;
 }
 
-uint32_t open_song (view * vv)
+uint32_t view::open_song ()
 {
-    if (vv->pl.header.cnt_songs == 0)
+    if (pl.header.cnt_songs == 0)
     {
-        init_fake_file_descriptor(&vv->audio_ctl->audio_file);
-        vv->audio_ctl->info.offset = 0;
+        init_fake_file_descriptor(&audio_ctl->audio_file);
+        audio_ctl->info.offset = 0;
         return 0;
     }
 
     uint32_t ret;
-    if ((ret = open(&FAT_info, &vv->audio_ctl->audio_file, vv->pl.path, vv->pl.song.path_len)))
+    if ((ret = open(&FAT_info, &audio_ctl->audio_file, pl.path, pl.song.path_len)))
         return ret;
-    vv->audio_ctl->seeked = 1;
-    get_length(&vv->audio_ctl->audio_file, &vv->audio_ctl->info);
-    if ((ret = f_seek(&vv->audio_ctl->audio_file, vv->audio_ctl->info.offset)))
+    audio_ctl->seeked = 1;
+    get_length(&audio_ctl->audio_file, &audio_ctl->info);
+    if ((ret = f_seek(&audio_ctl->audio_file, audio_ctl->info.offset)))
         return ret;
     return 0;
 }
 
-uint32_t open_song_not_found (view * vv, uint8_t direction)
+uint32_t view::open_song_not_found (uint8_t direction)
 {
-    uint32_t (* np_playlist[2]) (playlist * pl) = 
+    uint32_t (playlist::* np_playlist[2]) () = 
     {
-        next_playlist,
-        prev_playlist
+        &playlist::next,
+        &playlist::prev
     };
     
     uint32_t ret = 0;
-    for (uint32_t i = 0; i != vv->pl.header.cnt_songs; ++i)
+    for (uint32_t i = 0; i != pl.header.cnt_songs; ++i)
     {
-        if ((ret = open_song(vv)))
+        if ((ret = open_song()))
         {
             if (ret != not_found)
                 return ret;
@@ -92,18 +90,17 @@ uint32_t open_song_not_found (view * vv, uint8_t direction)
             return 0;
         }
         
-        if ((ret = np_playlist[direction](&vv->pl)))
+        if ((ret = (pl.*np_playlist[direction])()))
             return ret;
     }
     return ret;
 }
 
-void fake_song_and_playlist (view * vv)
+void view::fake_song_and_playlist ()
 {
-    destroy_playlist(&vv->pl);
-    init_fake_file_descriptor(&vv->fd_pl);
-    init_playlist(&vv->pl, &vv->fd_pl); // noexcept if fake_file_descriptor
-    
-    init_fake_file_descriptor(&vv->audio_ctl->audio_file);
+    pl.make_fake();
+    init_fake_file_descriptor(&audio_ctl->audio_file);
 }
+
+view_holder viewer;
 

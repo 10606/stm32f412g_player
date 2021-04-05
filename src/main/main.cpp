@@ -60,7 +60,6 @@ void Error_Handler (void);
 #include "play.h"
 #include "view.h"
 
-view viewer;
 FAT_info_t FAT_info;
 
 
@@ -137,12 +136,12 @@ uint32_t init_audio (char (* path)[12], uint32_t len)
     audio_init();
 
     // get the .PLB file names from path directory 
-    uint32_t ret = init_view(&viewer, path, len, &audio_ctl);
+    uint32_t ret = viewer.init(path, len, &audio_ctl);
     if (ret)
     {
         display_error("err init view");
         audio_destruct();
-        destroy_view(&viewer);
+        viewer.reset();
         return ret;
     }
     return 0;
@@ -182,7 +181,7 @@ void init_usb ()
     NVIC_SetPriority(OTG_FS_IRQn, 1);
 }
 
-uint32_t init (char (* path)[12], uint32_t len, uint32_t index)
+uint32_t init (char (* path)[12], uint32_t len)
 {
     uint32_t ret;
     //init_base();
@@ -205,7 +204,7 @@ int main (void)
         try
         {
             char path[10][12] = {"MEDIA      "};
-            if (init(path, 1, 0))
+            if (init(path, 1))
             {
                 continue;
             }
@@ -217,7 +216,7 @@ int main (void)
             catch (...)
             {
                 audio_destruct();
-                destroy_view(&viewer);
+                viewer.reset();
             }
         }
         catch (...)

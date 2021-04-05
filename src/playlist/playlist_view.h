@@ -11,42 +11,50 @@
 
 extern FAT_info_t FAT_info;
 
-typedef struct playlist_view
+struct playlist_view
 {
+    playlist_view () :
+        pos_begin(0),
+        pos_selected(0)
+    {}
+    
+    uint32_t init (); //set fd and read playlist
+    uint32_t down ();
+    uint32_t up ();
+    uint32_t seek (uint32_t pos);
+    uint32_t play (playlist * pl);
+    uint32_t to_playing_playlist (playlist const & pl);
+    bool is_fake ();
+    bool check_near (playlist * playing_pl);
+    bool compare (playlist const * b);
+
+    void print
+    (
+        playlist * playing_pl,
+        char (* song_name)[song_name_sz + 1],
+        char (* group_name)[group_name_sz + 1],
+        char * selected,
+        char (* number)[3 + 1]
+    );
+
+    uint32_t open_playlist
+    (
+        char const (* const path)[12],
+        uint32_t path_len
+    );
+
+
     light_playlist lpl;
     uint32_t pos_begin;
     uint32_t pos_selected;
     char name_group[playlist_view_cnt][group_name_sz + 1];
     char name_song[playlist_view_cnt][song_name_sz + 1];
-} playlist_view;
+    
+private:
+    uint32_t fill_names ();
+    void pn_common (size_t ins_pos);
+};
 
-uint32_t init_playlist_view (playlist_view * plv, file_descriptor * fd); //set fd and read playlist
-uint32_t down (playlist_view * plv);
-uint32_t up (playlist_view * plv);
-uint32_t seek_playlist_view (playlist_view * plv, uint32_t pos);
-uint32_t play (playlist_view * plv, playlist * pl);
-
-char playlist_compare (light_playlist * a, playlist * b);
-char playlist_check_near (playlist_view * plv, playlist * playing_pl);
-char is_fake_playlist_view (playlist_view * plv);
-
-void print_playlist_view
-(
-    playlist_view * plv,
-    playlist * playing_pl,
-    char (* song_name)[song_name_sz + 1],
-    char (* group_name)[group_name_sz + 1],
-    char * selected,
-    char (* number)[3 + 1]
-);
-
-void bind_playlist_view (playlist_view * plv, file_descriptor * fd); //just set file_descriptor 
-uint32_t open_playlist
-(
-    playlist_view * plv,
-    char const (* const path)[12],
-    uint32_t path_len
-);
 
 #endif
 

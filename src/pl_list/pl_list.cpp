@@ -129,7 +129,7 @@ uint32_t open_index_pl_list (pl_list * pll, playlist_view * plv, uint32_t index,
     char old_path [12];
     memcpy(old_path, pll->root_path[pll->path_len - 1], 12);
     memcpy(pll->root_path[pll->path_len - 1], pll->pl_path[index], 12);
-    uint32_t ret = open_playlist(plv, pll->root_path, pll->path_len);
+    uint32_t ret = plv->open_playlist(pll->root_path, pll->path_len);
     if (ret)
     {
         memcpy(pll->root_path[pll->path_len - 1], old_path, 12);

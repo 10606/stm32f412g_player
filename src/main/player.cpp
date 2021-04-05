@@ -25,16 +25,16 @@ void main_player ()
         }
         check_buttons();
       
-        if ((ret = process_view(&viewer, &need_redraw)))
+        if ((ret = viewer().process(&need_redraw)))
             ;//break;
-        if (usb_process(&viewer, &need_redraw))
+        if (usb_process(&viewer(), &need_redraw))
             ; //break;
-        touch_check(&touch_state, &viewer, &need_redraw);
+        touch_check(&touch_state, &viewer(), &need_redraw);
         
         if (need_redraw)
         {
             need_redraw = 0;
-            display_view(&viewer, &need_redraw);
+            viewer().display(&need_redraw);
         }
 
         if (BSP_SD_IsDetected() != SD_PRESENT)

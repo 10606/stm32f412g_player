@@ -4,10 +4,11 @@
 #include <cstddef>
 #include <string>
 #include <iostream>
+#include <deque>
 
 #include "usb_commands.h"
 
-void extract (std::string & data, state_t & state);
+void extract (std::deque <char> & data, state_t & state);
 
 #endif
 
