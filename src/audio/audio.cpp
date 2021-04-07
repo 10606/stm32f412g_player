@@ -11,8 +11,23 @@ size_t const str_time_size = 100;
 
 audio_ctl_t  audio_ctl;
 
-uint32_t audio_start ()
+audio_ctl_t::audio_ctl_t ():
+    audio_freq(44100),
+    volume(70),
+    pause_status(0), // 0 when audio is running, 1 when Pause is on 
+    repeat_mode(0),
+    seeked(0),
+    state(buffer_offset_none)
+{}
+
+uint32_t audio_ctl_t::audio_init ()
 {
+    display::song_hint();
+    init_fake_file_descriptor(&audio_file);
+  
+    if (BSP_AUDIO_OUT_Init(OUTPUT_DEVICE_HEADPHONE, volume, audio_freq) != 0)
+        display::error("err init audio codec");
+    
     init_mad();
     uint32_t ret;
     ret = viewer().open_song_not_found(0);
@@ -23,42 +38,19 @@ uint32_t audio_start ()
         return ret;
     }
 
-    memset(audio_ctl.buff, 0, audio_buffer_size);
-    BSP_AUDIO_OUT_Play((uint16_t*)&audio_ctl.buff[0], audio_buffer_size);
+    memset(buff, 0, audio_buffer_size);
+    BSP_AUDIO_OUT_Play((uint16_t*)&buff[0], audio_buffer_size);
     return 0;
 }
 
-
-void audio_init ()
-{
-    audio_ctl.seeked = 0;
-    audio_ctl.repeat_mode = 0;
-    audio_ctl.audio_freq = 44100; /*AF_44K*/
-    audio_ctl.pause_status = 0; /* 0 when audio is running, 1 when Pause is on */
-    audio_ctl.volume = audio_default_volume;
-  
-    display::song_hint();
-    init_fake_file_descriptor(&audio_ctl.audio_file);
-  
-    if (BSP_AUDIO_OUT_Init(OUTPUT_DEVICE_HEADPHONE, audio_ctl.volume, audio_ctl.audio_freq) != 0)
-        display::error("err init audio codec");
-}
-
-void audio_destruct ()
+void audio_ctl_t::audio_destruct ()
 {
     BSP_AUDIO_OUT_DeInit();
 }
 
-typedef struct tik_t
+void audio_ctl_t::byte_to_time (tik_t * time, uint32_t value)
 {
-    uint16_t min;
-    uint16_t sec;
-    uint16_t ms;
-} tik_t;
-
-static inline void byte_to_time (tik_t * time, uint32_t value)
-{
-    if (audio_ctl.audio_file.size == 0)
+    if (audio_file.size == 0)
     {
         time->ms = 0;
         time->sec = 0;
@@ -66,14 +58,14 @@ static inline void byte_to_time (tik_t * time, uint32_t value)
         return;
     }
 
-    if (value >= audio_ctl.info.offset)
-        value -= audio_ctl.info.offset;
+    if (value >= info.offset)
+        value -= info.offset;
     else
         value = 0;
 
     uint32_t time_ms = 
-        (float)(audio_ctl.info.length) /
-        (float)(audio_ctl.audio_file.size - audio_ctl.info.offset) *
+        (float)(info.length) /
+        (float)(audio_file.size - info.offset) *
         (float)(value);
     
     time->ms = time_ms % 1000;
@@ -81,23 +73,23 @@ static inline void byte_to_time (tik_t * time, uint32_t value)
     time->min = time_ms / 1000 / 60;
 }
 
-static inline void next_pcm_part ()
+void audio_ctl_t::next_pcm_part ()
 {
     uint32_t bytesread;
     uint8_t * buffer;
     // 1st half buffer played; so fill it and continue playing from bottom
-    if (audio_ctl.state == buffer_offset_half)
-        buffer = audio_ctl.buff;
+    if (state == buffer_offset_half)
+        buffer = buff;
     // 2nd half buffer played; so fill it and continue playing from top
-    if (audio_ctl.state == buffer_offset_full)
-        buffer = audio_ctl.buff + (audio_buffer_size / 2);
+    if (state == buffer_offset_full)
+        buffer = buff + (audio_buffer_size / 2);
 
-    if ((audio_ctl.state == buffer_offset_full) ||
-        (audio_ctl.state == buffer_offset_half))
+    if ((state == buffer_offset_full) ||
+        (state == buffer_offset_half))
     {
-        bytesread = get_pcm_sound(&audio_ctl.audio_file, buffer, audio_buffer_size / 2);
+        bytesread = get_pcm_sound(&audio_file, buffer, audio_buffer_size / 2);
         if (bytesread > 0)
-            audio_ctl.state = buffer_offset_none;
+            state = buffer_offset_none;
         else
         {
             //ignore
@@ -105,13 +97,13 @@ static inline void next_pcm_part ()
     }
 }
 
-static inline void display_time ()
+void audio_ctl_t::display_time ()
 {
     tik_t cur_time;
     tik_t total_time;
 
-    byte_to_time(&cur_time, current_position(&audio_ctl.audio_file));
-    byte_to_time(&total_time, audio_ctl.audio_file.size);
+    byte_to_time(&cur_time, current_position(&audio_file));
+    byte_to_time(&total_time, audio_file.size);
 
     char str[str_time_size];
     snprintf
@@ -129,22 +121,22 @@ static inline void display_time ()
     display_string_center_c(0, display::offsets::time, str, &font_12, lcd_color_blue, lcd_color_white);
 }
 
-static inline uint32_t new_song_or_repeat ()
+uint32_t audio_ctl_t::new_song_or_repeat ()
 {
-    if (!is_fake_file_descriptor(&audio_ctl.audio_file))
+    if (!is_fake_file_descriptor(&audio_file))
     {
         reuse_mad();
     }
     // play song again
-    if (audio_ctl.repeat_mode)
+    if (repeat_mode)
     {
         uint32_t ret;
-        if ((ret = f_seek(&audio_ctl.audio_file, audio_ctl.info.offset)))
+        if ((ret = f_seek(&audio_file, info.offset)))
         {
             display::error("err seek");
             return ret;
         }
-        audio_ctl.seeked = 1;
+        seeked = 1;
     }
     else //or next song
     {
@@ -157,7 +149,7 @@ static inline uint32_t new_song_or_repeat ()
         if ((ret = viewer().open_song_not_found(0)))
         {
             viewer().fake_song_and_playlist();
-            memset(audio_ctl.buff, 0, audio_buffer_size);
+            memset(buff, 0, audio_buffer_size);
             display::error("err open song");
             return ret;
         }
@@ -165,17 +157,17 @@ static inline uint32_t new_song_or_repeat ()
     return 0;
 }
 
-uint32_t audio_process (uint8_t * need_redraw)
+uint32_t audio_ctl_t::audio_process (uint8_t * need_redraw)
 {
     display_time();
     //end of song reached
-    if (current_position(&audio_ctl.audio_file) >= audio_ctl.audio_file.size)
+    if (current_position(&audio_file) >= audio_file.size)
     {
         uint32_t ret;
-        uint8_t is_fake = is_fake_file_descriptor(&audio_ctl.audio_file);
+        uint8_t is_fake = is_fake_file_descriptor(&audio_file);
         if ((ret = new_song_or_repeat()))
             return ret;
-        *need_redraw |= !is_fake || !is_fake_file_descriptor(&audio_ctl.audio_file);
+        *need_redraw |= !is_fake || !is_fake_file_descriptor(&audio_file);
     }
     next_pcm_part();
     return 0;

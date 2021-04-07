@@ -23,7 +23,6 @@ uint32_t view::init (char (* path)[12], uint32_t len)
     return 0;
 }
 
-
 void view::display (uint8_t * need_redraw)
 {
     char ts_playlist = (state == state_t::playlist);
@@ -87,6 +86,17 @@ void view::fake_song_and_playlist ()
 {
     pl.make_fake();
     init_fake_file_descriptor(&audio_ctl->audio_file);
+}
+
+uint32_t view::do_nothing (uint8_t * need_redraw)
+{
+    return 0;
+}
+
+uint32_t view::send_info (uint8_t * need_redraw)
+{
+    *need_redraw = 1;
+    return 0;
 }
 
 view_holder viewer;

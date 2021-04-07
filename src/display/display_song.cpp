@@ -58,7 +58,7 @@ void song_volume (playlist * pl, audio_ctl_t * actl, state_song_view_t state, ch
     {
         display_string(200, display::offsets::list, s_volume, &font_12, &bw);
         display_string(200, display::offsets::list + display::offsets::in_line, s_state, &font_12, &bw);
-        audio_process(need_redraw);
+        audio_ctl.audio_process(need_redraw);
     }
     HAL_Delay(1);
     send_volume(s_volume, s_state);
@@ -75,7 +75,7 @@ void display_picture (uint8_t * need_redraw)
         if (part + 1 == parts)
             p_size = (240 - display::offsets::picture) - (parts - 1) * p_old_size;
         draw_RGB_image(0, display::offsets::picture + p_old_size * part, 240, p_size, picture_address::song + 240 * part * p_old_size);
-        audio_process(need_redraw);
+        audio_ctl.audio_process(need_redraw);
     }
 }
 
@@ -84,11 +84,11 @@ void song (playlist * pl, audio_ctl_t * actl, state_song_view_t state, char to_s
     if (to_screen && redraw_picture) // don't redraw picture if not need
     {
         display_picture(need_redraw);
-        audio_process(need_redraw);
+        audio_ctl.audio_process(need_redraw);
     }
     cur_song(pl, to_screen, need_redraw);
     song_volume(pl, actl, state, to_screen, need_redraw);
-    audio_process(need_redraw);
+    audio_ctl.audio_process(need_redraw);
 }
 
 }

@@ -61,7 +61,7 @@ touch_state::touch_state () :
     press(0),
     moved(0)
 {
-    touchscreen_ft6x06::init();
+    ts_ft6x06.init();
 }
 
 uint8_t touch_state::is_moved (point p) const
@@ -202,7 +202,7 @@ void touch_state::pressed (point p, view * vv, uint8_t * need_redraw)
 void touch_state::touch_check (view * vv, uint8_t * need_redraw)
 {
     TS_StateTypeDef ts_state = {0};
-    touchscreen_ft6x06::ts_touch_detect(&ts_state);
+    ts_ft6x06.ts_touch_detect(&ts_state);
     if (ts_state.touchDetected)
     {
         point p;

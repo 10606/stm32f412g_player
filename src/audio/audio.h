@@ -6,11 +6,6 @@
 #include <stdint.h>
 #include <stddef.h>
 
-size_t const mp3_frames_in_buffer = 4;
-size_t const decoded_mp3_frame_size = 4608;
-size_t const audio_buffer_size = (mp3_frames_in_buffer * decoded_mp3_frame_size);
-uint8_t const audio_default_volume = 70;
-
 enum buffer_state_t
 {
     buffer_offset_none = 0,  
@@ -20,6 +15,15 @@ enum buffer_state_t
 
 struct audio_ctl_t 
 {
+    audio_ctl_t ();
+    uint32_t audio_init ();
+    void audio_destruct ();
+    uint32_t audio_process (uint8_t * need_redraw);
+    
+    static size_t const mp3_frames_in_buffer = 4;
+    static size_t const decoded_mp3_frame_size = 4608;
+    static size_t const audio_buffer_size = (mp3_frames_in_buffer * decoded_mp3_frame_size);
+
     uint32_t audio_freq;
     uint8_t volume;
     bool pause_status;
@@ -29,13 +33,23 @@ struct audio_ctl_t
     mp3_info info;
     file_descriptor audio_file;
     uint8_t buff[audio_buffer_size];
-};
-extern audio_ctl_t  audio_ctl;
+    
+private:
+    
+    struct tik_t
+    {
+        uint16_t min;
+        uint16_t sec;
+        uint16_t ms;
+    };
 
-void audio_init ();
-void audio_destruct ();
-uint32_t audio_start ();
-uint32_t audio_process (uint8_t * need_redraw);
+    void byte_to_time (tik_t * time, uint32_t value);
+    void next_pcm_part ();
+    void display_time ();
+    uint32_t new_song_or_repeat ();
+};
+
+extern audio_ctl_t audio_ctl;
 
 #endif
 

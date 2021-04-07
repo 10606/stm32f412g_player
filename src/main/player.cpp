@@ -11,7 +11,7 @@
 
 void main_player ()
 { 
-    if (audio_start())
+    if (audio_ctl.audio_init())
         return;
   
     uint8_t need_redraw = 1;
@@ -20,7 +20,7 @@ void main_player ()
     while (1)
     {
         uint32_t ret;
-        if ((ret = audio_process(&need_redraw)))
+        if ((ret = audio_ctl.audio_process(&need_redraw)))
         {
         }
         check_buttons();
@@ -40,6 +40,7 @@ void main_player ()
         if (BSP_SD_IsDetected() != SD_PRESENT)
         {
             deinit_mad();
+            audio_ctl.audio_destruct();
             break;
         }
     }

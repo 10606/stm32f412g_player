@@ -7,7 +7,6 @@
 #include "audio.h"
 #include "playlist.h"
 #include "pl_list.h"
-#include "char_sizes.h"
 #include <stdint.h>
 
 namespace display

@@ -36,16 +36,8 @@ struct view
     uint32_t prev_song (uint8_t * need_redraw);
     uint32_t next_song (uint8_t * need_redraw);
 
-    uint32_t do_nothing (uint8_t * need_redraw)
-    {
-        return 0;
-    }
-
-    uint32_t send_info (uint8_t * need_redraw)
-    {
-        *need_redraw = 1;
-        return 0;
-    }
+    uint32_t do_nothing (uint8_t * need_redraw); // can use in table of function
+    uint32_t send_info (uint8_t * need_redraw);
 
     
     uint32_t playing_playlist;

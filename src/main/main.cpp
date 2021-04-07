@@ -132,14 +132,11 @@ uint32_t init_fs (char (* path)[12], uint32_t len)
 
 uint32_t init_audio (char (* path)[12], uint32_t len)
 {
-    audio_init();
-
     // get the .PLB file names from path directory 
     uint32_t ret = viewer.init(path, len, &audio_ctl);
     if (ret)
     {
         display::error("err init view");
-        audio_destruct();
         viewer.reset();
         return ret;
     }
@@ -207,7 +204,6 @@ int main (void)
         }
 
         main_player();
-        audio_destruct();
         viewer.reset();
     }
 }

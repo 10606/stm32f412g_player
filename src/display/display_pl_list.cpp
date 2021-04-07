@@ -71,7 +71,7 @@ void cur_pl_list (pl_list * pll, uint32_t playing_pl, playlist * pl_p, char to_s
             display_string(4, display::offsets::list + display::offsets::line * i, s_playlist, &font_12, &c_group);
             display_string(4, display::offsets::list + display::offsets::in_line + display::offsets::line * i, empty, &font_12, &c_song);
         }
-        audio_process(need_redraw);
+        audio_ctl.audio_process(need_redraw);
         send_pl_list(s_playlist, selected[i], i);
     }
 }

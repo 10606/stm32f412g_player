@@ -191,7 +191,7 @@ uint32_t get_pcm_sound (file_descriptor * _file, uint8_t * pbuf, uint32_t NbrOfD
                 }
             }
             mad_synth_frame(&mad_data.synth, &mad_data.frame);
-            frames += fill_buffer(&mad_data.frame.header, &mad_data.synth.pcm, pbuf + frames, audio_buffer_size - frames);
+            frames += fill_buffer(&mad_data.frame.header, &mad_data.synth.pcm, pbuf + frames, audio_ctl_t::audio_buffer_size - frames);
         }
         
         if (rb == 0)
