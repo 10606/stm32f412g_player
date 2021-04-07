@@ -1,19 +1,18 @@
 #ifndef VIEW_H
 #define VIEW_H
 
-#include "FAT.h"
 #include <stdint.h>
-#include "play.h"
+#include "playlist.h"
+#include "playlist_view.h"
 #include "pl_list.h"
 #include "audio.h"
 #include "view_states.h"
 #include <optional>
 
-typedef struct view
+struct view
 {
-
     view (audio_ctl_t *);
-    ~view ();
+    ~view () = default;
 
     uint32_t init (char (* path)[12], uint32_t len);
     void display (uint8_t * need_redraw);
@@ -21,7 +20,6 @@ typedef struct view
     uint32_t open_song_not_found (uint8_t direction); // direction == 1 - reverse
     void fake_song_and_playlist ();
 
-    uint32_t process (uint8_t * need_redraw);
     uint32_t process_up (uint8_t * need_redraw);
     uint32_t process_down (uint8_t * need_redraw);
     uint32_t process_up_down (uint8_t * need_redraw, uint8_t direction /* 0 - down, 1 - up */);
@@ -56,10 +54,11 @@ typedef struct view
     state_t old_state;
     state_song_view_t state_song_view;
 
-    playlist_view plv;
-    playlist pl;
-    pl_list pll;
     audio_ctl_t * audio_ctl;
+    pl_list pll;
+    playlist pl;
+    playlist_view plv;
+    
     
 private:
     uint32_t change_volume (uint8_t * need_redraw, int8_t value);
@@ -67,7 +66,7 @@ private:
     uint32_t change_song (uint8_t * need_redraw, uint8_t direction /* 0 - next, 1 - prev */);
     uint32_t play_new_playlist ();
     uint32_t to_playing_playlist (uint8_t * need_redraw);
-} view;
+};
 
 
 struct view_holder

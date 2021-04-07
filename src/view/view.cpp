@@ -17,25 +17,12 @@ view::view (audio_ctl_t * _audio_ctl)
 uint32_t view::init (char (* path)[12], uint32_t len)
 {
     uint32_t ret;
-    ret = init_pl_list(&pll, path, len);
+    ret = pll.init(path, len);
     if (ret)
         return ret;
-
-    ret = plv.init();
-    if (ret)
-        return ret;
-    
-    ret = plv.play(&pl);
-    if (ret)
-        return ret;
-    playing_playlist = selected_playlist;
     return 0;
 }
 
-view::~view ()
-{
-    destroy_pl_list(&pll);
-}
 
 void view::display (uint8_t * need_redraw)
 {
@@ -44,9 +31,9 @@ void view::display (uint8_t * need_redraw)
     char ts_song = (state == state_t::song);
 
     send_state(state);
-    display_playlist(&plv, &pl, ts_playlist, need_redraw);
-    display_pl_list(&pll, playing_playlist, &pl, ts_pl_list, need_redraw);
-    display_song(&pl, audio_ctl, state_song_view, ts_song, (old_state != state_t::song), need_redraw);
+    display::cur_playlist(&plv, &pl, ts_playlist, need_redraw);
+    display::cur_pl_list(&pll, playing_playlist, &pl, ts_pl_list, need_redraw);
+    display::song(&pl, audio_ctl, state_song_view, ts_song, (old_state != state_t::song), need_redraw);
     old_state = state;
 }
 

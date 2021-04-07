@@ -10,8 +10,29 @@
 #define plb_view_cnt (2 * plb_border_cnt + 1)
 #define max_plb_files 25
 
-typedef struct pl_list
+struct pl_list
 {
+    pl_list ();
+    ~pl_list ();
+    
+    uint32_t init (char (* dir_name)[12], size_t len_name);
+    void up ();
+    void down ();
+    void seek (uint32_t pos);
+    uint32_t open_index (playlist_view * plv, uint32_t index, uint32_t * selected_pl);
+    uint32_t open_selected (playlist_view * plv, uint32_t * selected_pl);
+    bool check_near (uint32_t pos);
+
+    uint32_t print 
+    (
+        uint32_t playing_pl,
+        char (* playlist_name)[pl_name_sz + 1], 
+        char (* number)[3 + 1],
+        char (* count)[3 + 1], 
+        char * selected
+    );
+
+    
     char (* root_path)[12];
     uint32_t path_len;
     uint32_t cnt;
@@ -19,26 +40,10 @@ typedef struct pl_list
     char pl_path[max_plb_files][12];
     char pl_name[max_plb_files][pl_name_sz];
     uint32_t pl_songs[max_plb_files];
-} pl_list;
-
-uint32_t init_pl_list (pl_list * pll, char (* dir_name)[12], size_t len_name);
-void destroy_pl_list (pl_list * pll);
-void up_pl_list (pl_list * pll);
-void down_pl_list (pl_list * pll);
-void seek_pl_list (pl_list * pll, uint32_t pos);
-uint32_t open_index_pl_list (pl_list * pll, playlist_view * plv, uint32_t index, uint32_t * selected_pl);
-uint32_t open_selected_pl_list (pl_list * pll, playlist_view * plv, uint32_t * selected_pl);
-char pl_list_check_near (pl_list * pll, uint32_t pos);
-
-uint32_t print_pl_list 
-(
-    pl_list * pll, 
-    uint32_t playing_pl,
-    char (* playlist_name)[pl_name_sz + 1], 
-    char (* number)[3 + 1],
-    char (* count)[3 + 1], 
-    char * selected
-);
+    
+private:
+    void destroy ();
+};
 
 #endif
 

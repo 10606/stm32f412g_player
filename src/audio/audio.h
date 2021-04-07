@@ -20,15 +20,15 @@ enum buffer_state_t
 
 struct audio_ctl_t 
 {
-    file_descriptor audio_file;
-    uint8_t buff[audio_buffer_size];
-    buffer_state_t state;
-    mp3_info info;
     uint32_t audio_freq;
     uint8_t volume;
     bool pause_status;
     bool repeat_mode;
     bool seeked;
+    buffer_state_t state;
+    mp3_info info;
+    file_descriptor audio_file;
+    uint8_t buff[audio_buffer_size];
 };
 extern audio_ctl_t  audio_ctl;
 

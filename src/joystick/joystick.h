@@ -2,6 +2,7 @@
 #define JOYSTICK_H
 
 #include <stdint.h>
+#include "view.h"
 
 enum joystick_buttons
 {
@@ -11,7 +12,7 @@ enum joystick_buttons
     joy_button_right = 3,
     joy_button_center = 4,
     joystick_states_cnt = 5
-}; // WARNING on change: process_view (view * vv, uint8_t * need_redraw)
+};
 
 typedef struct joystick_state_t
 {
@@ -21,6 +22,7 @@ typedef struct joystick_state_t
 } joystick_state_t;
 extern joystick_state_t joystick_state;
 
+uint32_t joystick_check (view & vv, uint8_t * need_redraw);
 void check_buttons ();
 uint8_t check_button_state (uint32_t joy_button);
 

@@ -23,6 +23,7 @@ struct light_playlist
     
 private:
     void copy (light_playlist const &);
+    void init_base ();
 };
 
 #endif

@@ -20,15 +20,16 @@ struct playlist
     void make_fake ();
     bool is_fake ();
 
-    file_descriptor fd;
-    song_header song;
-    playlist_header header;
-    uint32_t path_sz;
     char (*path)[12];
+    uint32_t path_sz;
     uint32_t pos;
+    playlist_header header;
+    song_header song;
+    file_descriptor fd;
     
 private:
-    uint32_t _init_playlist ();
+    void init_base ();
+    uint32_t init ();
     void move (playlist &&);
 };
 

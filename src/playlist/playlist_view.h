@@ -44,9 +44,9 @@ struct playlist_view
     );
 
 
-    light_playlist lpl;
     uint32_t pos_begin;
     uint32_t pos_selected;
+    light_playlist lpl;
     char name_group[playlist_view_cnt][group_name_sz + 1];
     char name_song[playlist_view_cnt][song_name_sz + 1];
     

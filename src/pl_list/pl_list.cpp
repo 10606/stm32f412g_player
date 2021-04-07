@@ -9,26 +9,37 @@
 #include "playlist_view.h"
 #include "playlist_structures.h"
 
-void destroy_pl_list (pl_list * pll)
+pl_list::pl_list () :
+    root_path(nullptr),
+    path_len(0),
+    cnt(0),
+    current_pos(0)
+{}
+
+pl_list::~pl_list ()
 {
-    if (pll->root_path)
-        free(pll->root_path);
-    pll->root_path = 0;
-    pll->path_len = 0;
+    destroy();
 }
 
-uint32_t init_pl_list (pl_list * pll, char (* dir_name)[12], size_t len_name)
+void pl_list::destroy ()
 {
-    pll->cnt = 0;
-    pll->current_pos = 0;
-    pll->path_len = 0;
-    pll->root_path = 0;
-    pll->root_path = (char (*)[12])malloc((len_name + 1) * 12);
-    if (!pll->root_path)
+    free(root_path);
+    root_path = nullptr;
+    path_len = 0;
+}
+
+uint32_t pl_list::init (char (* dir_name)[12], size_t len_name)
+{
+    cnt = 0;
+    current_pos = 0;
+    path_len = 0;
+    root_path = 0;
+    root_path = (char (*)[12])malloc((len_name + 1) * 12);
+    if (!root_path)
         return memory_limit;
-    pll->path_len = len_name + 1;
+    path_len = len_name + 1;
     for (size_t i = 0; i != len_name; ++i)
-        memcpy(pll->root_path[i], dir_name[i], 12);
+        memcpy(root_path[i], dir_name[i], 12);
     
  
     file_descriptor file;
@@ -41,8 +52,8 @@ uint32_t init_pl_list (pl_list * pll, char (* dir_name)[12], size_t len_name)
   
     if (res != 0)
     {
-        pll->cnt = 0;
-        destroy_pl_list(pll);
+        cnt = 0;
+        destroy();
         return res;
     }
     for (;;)
@@ -61,26 +72,24 @@ uint32_t init_pl_list (pl_list * pll, char (* dir_name)[12], size_t len_name)
                     (name[9]  == 'L') && 
                     (name[10] == 'B'))
                 {
-                    memcpy(pll->pl_path[index], name, sizeof(name));
+                    memcpy(pl_path[index], name, sizeof(name));
                     index++;
-                    pll->cnt = index;
+                    cnt = index;
                 }
             }
         }
     }
-    pll->cnt = index;
-    
-    
+    cnt = index;
     
    
-    for (uint32_t i = 0; i != pll->cnt; ++i)
+    for (uint32_t i = 0; i != cnt; ++i)
     {
-        memcpy(pll->root_path[pll->path_len - 1], pll->pl_path[i], 12);
-        res = open(&FAT_info, &file, pll->root_path, pll->path_len);
+        memcpy(root_path[path_len - 1], pl_path[i], 12);
+        res = open(&FAT_info, &file, root_path, path_len);
         if (res != 0)
         {
-            pll->cnt = i;
-            destroy_pl_list(pll);
+            cnt = i;
+            destroy();
             return res;
         }
         
@@ -89,59 +98,59 @@ uint32_t init_pl_list (pl_list * pll, char (* dir_name)[12], size_t len_name)
         res = f_read_all_fixed(&file, (char *)&header, sizeof(header), &br);
         if (res != 0)
         {
-            pll->cnt = i;
-            destroy_pl_list(pll);
+            cnt = i;
+            destroy();
             return res;
         }
-        memcpy(pll->pl_name[i], header.playlist_name, pl_name_sz);
-        pll->pl_songs[i] = header.cnt_songs;
+        memcpy(pl_name[i], header.playlist_name, pl_name_sz);
+        pl_songs[i] = header.cnt_songs;
     }
     return 0;
 }
 
-void up_pl_list (pl_list * pll)
+void pl_list::up ()
 {
-    if (pll->cnt == 0)
+    if (cnt == 0)
         return;
-    pll->current_pos = (pll->current_pos + 1) % pll->cnt;
+    current_pos = (current_pos + 1) % cnt;
 }
 
-void down_pl_list (pl_list * pll)
+void pl_list::down ()
 {
-    if (pll->cnt == 0)
+    if (cnt == 0)
         return;
-    pll->current_pos = (pll->current_pos + pll->cnt - 1) % pll->cnt;
+    current_pos = (current_pos + cnt - 1) % cnt;
 }
 
-void seek_pl_list (pl_list * pll, uint32_t pos)
+void pl_list::seek (uint32_t pos)
 {
-    if (pll->cnt == 0)
+    if (cnt == 0)
         return;
-    pll->current_pos = pos % pll->cnt;
+    current_pos = pos % cnt;
 }
 
-uint32_t open_index_pl_list (pl_list * pll, playlist_view * plv, uint32_t index, uint32_t * selected_pl)
+uint32_t pl_list::open_index (playlist_view * plv, uint32_t index, uint32_t * selected_pl)
 {
-    if (pll->cnt == 0)
+    if (cnt == 0)
         return 0;
     if (*selected_pl == index)
         return 0;
     char old_path [12];
-    memcpy(old_path, pll->root_path[pll->path_len - 1], 12);
-    memcpy(pll->root_path[pll->path_len - 1], pll->pl_path[index], 12);
-    uint32_t ret = plv->open_playlist(pll->root_path, pll->path_len);
+    memcpy(old_path, root_path[path_len - 1], 12);
+    memcpy(root_path[path_len - 1], pl_path[index], 12);
+    uint32_t ret = plv->open_playlist(root_path, path_len);
     if (ret)
     {
-        memcpy(pll->root_path[pll->path_len - 1], old_path, 12);
+        memcpy(root_path[path_len - 1], old_path, 12);
         return ret;
     }
     *selected_pl = index;
     return 0;
 }
 
-uint32_t open_selected_pl_list (pl_list * pll, playlist_view * plv, uint32_t * selected_pl)
+uint32_t pl_list::open_selected (playlist_view * plv, uint32_t * selected_pl)
 {
-    return open_index_pl_list(pll, plv, pll->current_pos, selected_pl);
+    return open_index(plv, current_pos, selected_pl);
 }
 
 void fill_name (char * dst, char * src, uint32_t size)
@@ -158,26 +167,25 @@ void fill_name (char * dst, char * src, uint32_t size)
     dst[size - 1] = 0;
 }
 
-char pl_list_check_near (pl_list * pll, uint32_t pos)
+bool pl_list::check_near (uint32_t pos)
 {
-    if (pll->cnt == 0)
+    if (cnt == 0)
         return 0;
-    if (pos >= pll->cnt)    
+    if (pos >= cnt)    
         return 0;
     
-    return check_near
+    return ::check_near
     (
-        pll->current_pos, 
+        current_pos, 
         pos, 
-        pll->cnt, 
+        cnt, 
         plb_view_cnt, 
         plb_border_cnt
     );
 }
 
-uint32_t print_pl_list 
+uint32_t pl_list::print
 (
-    pl_list * pll, 
     uint32_t playing_pl,
     char (* playlist_name)[pl_name_sz + 1], 
     char (* number)[3 + 1],
@@ -186,21 +194,21 @@ uint32_t print_pl_list
 )
 {
     memset(selected, 0, plb_view_cnt);
-    if (pll->cnt < plb_view_cnt)
+    if (cnt < plb_view_cnt)
     {
-        if (pll->cnt != 0)
+        if (cnt != 0)
         {
-            selected[pll->current_pos] |= 1;
-            if (playing_pl < pll->cnt)
+            selected[current_pos] |= 1;
+            if (playing_pl < cnt)
                 selected[playing_pl] |= 2;
         }
-        for (uint32_t i = 0; i != pll->cnt; ++i)
+        for (uint32_t i = 0; i != cnt; ++i)
         {
-            fill_name(playlist_name[i], pll->pl_name[i], pl_name_sz + 1);
-            snprintf(count[i], sizeof(count[i]), "%3lu", pll->pl_songs[i]);
+            fill_name(playlist_name[i], pl_name[i], pl_name_sz + 1);
+            snprintf(count[i], sizeof(count[i]), "%3lu", pl_songs[i]);
             snprintf(number[i], sizeof(number[i]), "%3lu", (i % 1000));
         }
-        for (uint32_t i = pll->cnt; i != plb_view_cnt; ++i)
+        for (uint32_t i = cnt; i != plb_view_cnt; ++i)
         {
             memset(playlist_name[i], ' ', pl_name_sz);
             playlist_name[i][pl_name_sz] = 0;
@@ -211,29 +219,29 @@ uint32_t print_pl_list
     }
     
     uint32_t index;
-    if (pll->current_pos <= plb_border_cnt) // on top
+    if (current_pos <= plb_border_cnt) // on top
     {
-        selected[pll->current_pos] |= 1;
+        selected[current_pos] |= 1;
         index = 0;
     }
-    else if (pll->current_pos + plb_border_cnt >= pll->cnt) // on bottom
+    else if (current_pos + plb_border_cnt >= cnt) // on bottom
     {
-        selected[pll->cnt - plb_view_cnt + pll->current_pos] |= 1;
-        index = pll->cnt - plb_view_cnt;
+        selected[cnt - plb_view_cnt + current_pos] |= 1;
+        index = cnt - plb_view_cnt;
     }
     else // on middle
     {
         selected[plb_border_cnt] |= 1;
-        index = pll->current_pos - plb_border_cnt ;
+        index = current_pos - plb_border_cnt ;
     }
 
-    if (pl_list_check_near(pll, playing_pl))
+    if (check_near(playing_pl))
         selected[playing_pl - index] |= 2;
     
     for (uint32_t i = 0; i != plb_view_cnt; ++i)
     {
-        fill_name(playlist_name[i], pll->pl_name[i], pl_name_sz + 1);
-        snprintf(count[i], sizeof(count[i]), "%3lu", pll->pl_songs[index + i]);
+        fill_name(playlist_name[i], pl_name[i], pl_name_sz + 1);
+        snprintf(count[i], sizeof(count[i]), "%3lu", pl_songs[index + i]);
         snprintf(number[i], sizeof(number[i]), "%3lu", (index + i) % 1000);
     }
     return 0;

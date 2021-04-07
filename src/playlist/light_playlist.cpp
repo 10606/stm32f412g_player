@@ -25,20 +25,24 @@ uint32_t light_playlist::next ()
         return read_song(&song, &fd);
 }
     
-light_playlist::light_playlist ()
-{
-    init_fake_file_descriptor(&fd);
-    open_file();
-}
-
-uint32_t light_playlist::open_file ()
+void light_playlist::init_base ()
 {
     pos = 0;
     memset(song.song_name, ' ', song_name_sz);
     memset(song.group_name, ' ', group_name_sz);
     header.cnt_songs = 0;
     memset(header.playlist_name, ' ', pl_name_sz);
+}
 
+light_playlist::light_playlist ()
+{
+    init_fake_file_descriptor(&fd);
+    init_base();
+}
+
+uint32_t light_playlist::open_file ()
+{
+    init_base();
     if (is_fake_file_descriptor(&fd))
         return 0;
     
@@ -62,10 +66,10 @@ void light_playlist::copy (light_playlist const & other)
     memcpy(&header, &other.header, sizeof(header));
     memcpy(&song, &other.song, sizeof(song));
     copy_file_descriptor(&fd, &other.fd);
+    pos = other.pos;
 }
 
-light_playlist::light_playlist (light_playlist const & other) :
-    pos(other.pos)
+light_playlist::light_playlist (light_playlist const & other)
 {
     copy(other);
 }
@@ -73,7 +77,6 @@ light_playlist::light_playlist (light_playlist const & other) :
 light_playlist & light_playlist::operator = (light_playlist const & other)
 {
     copy(other);
-    pos = other.pos;
     return *this;
 }
 

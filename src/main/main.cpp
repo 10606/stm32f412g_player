@@ -57,7 +57,6 @@ void Error_Handler (void);
 #include "display.h"
 #include "player.h"
 #include "audio.h"
-#include "play.h"
 #include "view.h"
 
 FAT_info_t FAT_info;
@@ -112,20 +111,20 @@ void init_base () //joystick, led, LCD
     }
     
     display_init();
-    display_start_image();
+    display::start_image();
 }
 
 uint32_t init_fs (char (* path)[12], uint32_t len)
 {
     while (BSP_SD_IsDetected() != SD_PRESENT)
-        display_start_image();
+        display::start_image();
 
     while (sd_card_init())
     {}
     // open filesystem
     if (init_fatfs(&FAT_info, 512, start_partition_sector, read_sector))
     {
-        display_error("err init fatfs");
+        display::error("err init fatfs");
         return 2;
     }
     return 0;
@@ -139,7 +138,7 @@ uint32_t init_audio (char (* path)[12], uint32_t len)
     uint32_t ret = viewer.init(path, len, &audio_ctl);
     if (ret)
     {
-        display_error("err init view");
+        display::error("err init view");
         audio_destruct();
         viewer.reset();
         return ret;
@@ -201,27 +200,15 @@ int main (void)
     init_timer();
     while (1)
     {
-        try
+        char path[10][12] = {"MEDIA      "};
+        if (init(path, 1))
         {
-            char path[10][12] = {"MEDIA      "};
-            if (init(path, 1))
-            {
-                continue;
-            }
+            continue;
+        }
 
-            try
-            {
-                main_player();
-            }
-            catch (...)
-            {
-                audio_destruct();
-                viewer.reset();
-            }
-        }
-        catch (...)
-        {
-        }
+        main_player();
+        audio_destruct();
+        viewer.reset();
     }
 }
 

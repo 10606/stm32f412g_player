@@ -44,7 +44,7 @@ static uint32_t get_data (file_descriptor * _file, uint8_t * buffer, uint32_t si
             return 0;
         }
         --tried;
-        display_error("err read");
+        display::error("err read");
     }
     return total_read;
 }

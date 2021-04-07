@@ -5,7 +5,10 @@
 #include "audio.h"
 #include "usb_send.h"
 
-void display_cur_song (playlist * pl_p, char to_screen, uint8_t * need_redraw)
+namespace display
+{
+
+void cur_song (playlist * pl_p, char to_screen, uint8_t * need_redraw)
 {
     char cur_song_name[song_name_sz + 1];
     char cur_group_name[group_name_sz + 1];
@@ -16,19 +19,19 @@ void display_cur_song (playlist * pl_p, char to_screen, uint8_t * need_redraw)
     color_t yb = {lcd_color_yellow, lcd_color_blue};
     if (to_screen)
     {
-        display_string(10, song_name_offset, cur_group_name, &font_16, &yb);
-        display_string(10, song_name_offset + in_song_name_offset, cur_song_name, &font_16, &yb);
+        display_string(10, display::offsets::song_name, cur_group_name, &font_16, &yb);
+        display_string(10, display::offsets::song_name + display::offsets::in_song_name, cur_song_name, &font_16, &yb);
         audio_process(need_redraw);
     }
     send_cur_song(cur_group_name, cur_song_name);
 }
 
-void display_playlist (playlist_view * plv, playlist * pl_p, char to_screen, uint8_t * need_redraw)
+void cur_playlist (playlist_view * plv, playlist * pl_p, char to_screen, uint8_t * need_redraw)
 {
-    uint32_t y_pos = list_offset + line_offset * playlist_view_cnt;
+    uint32_t y_pos = display::offsets::list + display::offsets::line * playlist_view_cnt;
     if (to_screen)
         fill_rect(0, y_pos, 240, 240 - y_pos, lcd_color_white);
-    display_cur_song(pl_p, to_screen, need_redraw);
+    cur_song(pl_p, to_screen, need_redraw);
     HAL_Delay(1);
     audio_process(need_redraw);
     
@@ -84,11 +87,13 @@ void display_playlist (playlist_view * plv, playlist * pl_p, char to_screen, uin
         color_t c_song = {text_color_song, back_color_song};
         if (to_screen)
         {
-            display_string(4, list_offset + line_offset * i, s_group, &font_12, &c_group);
-            display_string(4, list_offset + in_line_offset + line_offset * i, s_song, &font_12, &c_song);
+            display_string(4, display::offsets::list + display::offsets::line * i, s_group, &font_12, &c_group);
+            display_string(4, display::offsets::list + display::offsets::in_line + display::offsets::line * i, s_song, &font_12, &c_song);
         }
         audio_process(need_redraw);
         send_displayed_song(s_group, s_song, selected[i], i);
     }
+}
+
 }
 

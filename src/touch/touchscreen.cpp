@@ -1,31 +1,34 @@
 #include "touchscreen.h"
 
-#include "util.h"
 #include "moving.h"
 #include "ts_touchscreen.h"
 #include <stdlib.h>
 
-touchscreen_ft6x06 ts_ft6x06;
-
 uint32_t touch_tick_counter = 0;
 
 //TODO calibrate
-const int32_t e_left = 0;
-const int32_t e_right = 240;
-const int32_t e_top = 30;
-const int32_t e_bottom = 190;
+struct e
+{
+    static const int32_t left = 0;
+    static const int32_t right = 240;
+    static const int32_t top = 30;
+    static const int32_t bottom = 190;
 
-//TODO calibrate
-const int32_t e_x_offset = 5;
-const int32_t e_y_offset = 5;
-const int32_t e_x_soft_offset = 2;
-const int32_t e_y_soft_offset = 2;
-const int32_t e_direction_likelyhood_v = 4;
-const int32_t e_direction_likelyhood_d = 3;
+    static const constexpr point offset = {5, 5};
+    static const constexpr point soft_offset = {2, 2};
+    static const constexpr point direction_likelyhood = {4, 3}; // (x / y)
 
-const uint32_t e_speed_multiplier = 1600;
-const int32_t e_min_speed_cnt = 4;
-const uint32_t e_max_speed_cnt = 20;
+    static const  int32_t min_speed_cnt = 4;
+    static const uint32_t max_speed_cnt = 20;
+};
+
+static inline int32_t nearest_to_zero (int32_t a, int32_t b)
+{
+    if (abs(a) < abs(b))
+        return a;
+    else
+        return b;
+}
 
 static inline int32_t clump (int32_t a)
 {
@@ -38,173 +41,178 @@ static inline int32_t clump (int32_t a)
 
 static inline int32_t normalize_x (int32_t x)
 {
-    int32_t answer = (x - e_left) * 240 / (e_right - e_left);
+    int32_t answer = (x - e::left) * 240 / (e::right - e::left);
     return clump(answer);
 }
 
 static inline int32_t normalize_y (int32_t y)
 {
-    int32_t answer = (y - e_top) * 240 / (e_bottom - e_top);
+    int32_t answer = (y - e::top) * 240 / (e::bottom - e::top);
     return clump(answer);
 }
 
-static inline uint8_t is_delta_moved (int32_t delta_x, int32_t delta_y)
+static inline uint8_t is_delta_moved (point delta)
 {
-    return  (abs(delta_x) >= e_x_soft_offset) ||
-            (abs(delta_y) >= e_y_soft_offset);
+    return  (abs(delta.x) >= e::soft_offset.x) ||
+            (abs(delta.y) >= e::soft_offset.y);
 }
 
-static inline uint8_t is_moved (old_touch_state const * ots, int32_t x, int32_t y)
+touch_state::touch_state () :
+    press(0),
+    moved(0)
 {
-    return  (abs(ots->old_x - x) >= e_x_offset) ||
-            (abs(ots->old_y - y) >= e_y_offset);
+    touchscreen_ft6x06::init();
 }
 
-static inline direction_t get_direction (old_touch_state const * ots, int32_t x, int32_t y)
+uint8_t touch_state::is_moved (point p) const
+{
+    return  (abs(old.x - p.x) >= e::offset.x) ||
+            (abs(old.y - p.y) >= e::offset.y);
+}
+
+direction_t touch_state::get_direction (point p) const
 {
     //if (!is_moved(ots, x, y))
-    //    return NON_DIRECTION;
-    int32_t diff_x = x - ots->old_x; 
-    int32_t diff_y = y - ots->old_y; 
-    if (abs(diff_x) * e_direction_likelyhood_v <= abs(diff_y) * e_direction_likelyhood_d)
+    //    return direction_t::non;
+    point diff = {p.x - old.x, p.y - old.y}; 
+    if (abs(diff.x) * e::direction_likelyhood.x <= 
+        abs(diff.y) * e::direction_likelyhood.y)
     {
-        if (diff_y == 0)
-            return NON_DIRECTION;
-        if (diff_y < 0)
-            return UP_DIRECTION;
+        if (diff.y == 0)
+            return direction_t::non;
+        if (diff.y < 0)
+            return direction_t::up;
         else
-            return DOWN_DIRECTION;
+            return direction_t::down;
     }
 
-    if (abs(diff_y) * e_direction_likelyhood_v <= abs(diff_x) * e_direction_likelyhood_d)
+    if (abs(diff.y) * e::direction_likelyhood.x <= 
+        abs(diff.x) * e::direction_likelyhood.y)
     {
-        if (diff_x == 0)
-            return NON_DIRECTION;
-        if (diff_x < 0)
-            return LEFT_DIRECTION;
+        if (diff.x == 0)
+            return direction_t::non;
+        if (diff.x < 0)
+            return direction_t::left;
         else
-            return RIGHT_DIRECTION;
+            return direction_t::right;
     }
 
-    return NON_DIRECTION;
+    return direction_t::non;
 }
 
 
-static void unpressed (old_touch_state * ots, view * vv, uint8_t * need_redraw)
+void touch_state::unpressed (view * vv, uint8_t * need_redraw)
 {
-    if (!ots->pressed)
+    if (!press)
         return;
 
     int32_t multiplier = 16 / touch_tick_counter;
-    ots->dolg_x *= multiplier;
-    ots->dolg_y *= multiplier;
-    if (abs(ots->dolg_x) / e_x_offset <= e_min_speed_cnt)
-        ots->dolg_x = 0;
-    if (abs(ots->dolg_y) / e_y_offset <= e_min_speed_cnt)
-        ots->dolg_y = 0;
-    char flag = 1;
-    uint32_t offset;
+    dolg.x *= multiplier;
+    dolg.y *= multiplier;
+    if (abs(dolg.x) / e::offset.x <= e::min_speed_cnt)
+        dolg.x = 0;
+    if (abs(dolg.y) / e::offset.y <= e::min_speed_cnt)
+        dolg.y = 0;
+    bool flag = 1;
  
-    direction_t direction = get_direction(ots, ots->old_x + ots->dolg_x, ots->old_y  + ots->dolg_y);
+    direction_t direction = get_direction({old.x + dolg.x, old.y  + dolg.y});
     
-    for (uint32_t cnt = 0; cnt < e_max_speed_cnt && flag; ++cnt)
+    for (uint32_t cnt = 0; cnt < e::max_speed_cnt && flag; ++cnt)
     {
-        if (!is_delta_moved(ots->dolg_x, ots->dolg_y))
+        if (!is_delta_moved(dolg))
             break;
         flag = 0;
+        int32_t * dolg_v;
         switch (direction)
         {
-        case UP_DIRECTION:
-        case DOWN_DIRECTION:
-            offset = do_move[direction](ots, abs(ots->dolg_y), 1, vv, need_redraw);
-            ots->dolg_y -= nearest_to_zero(ots->dolg_y, offset);
-            ots->moved = 1;
-            flag = 1;
+        case direction_t::non:
+            continue;
+        case direction_t::up:
+        case direction_t::down:
+            dolg_v = &dolg.y;
             break;
-        case LEFT_DIRECTION:
-        case RIGHT_DIRECTION:
-            offset = do_move[direction](ots, abs(ots->dolg_x), 1, vv, need_redraw);
-            ots->dolg_x -= nearest_to_zero(ots->dolg_x, offset);
-            ots->moved = 1;
-            flag = 1;
-            break;
-        case NON_DIRECTION:
+        case direction_t::left:
+        case direction_t::right:
+            dolg_v = &dolg.x;
             break;
         }
+        uint32_t offset = state.do_move(direction, abs(*dolg_v), 1, vv, need_redraw);
+        *dolg_v -= nearest_to_zero(*dolg_v, offset);
+        moved = 1;
+        flag = 1;
     }
 
-    if (!ots->moved)
-        touch_region(ots, vv, need_redraw);
+    if (!moved)
+        state.touch_region(vv, need_redraw);
 
-    ots->pressed = 0;
-    ots->moved = 0;
+    press = 0;
+    moved = 0;
 }
 
-static void pressed (int32_t x1, int32_t y1, old_touch_state * ots, view * vv, uint8_t * need_redraw)
+void touch_state::pressed (point p, view * vv, uint8_t * need_redraw)
 {
-    if (ots->pressed)
+    if (press)
     {
         int32_t offset;
-        direction_t direction = get_direction(ots, x1, y1);
+        direction_t direction = get_direction(p);
         
-        if (is_moved(ots, x1, y1))
-            ots->moved = 1;
+        if (is_moved(p))
+            moved = 1;
         else
-            direction = NON_DIRECTION;
+            direction = direction_t::non;
 
         switch (direction)
         {
-        case UP_DIRECTION:
-        case DOWN_DIRECTION:
-            offset = do_move[direction](ots, abs(y1 - ots->old_y), 0, vv, need_redraw);
-            ots->old_x = x1;
-            ots->old_y += nearest_to_zero(offset, y1 - ots->old_y);
-            ots->dolg_x = 0;
-            ots->dolg_y = offset;
-            ots->moved = 1;
+        case direction_t::non:
+            dolg.x = p.x - old.x;
+            dolg.y = p.y - old.y;
+            return;
+        case direction_t::up:
+        case direction_t::down:
+            offset = state.do_move(direction, abs(p.y - old.y), 0, vv, need_redraw);
+            old.x = p.x;
+            old.y += nearest_to_zero(offset, p.y - old.y);
+            dolg.x = 0;
+            dolg.y = offset;
             break;
-        case LEFT_DIRECTION:
-        case RIGHT_DIRECTION:
-            offset = do_move[direction](ots, abs(x1 - ots->old_x), 0, vv, need_redraw);
-            ots->old_x += nearest_to_zero(offset, x1 - ots->old_x);
-            ots->old_y = y1;
-            ots->dolg_x = offset;
-            ots->dolg_y = 0;
-            ots->moved = 1;
-            break;
-        case NON_DIRECTION:
-            ots->dolg_x = x1 - ots->old_x;
-            ots->dolg_y = y1 - ots->old_y;
+        case direction_t::left:
+        case direction_t::right:
+            offset = state.do_move(direction, abs(p.x - old.x), 0, vv, need_redraw);
+            old.x += nearest_to_zero(offset, p.x - old.x);
+            old.y = p.y;
+            dolg.x = offset;
+            dolg.y = 0;
             break;
         }
+        moved = 1;
     }
     else
     {
-        ots->start_x = x1;
-        ots->start_y = y1;
-        ots->old_x = x1;
-        ots->old_y = y1;
-        ots->dolg_x = 0;
-        ots->dolg_y = 0;
-        ots->direction_mask = 0;
-        ots->pressed = 1;
+        state.start = p;
+        old.x = p.x;
+        old.y = p.y;
+        dolg.x = 0;
+        dolg.y = 0;
+        state.direction_mask = 0;
+        press = 1;
         touch_tick_counter = 0;
     }
 }
 
-void touch_check (old_touch_state * ots, view * vv, uint8_t * need_redraw)
+void touch_state::touch_check (view * vv, uint8_t * need_redraw)
 {
     TS_StateTypeDef ts_state = {0};
-    ts_ft6x06.ts_touch_detect(&ts_state);
+    touchscreen_ft6x06::ts_touch_detect(&ts_state);
     if (ts_state.touchDetected)
     {
-        int32_t x1 = normalize_x(ts_state.touchX[0]);
-        int32_t y1 = normalize_y(ts_state.touchY[0]);
-        pressed(x1, y1, ots, vv, need_redraw);
+        point p;
+        p.x = normalize_x(ts_state.touchX[0]);
+        p.y = normalize_y(ts_state.touchY[0]);
+        pressed(p, vv, need_redraw);
     }
     else
     {
-        unpressed(ots, vv, need_redraw);
+        unpressed(vv, need_redraw);
     }
 }
 

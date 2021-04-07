@@ -3,59 +3,59 @@
 
 #include <stdint.h>
 #include "view.h"
-#include "touchscreen.h"
 
-void touch_region 
-(
-    old_touch_state * ots,
-    view * vv, 
-    uint8_t * need_redraw
-);
+enum class direction_t
+{
+    non   = 0,
+    left  = 1,
+    right = 2,
+    up    = 3,
+    down  = 4
+};
 
-int32_t move_left  
-(
-    old_touch_state * ots,
-    int32_t offset, 
-    char speed, 
-    view * vv, 
-    uint8_t * need_redraw
-);
+struct point
+{
+    int32_t x,y;
+};
 
-int32_t move_right 
-(
-    old_touch_state * ots,
-    int32_t offset, 
-    char speed, 
-    view * vv, 
-    uint8_t * need_redraw
-);
+struct touch_processing
+{
+    void touch_region (view * vv, uint8_t * need_redraw);
+    int32_t move_left (int32_t offset, char speed, view * vv, uint8_t * need_redraw);
+    int32_t move_right (int32_t offset, char speed, view * vv, uint8_t * need_redraw);
+    int32_t move_up (int32_t offset, char speed, view * vv, uint8_t * need_redraw);
+    int32_t move_down (int32_t offset, char speed, view * vv, uint8_t * need_redraw);
 
-int32_t move_up    
-(
-    old_touch_state * ots,
-    int32_t offset, 
-    char speed, 
-    view * vv, 
-    uint8_t * need_redraw
-);
-
-int32_t move_down  
-(
-    old_touch_state * ots,
-    int32_t offset, 
-    char speed, 
-    view * vv, 
-    uint8_t * need_redraw
-);
-
-extern int32_t (* const do_move[5]) 
-(
-    old_touch_state * ots,
-    int32_t offset, 
-    char speed, 
-    view * vv, 
-    uint8_t * need_redraw
-);
+    int32_t do_move 
+    (
+        direction_t direction,
+        int32_t offset, 
+        char speed, 
+        view * vv, 
+        uint8_t * need_redraw
+    );
+    
+    point start;
+    uint32_t direction_mask;
+    
+private:
+    int32_t move_left_right
+    (
+        int32_t offset, 
+        char speed, 
+        view * vv, 
+        uint8_t * need_redraw,
+        uint8_t direction // 0 left, 1 - right
+    );
+    int32_t move_up_down
+    (
+        int32_t offset, 
+        char speed, 
+        view * vv, 
+        uint8_t * need_redraw,
+        uint8_t direction // 0 - down, 1 - up 
+    );
+};
 
 #endif
 

@@ -15,7 +15,7 @@ void main_player ()
         return;
   
     uint8_t need_redraw = 1;
-    old_touch_state touch_state = {0};
+    touch_state touch;
     
     while (1)
     {
@@ -25,11 +25,11 @@ void main_player ()
         }
         check_buttons();
       
-        if ((ret = viewer().process(&need_redraw)))
+        if ((ret = joystick_check(viewer(), &need_redraw)))
             ;//break;
         if (usb_process(&viewer(), &need_redraw))
             ; //break;
-        touch_check(&touch_state, &viewer(), &need_redraw);
+        touch.touch_check(&viewer(), &need_redraw);
         
         if (need_redraw)
         {

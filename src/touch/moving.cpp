@@ -1,30 +1,30 @@
 #include "moving.h"
 
-#include "touchscreen.h"
 #include "view.h"
 #include "display.h"
 
-const int32_t offset_limit = line_offset - 5;
-const int32_t offset_add = line_offset - 5;
-const int32_t offset_limit_speed = 10;
-const int32_t offset_add_speed = 10;
+struct offsets
+{
+    static const int32_t limit = display::offsets::line - 5;
+    static const int32_t add = display::offsets::line - 5;
+    static const int32_t limit_speed = 10;
+    static const int32_t add_speed = 10;
+};
 
-void touch_region 
+void touch_processing::touch_region 
 (
-    old_touch_state * ots,
     view * vv, 
     uint8_t * need_redraw
 )
 {
-    if (ots->start_y < static_cast <int32_t> (list_offset))
+    if (start.y < static_cast <int32_t> (display::offsets::list))
         vv->play_pause(need_redraw);
     else
         vv->process_right(need_redraw);
 }
 
-int32_t move_left_right
+int32_t touch_processing::move_left_right
 (
-    old_touch_state * ots,
     int32_t offset, 
     char speed, 
     view * vv, 
@@ -32,55 +32,36 @@ int32_t move_left_right
     uint8_t direction // 0 left, 1 - right
 )
 {
-    uint32_t (view::* process_view_do[2]) (uint8_t * need_redraw) =
+    static uint32_t (view::* process_view_do[2]) (uint8_t * need_redraw) =
     {
         &view::process_center,
         &view::process_left
     };
-    enum direction_t dir[2] = 
-    {
-        LEFT_DIRECTION,
-        RIGHT_DIRECTION
-    };
+    static uint8_t dir[2] = {0, 1};
     
-    if ((ots->direction_mask & (1 << dir[direction])) || 
-        (!speed && (offset < offset_limit)) ||
-        (speed && (offset < offset_limit_speed)))
+    if ((direction_mask & (1 << dir[direction])) || 
+        (!speed && (offset < offsets::limit)) ||
+        (speed && (offset < offsets::limit_speed)))
         return 0;
-    ots->direction_mask = 1 << dir[direction];
+    direction_mask = 1 << dir[direction];
     (vv->*process_view_do[direction])(need_redraw);
     int32_t ans;
-    ans = speed? offset_add_speed : offset_add;
+    ans = speed? offsets::add_speed : offsets::add;
     return direction? ans : -ans;
 }
 
-int32_t move_left 
-(
-    old_touch_state * ots,
-    int32_t offset, 
-    char speed, 
-    view * vv, 
-    uint8_t * need_redraw
-)
+int32_t touch_processing::move_left (int32_t offset, char speed, view * vv, uint8_t * need_redraw)
 {
-    return move_left_right(ots, offset, speed, vv, need_redraw, 0);
+    return move_left_right(offset, speed, vv, need_redraw, 0);
 }
 
-int32_t move_right 
-(
-    old_touch_state * ots,
-    int32_t offset,
-    char speed, 
-    view * vv,
-    uint8_t * need_redraw
-)
+int32_t touch_processing::move_right (int32_t offset, char speed, view * vv, uint8_t * need_redraw)
 {
-    return move_left_right(ots, offset, speed, vv, need_redraw, 1);
+    return move_left_right(offset, speed, vv, need_redraw, 1);
 }
 
-int32_t move_up_down
+int32_t touch_processing::move_up_down
 (
-    old_touch_state * ots,
     int32_t offset, 
     char speed, 
     view * vv, 
@@ -88,55 +69,62 @@ int32_t move_up_down
     uint8_t direction // 0 - down, 1 - up 
 )
 {
-    if ((!speed && offset < offset_limit) ||
-        (speed && (offset < offset_limit_speed)))
+    if ((!speed && offset < offsets::limit) ||
+        (speed && (offset < offsets::limit_speed)))
         return 0;
-    ots->direction_mask = 0;
+    direction_mask = 0;
     int32_t ans;
     // reverse direction on pl_list and playlist
     uint8_t process_view_direction = (vv->state == state_t::song)? direction : 1 - direction;
     vv->process_up_down(need_redraw, process_view_direction);
-    ans = speed? offset_add_speed : offset_add;
+    ans = speed? offsets::add_speed : offsets::add;
     return direction? -ans : ans;
 }
 
-int32_t move_up 
+int32_t touch_processing::move_up (int32_t offset, char speed, view * vv, uint8_t * need_redraw)
+{
+    return move_up_down(offset, speed, vv, need_redraw, 1);
+}
+
+int32_t touch_processing::move_down (int32_t offset, char speed, view * vv, uint8_t * need_redraw)
+{
+    return move_up_down(offset, speed, vv, need_redraw, 0);
+}
+
+int32_t touch_processing::do_move 
 (
-    old_touch_state * ots,
+    direction_t direction,
     int32_t offset, 
     char speed, 
     view * vv, 
     uint8_t * need_redraw
 )
 {
-    return move_up_down(ots, offset, speed, vv, need_redraw, 1);
-}
+    int32_t (touch_processing::* do_move_impl) 
+    (
+        int32_t offset, 
+        char speed, 
+        view * vv, 
+        uint8_t * need_redraw
+    );
 
-int32_t move_down 
-(
-    old_touch_state * ots,
-    int32_t offset, 
-    char speed, 
-    view * vv, 
-    uint8_t * need_redraw
-)
-{
-    return move_up_down(ots, offset, speed, vv, need_redraw, 0);
+    switch (direction)
+    {
+    case direction_t::left:
+        do_move_impl = &touch_processing::move_left;
+        break;
+    case direction_t::right:
+        do_move_impl = &touch_processing::move_right;
+        break;
+    case direction_t::up:
+        do_move_impl = &touch_processing::move_up;
+        break;
+    case direction_t::down:
+        do_move_impl = &touch_processing::move_down;
+        break;
+    default:
+        return 0;
+    }
+    return (this->*do_move_impl)(offset, speed, vv, need_redraw);
 }
-
-int32_t (* const do_move[5]) 
-(
-    old_touch_state * ots,
-    int32_t offset, 
-    char speed, 
-    view * vv, 
-    uint8_t * need_redraw
-) = 
-{
-    move_left,  // NON_DIRECTION
-    move_left,  // LEFT_DIRECTION
-    move_right, // RIGHT_DIRECTION
-    move_up,    // UP_DIRECTION
-    move_down   // DOWN_DIRECTION 
-};
 

@@ -19,7 +19,7 @@ uint32_t audio_start ()
     if (ret)
     {
         deinit_mad();
-        display_error("err open song at start");
+        display::error("err open song at start");
         return ret;
     }
 
@@ -37,11 +37,11 @@ void audio_init ()
     audio_ctl.pause_status = 0; /* 0 when audio is running, 1 when Pause is on */
     audio_ctl.volume = audio_default_volume;
   
-    display_song_hint();
+    display::song_hint();
     init_fake_file_descriptor(&audio_ctl.audio_file);
   
     if (BSP_AUDIO_OUT_Init(OUTPUT_DEVICE_HEADPHONE, audio_ctl.volume, audio_ctl.audio_freq) != 0)
-        display_error("err init audio codec");
+        display::error("err init audio codec");
 }
 
 void audio_destruct ()
@@ -126,7 +126,7 @@ static inline void display_time ()
         total_time.sec,
         total_time.ms
     );
-    display_string_center_c(0, time_offset, str, &font_12, lcd_color_blue, lcd_color_white);
+    display_string_center_c(0, display::offsets::time, str, &font_12, lcd_color_blue, lcd_color_white);
 }
 
 static inline uint32_t new_song_or_repeat ()
@@ -141,7 +141,7 @@ static inline uint32_t new_song_or_repeat ()
         uint32_t ret;
         if ((ret = f_seek(&audio_ctl.audio_file, audio_ctl.info.offset)))
         {
-            display_error("err seek");
+            display::error("err seek");
             return ret;
         }
         audio_ctl.seeked = 1;
@@ -151,14 +151,14 @@ static inline uint32_t new_song_or_repeat ()
         uint32_t ret;
         if ((ret = viewer().pl.next()))
         {
-            display_error("err get next song");
+            display::error("err get next song");
             return ret;
         }
         if ((ret = viewer().open_song_not_found(0)))
         {
             viewer().fake_song_and_playlist();
             memset(audio_ctl.buff, 0, audio_buffer_size);
-            display_error("err open song");
+            display::error("err open song");
             return ret;
         }
     }
@@ -194,6 +194,6 @@ void BSP_AUDIO_OUT_HalfTransfer_CallBack (void)
 
 void BSP_AUDIO_OUT_Error_CallBack (void)
 {
-    display_error("err audio out");
+    display::error("err audio out");
 }
 

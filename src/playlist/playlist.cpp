@@ -75,7 +75,7 @@ uint32_t playlist::prev ()
         return seek(pos - 1);
 }
     
-uint32_t playlist::_init_playlist ()
+void playlist::init_base ()
 {
     path = 0;
     path_sz = 0;
@@ -84,7 +84,10 @@ uint32_t playlist::_init_playlist ()
     memset(song.group_name, ' ', group_name_sz);
     header.cnt_songs = 0;
     memset(header.playlist_name, ' ', pl_name_sz);
+}
  
+uint32_t playlist::init ()
+{
     if (is_fake_file_descriptor(&fd))
         return 0;
     
@@ -110,7 +113,7 @@ uint32_t playlist::_init_playlist ()
 playlist::playlist ()
 {
     init_fake_file_descriptor(&fd);
-    _init_playlist();
+    init_base();
 }
 
 uint32_t playlist::set_file (file_descriptor * _fd, uint32_t pos_selected)
@@ -118,7 +121,8 @@ uint32_t playlist::set_file (file_descriptor * _fd, uint32_t pos_selected)
     uint32_t ret;
     playlist old_pl(std::move(*this));
     copy_file_descriptor_seek_0(&fd, _fd);
-    if ((ret = _init_playlist()) == 0)
+    init_base();
+    if ((ret = init()) == 0)
     {
         if ((ret = seek(pos_selected)) == 0)
             return 0;
@@ -133,8 +137,8 @@ void playlist::move (playlist && other)
     copy_file_descriptor(&fd, &other.fd);
     init_fake_file_descriptor(&other.fd);
     
-    memcpy(&header, &other.header, sizeof(playlist_header));
-    memcpy(&song, &other.song, sizeof(song_header));
+    memmove(&header, &other.header, sizeof(playlist_header));
+    memmove(&song, &other.song, sizeof(song_header));
 }
 
 playlist::playlist (playlist && src)
@@ -161,7 +165,7 @@ void playlist::make_fake ()
 {
     free(path);
     init_fake_file_descriptor(&fd);
-    _init_playlist();
+    init_base();
 }
 
 playlist::~playlist ()

@@ -6,12 +6,15 @@
 #include "usb_send.h"
 #include <stdint.h>
 
-void display_pl_list (pl_list * pll, uint32_t playing_pl, playlist * pl_p, char to_screen, uint8_t * need_redraw)
+namespace display
 {
-    uint32_t y_pos = list_offset + line_offset * plb_view_cnt;
+
+void cur_pl_list (pl_list * pll, uint32_t playing_pl, playlist * pl_p, char to_screen, uint8_t * need_redraw)
+{
+    uint32_t y_pos =display::offsets:: list +display::offsets:: line * plb_view_cnt;
     if (to_screen)
         fill_rect(0, y_pos, 240, 240 - y_pos, lcd_color_white);
-    display_cur_song(pl_p, to_screen, need_redraw);
+    cur_song(pl_p, to_screen, need_redraw);
     
     char playlist_name[plb_view_cnt][pl_name_sz + 1];
     char number[plb_view_cnt][3 + 1];
@@ -26,7 +29,7 @@ void display_pl_list (pl_list * pll, uint32_t playing_pl, playlist * pl_p, char 
     memset(empty, ' ', sizeof(empty));
     empty[count_offset + 3] = 0;
     
-    print_pl_list(pll, playing_pl, playlist_name, number, count, selected);
+    pll->print(playing_pl, playlist_name, number, count, selected);
     
     for (uint32_t i = 0; i != plb_view_cnt; ++i)
     {
@@ -65,11 +68,13 @@ void display_pl_list (pl_list * pll, uint32_t playing_pl, playlist * pl_p, char 
         color_t c_song = {text_color_song, back_color_song};
         if (to_screen)
         {
-            display_string(4, list_offset + line_offset * i, s_playlist, &font_12, &c_group);
-            display_string(4, list_offset + in_line_offset + line_offset * i, empty, &font_12, &c_song);
+            display_string(4, display::offsets::list + display::offsets::line * i, s_playlist, &font_12, &c_group);
+            display_string(4, display::offsets::list + display::offsets::in_line + display::offsets::line * i, empty, &font_12, &c_song);
         }
         audio_process(need_redraw);
         send_pl_list(s_playlist, selected[i], i);
     }
+}
+
 }
 

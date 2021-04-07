@@ -120,7 +120,7 @@ MCU = $(CPU) -mthumb $(FPU) $(FLOAT-ABI)
 # compile gcc flags
 ASFLAGS = $(MCU) $(AS_DEFS) $(AS_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections
 
-CFLAGS = $(MCU) $(C_DEFS) $(C_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections -fexceptions
+CFLAGS = $(MCU) $(C_DEFS) $(C_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections -fno-exceptions
 
 ifeq ($(DEBUG), 1)
 CFLAGS += -g -gdwarf-2
@@ -141,7 +141,7 @@ LDSCRIPT = STM32F412ZGTx_FLASH.ld
 LIBS = -lc -lm -lnosys -lstdc++
 LIBDIR = 
 #LDFLAGS = $(MCU) -specs=nano.specs -specs=nosys.specs $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections
-LDFLAGS = $(MCU) -specs=nano.specs -specs=nosys.specs -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections -flto -fexceptions -Os -fno-rtti
+LDFLAGS = $(MCU) -specs=nano.specs -specs=nosys.specs -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections -flto -fno-exceptions -Os -fno-rtti
 
 # default action: build all
 all: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).hex $(BUILD_DIR)/$(TARGET).bin
