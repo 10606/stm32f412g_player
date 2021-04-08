@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.0)
 project(convert_playlist VERSION 1.0 LANGUAGES C CXX)
 
 set(release_flags
-    "-O3 -flto -march=native -Wall -ftemplate-depth=10000 -std=c++20"
+    "-Os -flto -march=native -Wall -ftemplate-depth=10000 -std=c++20"
 )
 
 set(compile_flags 
@@ -18,8 +18,8 @@ set(root_code_path
 set(FAT32_driver_path
     ${root_code_path}/FAT32_driver_char11/src
 )
-set (playlist_path
-    ${root_code_path}/stm32/stm32cubemx/f412g_player/src/playlist
+set (player_path
+    ${root_code_path}/stm32/stm32cubemx/f412g_player/src
 )
 
 set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${release_flags}")
@@ -29,7 +29,8 @@ message("CMAKE_CXX_FLAGS" ${CMAKE_CXX_FLAGS})
 include_directories(
     ${FAT32_driver_path}
     ${FAT32_driver_path}/lfn
-    ${playlist_path}
+    ${player_path}/playlist
+    ${player_path}/main
     ../characters
 )
 
@@ -49,7 +50,9 @@ add_library(libFAT
 )
 
 add_executable(convert_playlist
-    convert_playlist.cpp 
+    src/convert_playlist.cpp 
+    src/path_conversion.cpp
+    src/char_conversion.cpp
     ../characters/utf8_automat.cpp
     ../characters/fill_char_set.cpp
 )

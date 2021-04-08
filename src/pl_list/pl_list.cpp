@@ -33,20 +33,19 @@ uint32_t pl_list::init (char (* dir_name)[12], size_t len_name)
     cnt = 0;
     current_pos = 0;
     path_len = 0;
-    root_path = 0;
-    root_path = (char (*)[12])malloc((len_name + 1) * 12);
+    root_path = (char (*)[12])malloc((len_name + 1) * sizeof(char[12]));
     if (!root_path)
         return memory_limit;
     path_len = len_name + 1;
     for (size_t i = 0; i != len_name; ++i)
-        memcpy(root_path[i], dir_name[i], 12);
+        memcpy(root_path[i], dir_name[i], sizeof(char[12]));
     
  
     file_descriptor file;
-    char name[12];
     file_descriptor dir;
     uint32_t index = 0;
     uint32_t res;
+    char name[12];
 
     res = open(&FAT_info, &dir, dir_name, len_name);
   
@@ -72,7 +71,7 @@ uint32_t pl_list::init (char (* dir_name)[12], size_t len_name)
                     (name[9]  == 'L') && 
                     (name[10] == 'B'))
                 {
-                    memcpy(pl_path[index], name, sizeof(name));
+                    memmove(pl_path[index], name, sizeof(name));
                     index++;
                     cnt = index;
                 }
@@ -84,7 +83,7 @@ uint32_t pl_list::init (char (* dir_name)[12], size_t len_name)
    
     for (uint32_t i = 0; i != cnt; ++i)
     {
-        memcpy(root_path[path_len - 1], pl_path[i], 12);
+        memcpy(root_path[path_len - 1], pl_path[i], sizeof(char[12]));
         res = open(&FAT_info, &file, root_path, path_len);
         if (res != 0)
         {
@@ -102,7 +101,7 @@ uint32_t pl_list::init (char (* dir_name)[12], size_t len_name)
             destroy();
             return res;
         }
-        memcpy(pl_name[i], header.playlist_name, pl_name_sz);
+        memmove(pl_name[i], header.playlist_name, pl_name_sz);
         pl_songs[i] = header.cnt_songs;
     }
     return 0;
@@ -136,12 +135,12 @@ uint32_t pl_list::open_index (playlist_view * plv, uint32_t index, uint32_t * se
     if (*selected_pl == index)
         return 0;
     char old_path [12];
-    memcpy(old_path, root_path[path_len - 1], 12);
-    memcpy(root_path[path_len - 1], pl_path[index], 12);
+    memmove(old_path, root_path[path_len - 1], sizeof(char[12]));
+    memcpy(root_path[path_len - 1], pl_path[index], sizeof(char[12]));
     uint32_t ret = plv->open_playlist(root_path, path_len);
     if (ret)
     {
-        memcpy(root_path[path_len - 1], old_path, 12);
+        memcpy(root_path[path_len - 1], old_path, sizeof(char[12]));
         return ret;
     }
     *selected_pl = index;

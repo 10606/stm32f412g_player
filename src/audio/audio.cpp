@@ -1,5 +1,6 @@
 #include "audio.h"
 
+#include "view.h"
 #include "lcd_display.h"
 #include "stm32412g_discovery_audio.h"
 #include "display.h"
@@ -46,6 +47,7 @@ uint32_t audio_ctl_t::audio_init ()
 void audio_ctl_t::audio_destruct ()
 {
     BSP_AUDIO_OUT_DeInit();
+    deinit_mad();
 }
 
 void audio_ctl_t::byte_to_time (tik_t * time, uint32_t value)

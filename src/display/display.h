@@ -1,7 +1,7 @@
 #ifndef DISPLAY_H
 #define DISPLAY_H
 
-#include "view.h"
+#include "view_states.h"
 #include "playlist.h"
 #include "playlist_view.h"
 #include "audio.h"

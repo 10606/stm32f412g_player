@@ -14,17 +14,19 @@ enum joystick_buttons
     joystick_states_cnt = 5
 };
 
-typedef struct joystick_state_t
+struct joystick_state_t
 {
+    uint32_t joystick_check (view & vv, uint8_t * need_redraw);
+
     uint8_t pressed[joystick_states_cnt];
     uint8_t process[joystick_states_cnt];
     uint8_t prev_processed[joystick_states_cnt];
-} joystick_state_t;
+    
+private:
+    void check_buttons ();
+    uint8_t check_button_state (uint32_t joy_button);
+};
 extern joystick_state_t joystick_state;
-
-uint32_t joystick_check (view & vv, uint8_t * need_redraw);
-void check_buttons ();
-uint8_t check_button_state (uint32_t joy_button);
 
 
 #endif

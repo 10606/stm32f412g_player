@@ -21,14 +21,11 @@ void main_player ()
     {
         uint32_t ret;
         if ((ret = audio_ctl.audio_process(&need_redraw)))
-        {
-        }
-        check_buttons();
-      
-        if ((ret = joystick_check(viewer(), &need_redraw)))
-            ;//break;
-        if (usb_process(&viewer(), &need_redraw))
-            ; //break;
+            ;
+        if ((ret = joystick_state.joystick_check(viewer(), &need_redraw)))
+            ;
+        if ((ret = usb_process(&viewer(), &need_redraw)))
+            ; 
         touch.touch_check(&viewer(), &need_redraw);
         
         if (need_redraw)
@@ -39,7 +36,6 @@ void main_player ()
 
         if (BSP_SD_IsDetected() != SD_PRESENT)
         {
-            deinit_mad();
             audio_ctl.audio_destruct();
             break;
         }

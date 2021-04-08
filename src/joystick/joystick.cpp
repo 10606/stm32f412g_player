@@ -3,7 +3,7 @@
 #include "stm32412g_discovery.h"
 joystick_state_t joystick_state;
 
-void check_buttons ()
+void joystick_state_t::check_buttons ()
 {
     static JOYState_TypeDef joy_bsp_states[5] = 
     {
@@ -19,28 +19,29 @@ void check_buttons ()
     for (uint32_t i = 0; i != 5; ++i)
     {
         if (joy_state == joy_bsp_states[i])
-            joystick_state.pressed[i] = 1;
+            pressed[i] = 1;
         else
-            joystick_state.pressed[i] = 0;
+            pressed[i] = 0;
     }
 }
 
-uint8_t check_button_state (uint32_t joy_button)
+uint8_t joystick_state_t::check_button_state (uint32_t joy_button)
 {
     static uint8_t const cost[3] = {1, 8, 1}; // first second next
-    uint8_t ans = joystick_state.process[joy_button] >= cost[joystick_state.prev_processed[joy_button]];
+    uint8_t ans = process[joy_button] >= cost[prev_processed[joy_button]];
     if (ans)
     {
-        joystick_state.process[joy_button] -= cost[joystick_state.prev_processed[joy_button]];
-        joystick_state.prev_processed[joy_button]++;
-        if (joystick_state.prev_processed[joy_button] > 2)
-            joystick_state.prev_processed[joy_button] = 2;
+        process[joy_button] -= cost[prev_processed[joy_button]];
+        prev_processed[joy_button]++;
+        if (prev_processed[joy_button] > 2)
+            prev_processed[joy_button] = 2;
     }
     return ans;
 }
 
-uint32_t joystick_check (view & vv, uint8_t * need_redraw)
+uint32_t joystick_state_t::joystick_check (view & vv, uint8_t * need_redraw)
 {
+    check_buttons();
     static uint32_t (view::* const process_view_do[joystick_states_cnt]) (uint8_t *) = 
     {
         &view::process_up,

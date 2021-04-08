@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.0)
 project(onvert_font VERSION 1.0 LANGUAGES C CXX)
 
 set(release_flags
-    "-O3 -flto -march=native -g -Wall -ftemplate-depth=10000 -std=c++20"
+    "-Os -flto -march=native -Wall -ftemplate-depth=10000 -std=c++20"
 )
 
 set(compile_flags "-fsanitize=address -fsanitize=leak -fsanitize=undefined \
