@@ -125,25 +125,9 @@ static int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length)
   return (USBD_OK);
 }
 
-volatile buffer_t rx_buffer = {0};
-
 int8_t CDC_Receive_FS (uint8_t * Buf, uint32_t * Len)
 {
-    memcpy((uint8_t *)rx_buffer.buffer + rx_buffer.pos, Buf, *Len);
-    uint32_t len = *Len;
-    rx_buffer.size += len;
-    while (rx_buffer.size >= call_rx_size)
-    {
-        uint32_t n = receive_callback(rx_buffer.buffer + rx_buffer.pos, rx_buffer.size);
-        rx_buffer.size -= n;
-        rx_buffer.pos += n;
-    }
-    if (rx_buffer.pos >= max_rx_size)
-    {
-        memmove((void *)rx_buffer.buffer, (void *)(rx_buffer.buffer + rx_buffer.pos), rx_buffer.size);
-        rx_buffer.pos = 0;
-    }
-
+    receive_callback(Buf, *Len);
     USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &Buf[0]);
     USBD_CDC_ReceivePacket(&hUsbDeviceFS);
     return (USBD_OK);

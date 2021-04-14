@@ -2,6 +2,7 @@
 
 #include "view.h"
 #include "display.h"
+#include <type_traits>
 #include <stdint.h>
 
 uint8_t usb_process_buffer[4];
@@ -44,13 +45,14 @@ uint32_t usb_process (view * vv, uint8_t * need_redraw)
     return 0;
 }
 
-uint32_t receive_callback (volatile uint8_t * buf, uint32_t len)
+void receive_callback (volatile uint8_t * buf, uint32_t len)
 {
-    uint32_t tmp = (usb_process_end + 1) % sizeof(usb_process_buffer);
-    if (tmp == usb_process_start)
-        return 1;
-    usb_process_buffer[usb_process_end] = buf[0];
-    usb_process_end = tmp;
-    return 1;
+    uint32_t n = std::extent <decltype(usb_process_buffer)> ::value;
+    uint32_t tmp = (usb_process_end + 1) % n;
+    for (uint32_t i = 0; tmp != usb_process_start && i != len; i++, tmp = (tmp + 1) % n)
+    {
+        usb_process_buffer[usb_process_end] = buf[i];
+        usb_process_end = tmp;
+    }
 }
 

@@ -337,7 +337,6 @@ USBD_StatusTypeDef USBD_LL_Init(USBD_HandleTypeDef *pdev)
   hpcd_USB_OTG_FS.Init.battery_charging_enable = DISABLE;
   hpcd_USB_OTG_FS.Init.vbus_sensing_enable = DISABLE;
   hpcd_USB_OTG_FS.Init.use_dedicated_ep1 = DISABLE;
-  rx_buffer.pos = 0;
   if (HAL_PCD_Init(&hpcd_USB_OTG_FS) != HAL_OK)
   {
     Error_Handler( );
@@ -391,7 +390,6 @@ USBD_StatusTypeDef USBD_LL_Start(USBD_HandleTypeDef *pdev)
 {
   HAL_StatusTypeDef hal_status = HAL_OK;
   USBD_StatusTypeDef usb_status = USBD_OK;
-  rx_buffer.pos = 0;
  
   hal_status = HAL_PCD_Start(pdev->pData);
   
