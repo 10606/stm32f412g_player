@@ -30,6 +30,7 @@ include_directories(
     src/
     src/command_line/
     src/interactive/
+    ../characters/
 )
 
 add_executable(player_send_command
@@ -39,5 +40,8 @@ add_executable(player_send_command
     src/interactive/interactive_fd.cpp
     src/interactive/term_display.cpp
     src/interactive/term_colors.cpp
+    src/interactive/char_reconvert.cpp
+    ../characters/fill_char_set.cpp
+    ../characters/char_conversion.cpp
 )
 

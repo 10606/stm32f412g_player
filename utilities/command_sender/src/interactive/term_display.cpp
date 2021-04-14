@@ -1,5 +1,6 @@
 #include "term_display.h"
 
+#include "char_reconvert.h"
 #include "common_types.h"
 #include "term_colors.h"
 #include <optional>
@@ -102,11 +103,11 @@ void display_lines (T const & data, bool is_my_state, std::pair <size_t, size_t>
     
     set_cursor(base::addition[data.cmd][0] + base_pos);
     set_color(is_my_state, data.cmd, 0, get_selected(data));
-    std::cout << std::string_view(data.line_0, std::extent <decltype(T::line_0)>::value);
+    std::cout << char_reconvert(std::string_view(data.line_0, std::extent <decltype(T::line_0)>::value));
     
     set_cursor(base::addition[data.cmd][1] + base_pos);
     set_color(is_my_state, data.cmd, 1, get_selected(data));
-    std::cout << std::string_view(data.line_1, std::extent <decltype(T::line_1)>::value);
+    std::cout << char_reconvert(std::string_view(data.line_1, std::extent <decltype(T::line_1)>::value));
     
     std::cout << color::defaul_color;
 }
@@ -156,7 +157,7 @@ void extract (std::deque <char> & data, state_t & state)
                     set_cursor(base::pl_list[0] + base_pos);
                     set_color(is_my_state, pl_list_data->cmd, 0, pl_list_data->selected);
                     std::string line_0(pl_list_data->name, sizeof(pl_list_info_t::name));
-                    std::cout << line_0;
+                    std::cout << char_reconvert(line_0);
                     set_cursor(base::pl_list[1] + base_pos);
                     set_color(is_my_state, pl_list_data->cmd, 1, pl_list_data->selected);
                     if (!is_spaces(line_0))

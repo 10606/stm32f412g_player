@@ -52,8 +52,7 @@ add_library(libFAT
 add_executable(convert_playlist
     src/convert_playlist.cpp 
     src/path_conversion.cpp
-    src/char_conversion.cpp
-    ../characters/utf8_automat.cpp
+    ../characters/char_conversion.cpp
     ../characters/fill_char_set.cpp
 )
 
