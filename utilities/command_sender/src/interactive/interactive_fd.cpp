@@ -12,6 +12,8 @@
 #include <type_traits>
 #include <termios.h>
 #include <unistd.h>
+#include <sys/socket.h>
+#include <sys/un.h>
 #include <sys/ioctl.h>
 #include <sys/epoll.h>
 #include <sys/types.h>
@@ -23,7 +25,7 @@
 #include <iostream>
 
 termios term_config;
-bool run = 1;
+volatile bool run = 1;
 
 void sigint_handler (int signal)
 {
@@ -176,8 +178,22 @@ struct escape_buffer
 
 void interactive (std::string const & path)
 {
-    int fd = open(path.c_str(), O_RDWR | O_NOCTTY);
+    char const * sock_name = "/home/wa51/code/code_microcontrollers/player/utilities/multiplex_server/qwe.socket";
+    int fd = socket(AF_UNIX, SOCK_STREAM, 0);
+    if (fd == -1) 
+        throw std::runtime_error("can't create socket");
+    
+    struct sockaddr_un addr;
+    memset(&addr, 0, sizeof(struct sockaddr_un));
+    addr.sun_family = AF_UNIX;
+    strncpy(addr.sun_path, sock_name, sizeof(addr.sun_path) - 1);
+
+    int ret = connect(fd, reinterpret_cast <sockaddr *> (&addr), sizeof(addr));
+    if (ret == -1) 
+        throw std::runtime_error("can't connect");
+    
     escape_buffer escaped(fd);
+
 
     //terminal
     //termios term_config;
@@ -187,17 +203,6 @@ void interactive (std::string const & path)
     tcsetattr(STDIN_FILENO, TCSANOW, &new_term_config);
 
     signal(SIGINT, sigint_handler);
-
-    //cdc 
-    termios cdc_config;
-    tcgetattr(fd, &cdc_config);
-    termios new_cdc_config = cdc_config;
-    cfmakeraw(&new_cdc_config);
-    //new_cdc_config.c_lflag |= (NOFLSH | IGNBRK);
-    //new_cdc_config.c_lflag &= ~(ICANON | ECHO);
-    //new_cdc_config.c_cc[VMIN] = 1;
-    //new_cdc_config.c_cc[VTIME] = 0;
-    tcsetattr(fd, TCSANOW, &new_cdc_config);
 
     std::cout << "\033[3J";
     std::cout << "\033\143";
