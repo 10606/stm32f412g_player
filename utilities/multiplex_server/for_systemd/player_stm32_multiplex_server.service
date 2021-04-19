@@ -1,0 +1,2 @@
+[Service]
+ExecStart=/home/wa51/code/code_microcontrollers/stm32/stm32cubemx/f412g_player/utilities/multiplex_server/multiplex_server --socket_activation

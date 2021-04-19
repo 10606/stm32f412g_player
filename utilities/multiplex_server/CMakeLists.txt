@@ -38,3 +38,7 @@ add_executable(multiplex_server
     src/unix_server_sock.cpp
 )
 
+target_link_libraries(multiplex_server
+    systemd
+)
+

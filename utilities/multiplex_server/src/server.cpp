@@ -10,15 +10,17 @@
 #include "com_wrapper.h"
 #include "client_wrapper.h"
 
-int main ()
+int main (int argc, char ** argv)
 {
     char const * sock_name = "/home/wa51/code/code_microcontrollers/player/utilities/multiplex_server/qwe.socket";
     char const * stm32_name = "/dev/serial/by-id/usb-STMicroelectronics_STM32_Virtual_ComPort_313FB9553136-if00";
  
+    bool socket_activation = (argc > 1) && (strcmp(argv[1], "--socket_activation") == 0);
+    
     try
     {
         epoll_wraper epoll_wrap;
-        unix_server_sock_t conn_sock(sock_name, epoll_wrap.epoll_fd);
+        unix_server_sock_t conn_sock(sock_name, socket_activation, epoll_wrap.epoll_fd);
         clients_wrapper_t clients(epoll_wrap.epoll_fd);
         com_wrapper_t stm32(stm32_name, epoll_wrap.epoll_fd);
 
