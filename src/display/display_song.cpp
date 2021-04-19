@@ -27,6 +27,50 @@ void song_hint ()
 void start_image ()
 {
     draw_RGB_image(0, 0, 240, 240, picture_address::err);
+    
+    {
+        char s_volume[volume_width];
+        char s_state[volume_width];
+        memset(s_volume, ' ', sizeof(s_volume));
+        memset(s_state, ' ', sizeof(s_state));
+        HAL_Delay(1);
+        send_volume(s_volume, s_state);
+    }
+    {
+        char cur_song_name[song_name_sz + 1];
+        char cur_group_name[group_name_sz + 1];
+        memset(cur_song_name, ' ', sizeof(cur_song_name));
+        memset(cur_group_name, ' ', sizeof(cur_group_name));
+        HAL_Delay(1);
+        send_cur_song(cur_group_name, cur_song_name);
+    }
+    {
+        char selected[playlist_view_cnt];
+        memset(selected, 0, sizeof(selected));
+        
+        char s_group[name_offset + group_name_sz + 1];
+        char s_song[name_offset + song_name_sz + 1];
+        memset(s_group, ' ', sizeof(s_group));
+        memset(s_song, ' ', sizeof(s_song));
+    
+        for (uint32_t i = 0; i != playlist_view_cnt; ++i)
+        {
+            HAL_Delay(1);
+            send_displayed_song(s_group, s_song, selected[i], i);
+        }
+    }
+    {
+        char selected[plb_view_cnt];
+        memset(selected, 0, sizeof(selected));
+        char s_playlist[name_offset + pl_name_sz + count_offset + 3 + 1];
+        memset(s_playlist, ' ', sizeof(s_playlist));
+        
+        for (uint32_t i = 0; i != plb_view_cnt; ++i)
+        {
+            HAL_Delay(1);
+            send_pl_list(s_playlist, selected[i], i);
+        }
+    }
 }
 
 void song_volume (playlist * pl, audio_ctl_t * actl, state_song_view_t state, char to_screen, uint8_t * need_redraw) 

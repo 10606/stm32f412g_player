@@ -24,7 +24,7 @@ void main_player ()
             ;
         if ((ret = joystick_state.joystick_check(viewer(), &need_redraw)))
             ;
-        if ((ret = usb_process(&viewer(), &need_redraw)))
+        if ((ret = usb_process_v.usb_process(&viewer(), &need_redraw)))
             ; 
         touch.touch_check(&viewer(), &need_redraw);
         

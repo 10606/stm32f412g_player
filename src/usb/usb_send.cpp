@@ -4,7 +4,7 @@
 #include "display.h"
 #include "usb_commands.h"
 
-void send_cur_song 
+uint8_t send_cur_song 
 (
     char cur_group_name[group_name_sz + 1],
     char cur_song_name[song_name_sz + 1]
@@ -14,10 +14,10 @@ void send_cur_song
     answer.cmd = cur_song_info;
     memcpy(answer.line_0, cur_group_name, group_name_sz + 1);
     memcpy(answer.line_1, cur_song_name, song_name_sz + 1);
-    CDC_Transmit_FS((uint8_t *)&answer, sizeof(answer));
+    return CDC_Transmit_FS((uint8_t *)&answer, sizeof(answer));
 }
 
-void send_displayed_song 
+uint8_t send_displayed_song 
 (
     char s_group[name_offset + group_name_sz + 1], 
     char s_song[name_offset + song_name_sz + 1], 
@@ -31,10 +31,10 @@ void send_displayed_song
     answer.pos = pos;
     memcpy(answer.line_0, s_group, name_offset + group_name_sz + 1);
     memcpy(answer.line_1, s_song, name_offset + song_name_sz + 1);
-    CDC_Transmit_FS((uint8_t *)&answer, sizeof(answer));
+    return CDC_Transmit_FS((uint8_t *)&answer, sizeof(answer));
 }
 
-void send_pl_list
+uint8_t send_pl_list
 (
     char s_playlist[sizeof(pl_list_info_t::name)],
     char selected, 
@@ -46,10 +46,10 @@ void send_pl_list
     answer.selected = selected;
     answer.pos = pos;
     memcpy(answer.name, s_playlist, sizeof(answer.name));
-    CDC_Transmit_FS((uint8_t *)&answer, sizeof(answer));
+    return CDC_Transmit_FS((uint8_t *)&answer, sizeof(answer));
 }
 
-void send_volume
+uint8_t send_volume
 (
     char s_volume[volume_width],
     char s_state[volume_width]
@@ -59,10 +59,10 @@ void send_volume
     answer.cmd = volume_info;
     memcpy(answer.line_0, s_volume, volume_width);
     memcpy(answer.line_1, s_state, volume_width);
-    CDC_Transmit_FS((uint8_t *)&answer, sizeof(answer));
+    return CDC_Transmit_FS((uint8_t *)&answer, sizeof(answer));
 }
 
-void send_state
+uint8_t send_state
 (
     state_t state
 )
@@ -70,6 +70,6 @@ void send_state
     state_info_t answer;
     answer.cmd = state_info;
     answer.state = state;
-    CDC_Transmit_FS((uint8_t *)&answer, sizeof(answer));
+    return CDC_Transmit_FS((uint8_t *)&answer, sizeof(answer));
 }
 

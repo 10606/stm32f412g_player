@@ -51,6 +51,7 @@ void Error_Handler (void);
 #include "stm32f4xx_hal_gpio.h"
 #include "usb_device.h"
 #include "usbd_cdc_if.h"
+#include "usb_command_process.h"
 #include "ts_touchscreen.h"
 #include "FAT.h"
 #include "sd_card_operation.h"
@@ -72,8 +73,9 @@ FAT_info_t FAT_info;
 #define joy_up_down_gpio_port    GPIOG
 
 
+void init_usb ();
 
-void init_base () //joystick, led, LCD
+void init_base () //joystick, led, LCD, USB
 {
     HAL_Init();
     SystemClock_Config();
@@ -112,6 +114,7 @@ void init_base () //joystick, led, LCD
     
     display_init();
     display::start_image();
+    init_usb();
 }
 
 uint32_t init_fs (char (* path)[12], uint32_t len)
@@ -187,7 +190,7 @@ uint32_t init (char (* path)[12], uint32_t len)
     ret = init_audio(path, len);
     if (ret)
         return ret;
-    init_usb();
+    usb_process_v.clear();
     return 0;
 }
 

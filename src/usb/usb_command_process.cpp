@@ -5,16 +5,7 @@
 #include <type_traits>
 #include <stdint.h>
 
-struct usb_process_t
-{
-    uint8_t buffer[4];
-    uint32_t start = 0;
-    uint32_t end = 0;
-};
-
-usb_process_t usb_process_v;
-
-uint32_t usb_process (view * vv, uint8_t * need_redraw)
+uint32_t usb_process_t::usb_process (view * vv, uint8_t * need_redraw)
 {
     static uint32_t (view::* process_view_do[16]) (uint8_t *) =
     {
@@ -36,28 +27,36 @@ uint32_t usb_process (view * vv, uint8_t * need_redraw)
         &view::do_nothing
     };
     
-    for (; usb_process_v.start != usb_process_v.end;)
+    for (; start != end;)
     {
         uint32_t ret = 0;
         uint8_t need_redraw_nv = 0;
-        uint8_t command = usb_process_v.buffer[usb_process_v.start];
+        uint8_t command = buffer[start];
         if (command < 16)
             ret = (vv->*process_view_do[command])(&need_redraw_nv);
         *need_redraw |= need_redraw_nv;
         if (!ret)
-            usb_process_v.start = (usb_process_v.start + 1) % std::extent <decltype(usb_process_v.buffer)> ::value;
+            start = (start + 1) % std::extent <decltype(buffer)> ::value;
     }
     return 0;
 }
 
-void receive_callback (volatile uint8_t * buf, uint32_t len)
+void usb_process_t::receive_callback (volatile uint8_t * buf, uint32_t len)
 {
-    uint32_t n = std::extent <decltype(usb_process_v.buffer)> ::value;
-    uint32_t tmp = (usb_process_v.end + 1) % n;
-    for (uint32_t i = 0; tmp != usb_process_v.start && i != len; i++, tmp = (tmp + 1) % n)
+    uint32_t n = std::extent <decltype(buffer)> ::value;
+    uint32_t tmp = (end + 1) % n;
+    for (uint32_t i = 0; tmp != start && i != len; i++, tmp = (tmp + 1) % n)
     {
-        usb_process_v.buffer[usb_process_v.end] = buf[i];
-        usb_process_v.end = tmp;
+        buffer[end] = buf[i];
+        end = tmp;
     }
 }
+
+void usb_process_t::clear ()
+{
+    start = 0;
+    end = 0;
+}
+
+usb_process_t usb_process_v;
 

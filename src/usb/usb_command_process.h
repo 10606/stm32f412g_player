@@ -4,8 +4,18 @@
 #include <stdint.h>
 #include "view.h"
 
-uint32_t usb_process (view * vv, uint8_t * need_redraw);
-void receive_callback (volatile uint8_t * buf, uint32_t len);
+struct usb_process_t
+{
+    uint32_t usb_process (view * vv, uint8_t * need_redraw);
+    void receive_callback (volatile uint8_t * buf, uint32_t len);
+    void clear ();
+
+    uint8_t buffer[4];
+    uint32_t start = 0;
+    uint32_t end = 0;
+};
+
+extern usb_process_t usb_process_v;
 
 #endif
 
