@@ -39,14 +39,13 @@ link_directories(
 )
 
 add_library(libFAT
-    ${FAT32_driver_path}/lfn/open_lfn.c
-    ${FAT32_driver_path}/lfn/read_lfn_info.c
-    ${FAT32_driver_path}/load_FAT/load_FAT.c
-    ${FAT32_driver_path}/init/init.c
-    ${FAT32_driver_path}/open/open.c
-    ${FAT32_driver_path}/file_descriptor/file_descriptor.c
-    ${FAT32_driver_path}/read/read.c
-    ${FAT32_driver_path}/read_file_info/read_file_info.c
+    ${FAT32_driver_path}/lfn/open_lfn.cpp
+    ${FAT32_driver_path}/lfn/read_lfn_info.cpp
+    ${FAT32_driver_path}/fat_info/fat_info.cpp
+    ${FAT32_driver_path}/fat_info/load_FAT.cpp
+    ${FAT32_driver_path}/open/open.cpp
+    ${FAT32_driver_path}/read/read.cpp
+    ${FAT32_driver_path}/read_file_info/read_file_info.cpp
 )
 
 add_executable(convert_playlist

@@ -56,7 +56,7 @@ inline uint32_t sub_in_bound (uint32_t value, uint32_t a, uint32_t b, uint32_t a
 uint32_t view::seek (uint8_t * need_redraw, uint32_t value, uint8_t direction /* 0 - backward, 1 - forward */)
 {
     uint32_t ret, new_pos;
-    new_pos = current_position(&audio_ctl->audio_file);
+    new_pos = audio_ctl->audio_file.current_position();
     new_pos = direction? 
         add_in_bound(new_pos, 0, audio_ctl->audio_file.size, value) :
         sub_in_bound(new_pos, 0, audio_ctl->audio_file.size, value);

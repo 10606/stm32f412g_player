@@ -60,7 +60,7 @@ void Error_Handler (void);
 #include "audio.h"
 #include "view.h"
 
-FAT_info_t FAT_info;
+FAT_info_t FAT_info(512, start_partition_sector, read_sector);
 
 
 #define joy_center_pin           GPIO_PIN_0
@@ -125,7 +125,7 @@ uint32_t init_fs (char (* path)[12], uint32_t len)
     while (sd_card_init())
     {}
     // open filesystem
-    if (init_fatfs(&FAT_info, 512, start_partition_sector, read_sector))
+    if (FAT_info.init())
     {
         display::error("err init fatfs");
         return 2;

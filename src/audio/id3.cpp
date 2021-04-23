@@ -96,7 +96,7 @@ uint32_t get_mp3_header (file_descriptor * fd, mp3_header * mp3_h, uint32_t id3_
         total_read += rb;
     }
 
-    return current_position(fd) - sizeof(mp3_header);
+    return fd->current_position() - sizeof(mp3_header);
 }
 
 
@@ -167,8 +167,7 @@ uint32_t get_vbri_length (file_descriptor * fd, mp3_header * mp3_h, uint32_t mp3
 
 void get_length (file_descriptor * _fd, mp3_info * info)
 {
-    file_descriptor fd;
-    copy_file_descriptor_seek_0(&fd, _fd);
+    file_descriptor fd(*_fd, 0);
 
     static uint32_t bitrate_index[] = 
     { //MPEG-1 layer 3 bitrate

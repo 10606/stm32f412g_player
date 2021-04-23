@@ -70,12 +70,11 @@ BSP_sources = $(addprefix $(BSP_src)/, $(BSP_sources_))
 
 # FAT32
 FAT32_sources_ = \
-	init/init.c \
-	load_FAT/load_FAT.c \
-	open/open.c \
-	read/read.c \
-	read_file_info/read_file_info.c  \
-	file_descriptor/file_descriptor.c
+	fat_info/fat_info.cpp \
+	fat_info/load_FAT.cpp \
+	open/open.cpp \
+	read/read.cpp \
+	read_file_info/read_file_info.cpp 
 FAT32_sources = $(addprefix $(FAT32_driver)/, $(FAT32_sources_))
 
 # fonts

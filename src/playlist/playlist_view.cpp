@@ -187,7 +187,7 @@ uint32_t playlist_view::play (playlist * pl)
 
 bool playlist_view::compare (playlist const * b)
 {
-    return eq_file_descriptor(&lpl.fd, &b->fd);
+    return lpl.fd == b->fd;
 }
 
 bool playlist_view::check_near (playlist * playing_pl)
@@ -274,15 +274,13 @@ void playlist_view::print
 
 uint32_t playlist_view::to_playing_playlist (playlist const & pl)
 {
-    file_descriptor old_fd;
-    copy_file_descriptor(&old_fd, &lpl.fd);
+    file_descriptor old_fd(lpl.fd);
     
-    copy_file_descriptor_seek_0(&lpl.fd, &pl.fd);
-    // trivially destrucible
+    lpl.fd.copy_seek_0(pl.fd);
     uint32_t ret;
     if ((ret = init()))
     {
-        copy_file_descriptor(&lpl.fd, &old_fd);
+        lpl.fd.copy(old_fd);
         return ret;
     }
     return 0;
@@ -295,14 +293,13 @@ uint32_t playlist_view::open_playlist
 )
 {
     uint32_t ret;
-    file_descriptor fd;
-    copy_file_descriptor(&fd, &lpl.fd);
+    file_descriptor fd(lpl.fd);
     if ((ret = open(&FAT_info, &lpl.fd, path, path_len)))
         return ret;
     // trivially destructible
     if ((ret = init()))
     {
-        copy_file_descriptor(&lpl.fd, &fd);
+        lpl.fd.copy(fd);
         return ret;
     }
     return 0;
@@ -310,6 +307,6 @@ uint32_t playlist_view::open_playlist
 
 bool playlist_view::is_fake ()
 {
-    return is_fake_file_descriptor(&lpl.fd);
+    return lpl.fd.is_fake();
 }
 

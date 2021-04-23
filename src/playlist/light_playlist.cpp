@@ -36,14 +36,14 @@ void light_playlist::init_base ()
 
 light_playlist::light_playlist ()
 {
-    init_fake_file_descriptor(&fd);
+    fd.init_fake();
     init_base();
 }
 
 uint32_t light_playlist::open_file ()
 {
     init_base();
-    if (is_fake_file_descriptor(&fd))
+    if (fd.is_fake())
         return 0;
     
     uint32_t ret;
@@ -65,7 +65,7 @@ void light_playlist::copy (light_playlist const & other)
 {
     memcpy(&header, &other.header, sizeof(header));
     memcpy(&song, &other.song, sizeof(song));
-    copy_file_descriptor(&fd, &other.fd);
+    fd.copy(other.fd);
     pos = other.pos;
 }
 

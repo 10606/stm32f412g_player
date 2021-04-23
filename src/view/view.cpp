@@ -40,7 +40,7 @@ uint32_t view::open_song ()
 {
     if (pl.header.cnt_songs == 0)
     {
-        init_fake_file_descriptor(&audio_ctl->audio_file);
+        audio_ctl->audio_file.init_fake();
         audio_ctl->info.offset = 0;
         return 0;
     }
@@ -68,7 +68,7 @@ uint32_t view::open_song_not_found (uint8_t direction)
     {
         if ((ret = open_song()))
         {
-            if (ret != not_found)
+            if (ret != err::not_found)
                 return ret;
         }
         else
@@ -85,7 +85,7 @@ uint32_t view::open_song_not_found (uint8_t direction)
 void view::fake_song_and_playlist ()
 {
     pl.make_fake();
-    init_fake_file_descriptor(&audio_ctl->audio_file);
+    audio_ctl->audio_file.init_fake();
 }
 
 uint32_t view::do_nothing (uint8_t * need_redraw)

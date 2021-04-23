@@ -39,7 +39,7 @@ static uint32_t get_data (file_descriptor * _file, uint8_t * buffer, uint32_t si
     uint32_t tried = 2;
     while ((ret = f_read(_file, buffer, size, &total_read)) && (tried))
     {
-        if (ret == eof_file)
+        if (ret == err::eof_file)
         {
             return 0;
         }
@@ -120,7 +120,7 @@ uint32_t fill_buffer
 
 uint32_t get_pcm_sound (file_descriptor * _file, uint8_t * pbuf, uint32_t NbrOfData)
 {
-    if (is_fake_file_descriptor(_file))
+    if (_file->is_fake())
     {
         memset(pbuf, 0, NbrOfData);
         return NbrOfData;

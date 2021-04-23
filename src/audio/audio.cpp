@@ -24,7 +24,7 @@ audio_ctl_t::audio_ctl_t ():
 uint32_t audio_ctl_t::audio_init ()
 {
     display::song_hint();
-    init_fake_file_descriptor(&audio_file);
+    audio_file.init_fake();
   
     if (BSP_AUDIO_OUT_Init(OUTPUT_DEVICE_HEADPHONE, volume, audio_freq) != 0)
         display::error("err init audio codec");
@@ -104,7 +104,7 @@ void audio_ctl_t::display_time ()
     tik_t cur_time;
     tik_t total_time;
 
-    byte_to_time(&cur_time, current_position(&audio_file));
+    byte_to_time(&cur_time, audio_file.current_position());
     byte_to_time(&total_time, audio_file.size);
 
     char str[str_time_size];
@@ -125,7 +125,7 @@ void audio_ctl_t::display_time ()
 
 uint32_t audio_ctl_t::new_song_or_repeat ()
 {
-    if (!is_fake_file_descriptor(&audio_file))
+    if (!audio_file.is_fake())
     {
         reuse_mad();
     }
@@ -163,13 +163,13 @@ uint32_t audio_ctl_t::audio_process (uint8_t * need_redraw)
 {
     display_time();
     //end of song reached
-    if (current_position(&audio_file) >= audio_file.size)
+    if (audio_file.current_position() >= audio_file.size)
     {
         uint32_t ret;
-        uint8_t is_fake = is_fake_file_descriptor(&audio_file);
+        uint8_t is_fake = audio_file.is_fake();
         if ((ret = new_song_or_repeat()))
             return ret;
-        *need_redraw |= !is_fake || !is_fake_file_descriptor(&audio_file);
+        *need_redraw |= !is_fake || !audio_file.is_fake();
     }
     next_pcm_part();
     return 0;

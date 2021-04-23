@@ -1,6 +1,8 @@
 #ifndef VIEW_STATES_H
 #define VIEW_STATES_H
 
+#include <stddef.h>
+
 enum class state_song_view_t
 {
     volume,

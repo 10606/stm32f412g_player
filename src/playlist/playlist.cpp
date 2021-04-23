@@ -77,7 +77,7 @@ uint32_t playlist::prev ()
     
 void playlist::init_base ()
 {
-    path = 0;
+    path = nullptr;
     path_sz = 0;
     pos = 0;
     memset(song.song_name, ' ', song_name_sz);
@@ -88,7 +88,7 @@ void playlist::init_base ()
  
 uint32_t playlist::init ()
 {
-    if (is_fake_file_descriptor(&fd))
+    if (fd.is_fake())
         return 0;
     
     uint32_t ret;
@@ -110,9 +110,9 @@ uint32_t playlist::init ()
     return 0;
 }
 
-playlist::playlist ()
+playlist::playlist () :
+    fd()
 {
-    init_fake_file_descriptor(&fd);
     init_base();
 }
 
@@ -120,7 +120,7 @@ uint32_t playlist::set_file (file_descriptor * _fd, uint32_t pos_selected)
 {
     uint32_t ret;
     playlist old_pl(std::move(*this));
-    copy_file_descriptor_seek_0(&fd, _fd);
+    fd.copy_seek_0(*_fd);
     init_base();
     if ((ret = init()) == 0)
     {
@@ -134,8 +134,8 @@ uint32_t playlist::set_file (file_descriptor * _fd, uint32_t pos_selected)
 
 void playlist::move (playlist && other)
 {
-    copy_file_descriptor(&fd, &other.fd);
-    init_fake_file_descriptor(&other.fd);
+    fd.copy(other.fd);
+    other.fd.init_fake();
     
     memmove(&header, &other.header, sizeof(playlist_header));
     memmove(&song, &other.song, sizeof(song_header));
@@ -164,7 +164,7 @@ playlist & playlist::operator = (playlist && src)
 void playlist::make_fake ()
 {
     free(path);
-    init_fake_file_descriptor(&fd);
+    fd.init_fake();
     init_base();
 }
 
@@ -176,6 +176,6 @@ playlist::~playlist ()
 
 bool playlist::is_fake ()
 {
-    return is_fake_file_descriptor(&fd);
+    return fd.is_fake();
 }
 

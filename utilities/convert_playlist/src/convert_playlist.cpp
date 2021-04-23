@@ -15,33 +15,30 @@
 #include "LFN.h"
 #include "playlist_structures.h"
 
-extern "C"
-{
-    std::ifstream partition_with_FAT;
-    uint32_t const start_partition_sector = 1;
+std::ifstream partition_with_FAT;
+uint32_t const start_partition_sector = 1;
 
-    uint32_t read_sector (uint32_t sector_number, void * buffer)
+uint32_t read_sector (uint32_t sector_number, void * buffer)
+{
+    try
     {
-        try
+        partition_with_FAT.seekg(static_cast <uint64_t> (sector_number) * 512);
+        partition_with_FAT.read(static_cast <char *> (buffer), 512);
+        if (!partition_with_FAT.good())
         {
-            partition_with_FAT.seekg(static_cast <uint64_t> (sector_number) * 512);
-            partition_with_FAT.read(static_cast <char *> (buffer), 512);
-            if (!partition_with_FAT.good())
-            {
-                std::cerr << "bad \n";
-                return 1;
-            }
-            return 0;
-        }
-        catch (std::exception const & e)
-        {
-            std::cerr << e.what() << "\n";
+            std::cerr << "bad \n";
             return 1;
         }
+        return 0;
     }
-    
-    FAT_info_t FAT_info;
+    catch (std::exception const & e)
+    {
+        std::cerr << e.what() << "\n";
+        return 1;
+    }
 }
+
+FAT_info_t FAT_info(512, start_partition_sector, read_sector);
 
 
 std::pair <std::string, std::string> 
@@ -178,7 +175,7 @@ int main (int argc, char ** argv)
     
     partition_with_FAT = std::ifstream("/dev/mmcblk0");
     
-    if (init_fatfs(&FAT_info, 512, start_partition_sector, read_sector))
+    if (FAT_info.init())
     {
         std::cerr << "init FATfs error\n";
         return 1;
