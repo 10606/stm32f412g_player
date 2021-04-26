@@ -10,9 +10,12 @@
 struct playlist 
 {
     playlist ();
+    ~playlist ();
+    
     playlist (playlist && other);
     playlist & operator = (playlist && other);
-    ~playlist ();
+    playlist (playlist const & other) = delete;
+    playlist & operator = (playlist const & other) = delete;
     
     uint32_t open (light_playlist & lpl, uint32_t pos_selected);
     uint32_t seek (uint32_t pos);
@@ -30,7 +33,6 @@ struct playlist
     
 private:
     void init_base ();
-    void move (playlist &&);
 };
 
 extern uint32_t memory_limit;

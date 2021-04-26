@@ -11,6 +11,11 @@ struct clients_wrapper_t
     clients_wrapper_t (int _epoll_fd);
     ~clients_wrapper_t ();
     
+    clients_wrapper_t (clients_wrapper_t const &) = delete;
+    clients_wrapper_t & operator = (clients_wrapper_t const &) = delete;
+    clients_wrapper_t (clients_wrapper_t &&) = delete;
+    clients_wrapper_t & operator = (clients_wrapper_t &&) = delete;
+    
     void reg (int fd);
     void unreg (int fd);
     void realloc (size_t start_index, size_t needed);

@@ -20,7 +20,9 @@ struct converted_path
     }
     
     converted_path (converted_path const &) = delete;
+    converted_path & operator = (converted_path const &) = delete;
     converted_path (converted_path &&) = default;
+    converted_path & operator = (converted_path &&) = default;
     
     std::vector <char *> path;
     

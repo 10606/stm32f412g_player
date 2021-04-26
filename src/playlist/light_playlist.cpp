@@ -61,22 +61,3 @@ uint32_t light_playlist::open_file ()
     return 0;
 }
 
-void light_playlist::copy (light_playlist const & other)
-{
-    memcpy(&header, &other.header, sizeof(header));
-    memcpy(&song, &other.song, sizeof(song));
-    fd = other.fd;
-    pos = other.pos;
-}
-
-light_playlist::light_playlist (light_playlist const & other)
-{
-    copy(other);
-}
-
-light_playlist & light_playlist::operator = (light_playlist const & other)
-{
-    copy(other);
-    return *this;
-}
-

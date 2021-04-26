@@ -1,6 +1,7 @@
 [Socket]
 ListenStream=/home/wa51/code/code_microcontrollers/stm32/stm32cubemx/f412g_player/utilities/multiplex_server/qwe.socket
-OnFailure=player_stm32_multiplex_server.socket
-
+TriggerLimitIntervalSec=1ms
+TriggerLimitBurst=100
+        
 [Install]
 WantedBy=sockets.target

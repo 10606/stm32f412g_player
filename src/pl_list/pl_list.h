@@ -15,6 +15,11 @@ struct pl_list
     pl_list ();
     ~pl_list ();
     
+    pl_list (pl_list const &) = delete;
+    pl_list & operator = (pl_list const &) = delete;
+    pl_list (pl_list &&) = delete;
+    pl_list & operator = (pl_list &&) = delete;
+    
     uint32_t init (char (* dir_name)[12], size_t len_name);
     void up ();
     void down ();

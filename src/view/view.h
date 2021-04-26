@@ -13,6 +13,11 @@ struct view
 {
     view (audio_ctl_t *);
     ~view () = default;
+    
+    view (view const &) = delete;
+    view & operator = (view const &) = delete;
+    view (view &&) = delete;
+    view & operator = (view &&) = delete;
 
     uint32_t init (char (* path)[12], uint32_t len);
     void display (uint8_t * need_redraw);

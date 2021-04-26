@@ -9,8 +9,11 @@
 struct light_playlist 
 {
     light_playlist ();
-    light_playlist (light_playlist const &);
-    light_playlist & operator = (light_playlist const &);
+    
+    light_playlist (light_playlist const &) = default;
+    light_playlist & operator = (light_playlist const &) = default;
+    light_playlist (light_playlist &&) = default;
+    light_playlist & operator = (light_playlist &&) = default;
     
     uint32_t seek (uint32_t pos);
     uint32_t next ();
@@ -22,7 +25,6 @@ struct light_playlist
     uint32_t pos;
     
 private:
-    void copy (light_playlist const &);
     void init_base ();
 };
 

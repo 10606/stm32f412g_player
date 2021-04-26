@@ -43,7 +43,6 @@ protected:
     }
     
     std::map <uint32_t, uint32_t> read_map (); /* symbol -> offset in file */
-    
 };
 
 #endif

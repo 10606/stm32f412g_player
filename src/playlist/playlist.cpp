@@ -108,32 +108,38 @@ uint32_t playlist::open (light_playlist & lpl, uint32_t pos_selected)
     return ret;
 }
 
-void playlist::move (playlist && other)
+playlist::playlist (playlist && src) : 
+    path(src.path),
+    path_sz(src.path_sz),
+    pos(src.pos),
+    fd(src.fd)
 {
-    fd = other.fd;
-    other.fd.init_fake();
-    
-    memmove(&header, &other.header, sizeof(playlist_header));
-    memmove(&song, &other.song, sizeof(song_header));
-}
-
-playlist::playlist (playlist && src)
-{
-    move(std::move(src));
-    pos = src.pos;
-    path_sz = src.path_sz;
-    path = src.path;
-    
     src.path = nullptr;
     src.path_sz = 0;
+    src.fd.init_fake();
+    
+    memmove(&header, &src.header, sizeof(playlist_header));
+    memmove(&song, &src.song, sizeof(song_header));
 }
 
 playlist & playlist::operator = (playlist && src)
 {
-    move(std::move(src));
-    std::swap(pos, src.pos);
-    std::swap(path_sz, src.path_sz);
-    std::swap(path, src.path);
+    fd = src.fd;
+    src.fd.init_fake();
+    
+    memmove(&header, &src.header, sizeof(playlist_header));
+    memmove(&song, &src.song, sizeof(song_header));
+    
+    pos = src.pos;
+    src.pos = 0;
+    
+    path_sz = src.path_sz;
+    src.path_sz = 0;
+    
+    free(path);
+    path = src.path;
+    src.path = nullptr;
+    
     return *this;
 }
 

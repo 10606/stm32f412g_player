@@ -24,7 +24,8 @@ int main (int argc, char ** argv)
         clients_wrapper_t clients(epoll_wrap.epoll_fd);
         com_wrapper_t stm32(stm32_name, epoll_wrap.epoll_fd);
 
-        while (1)
+        bool exit = 0;
+        while (!exit)
         {
             std::vector <std::pair <int, uint32_t> > events = epoll_wrap.wait();
             for (std::pair <int, uint32_t> const & event : events)
@@ -36,7 +37,7 @@ int main (int argc, char ** argv)
                     if (event.first == conn_sock.fd)
                         throw std::runtime_error("server socket error");
                     else if (event.first == stm32.fd)
-                        throw std::runtime_error("com closed");
+                        exit = 1;
                     else
                         clients.unreg(event.first);
                     continue;

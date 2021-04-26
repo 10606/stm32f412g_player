@@ -10,6 +10,11 @@ struct com_wrapper_t
     com_wrapper_t (std::string const & _file_name, int _epoll_fd);
     ~com_wrapper_t ();
     
+    com_wrapper_t (com_wrapper_t const &) = delete;
+    com_wrapper_t & operator = (com_wrapper_t const &) = delete;
+    com_wrapper_t (com_wrapper_t &&) = delete;
+    com_wrapper_t & operator = (com_wrapper_t &&) = delete;
+    
     void realloc (size_t needed);
     void shrink_to_fit ();
     void write ();
