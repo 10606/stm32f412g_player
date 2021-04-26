@@ -85,47 +85,24 @@ void playlist::init_base ()
     memset(header.playlist_name, ' ', pl_name_sz);
 }
  
-uint32_t playlist::init ()
-{
-    if (fd.is_fake())
-        return 0;
-    
-    uint32_t ret;
-    ret = fd.seek( 0);
-    if (ret) // fseek 0 don't fail
-        return ret;
-
-    playlist_header old_header;
-    memcpy(&old_header, &header, sizeof(playlist_header));
-    ret = read_header(&header, &fd);
-    if (ret)
-        return ret;
-    ret = seek(0);
-    if (ret)
-    {
-        memcpy(&header, &old_header, sizeof(playlist_header));
-        return ret;
-    }
-    return 0;
-}
-
 playlist::playlist () :
     fd()
 {
     init_base();
 }
 
-uint32_t playlist::set_file (file_descriptor * _fd, uint32_t pos_selected)
+uint32_t playlist::open (light_playlist & lpl, uint32_t pos_selected)
 {
     uint32_t ret;
     playlist old_pl(std::move(*this));
-    fd.copy_seek_0(*_fd);
+    fd.copy_seek_0(lpl.fd);
     init_base();
-    if ((ret = init()) == 0)
-    {
-        if ((ret = seek(pos_selected)) == 0)
-            return 0;
-    }
+    if (fd.is_fake())
+        return 0;
+    
+    memcpy(&header, &lpl.header, sizeof(playlist_header));
+    if ((ret = seek(pos_selected)) == 0)
+        return 0;
 
     *this = std::move(old_pl);
     return ret;

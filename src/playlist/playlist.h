@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include "FAT.h"
 #include "playlist_structures.h"
+#include "light_playlist.h"
 
 struct playlist 
 {
@@ -13,7 +14,7 @@ struct playlist
     playlist & operator = (playlist && other);
     ~playlist ();
     
-    uint32_t set_file (file_descriptor * fd, uint32_t pos_selected);
+    uint32_t open (light_playlist & lpl, uint32_t pos_selected);
     uint32_t seek (uint32_t pos);
     uint32_t next ();
     uint32_t prev ();
@@ -29,7 +30,6 @@ struct playlist
     
 private:
     void init_base ();
-    uint32_t init ();
     void move (playlist &&);
 };
 

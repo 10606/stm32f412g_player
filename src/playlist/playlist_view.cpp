@@ -182,7 +182,7 @@ uint32_t playlist_view::up ()
 
 uint32_t playlist_view::play (playlist * pl) 
 {
-    return pl->set_file(&lpl.fd, pos_selected);
+    return pl->open(lpl, pos_selected);
 }
 
 bool playlist_view::compare (playlist const * b)
