@@ -13,7 +13,10 @@ clients_wrapper_t::clients_wrapper_t (int _epoll_fd) :
     size(0),
     capacity(0),
     last_full_struct(0),
-    pointers()
+    pointers(),
+    add_offset(0),
+    less_size(),
+    not_registred()
 {}
 
 clients_wrapper_t::~clients_wrapper_t ()
@@ -54,9 +57,17 @@ void clients_wrapper_t::reg (int fd)
 {
     if (fd == -1)
         throw std::runtime_error("bad fd");
-    pointers.insert({fd, last_full_struct});
-    epoll_reg(epoll_fd, fd, (last_full_struct != size)? (EPOLLIN | EPOLLOUT) : EPOLLIN);
-    
+    pointers.insert({fd, last_full_struct + add_offset});
+    less_size.insert({last_full_struct + add_offset, fd});
+    if (last_full_struct != size)
+    {
+        epoll_reg(epoll_fd, fd, (EPOLLIN | EPOLLOUT));
+    }
+    else
+    {
+        not_registred.insert(fd);
+        epoll_reg(epoll_fd, fd, EPOLLIN);
+    }
 }
 
 void clients_wrapper_t::unreg (int fd)
@@ -64,6 +75,8 @@ void clients_wrapper_t::unreg (int fd)
     std::map <int, size_t> :: iterator it = pointers.find(fd);
     if (it == pointers.end())
         throw std::runtime_error("unknown fd");
+    less_size.erase({it->second, it->first});
+    not_registred.erase(it->first);
     pointers.erase(it);
     epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd, NULL);
     close(fd);
@@ -83,16 +96,16 @@ void clients_wrapper_t::realloc (size_t start_index, size_t needed)
         delete [] buffer;
     }
     buffer = new_buffer;
-    
-    for (auto & i : pointers)
-        i.second -= start_index;
+ 
+    add_offset += start_index;
 }
 
 void clients_wrapper_t::shrink_to_fit ()
 {
     size_t min_ptr = last_full_struct;
-    for (auto & i : pointers)
-        min_ptr = std::min(min_ptr, i.second);
+    if (!less_size.empty())
+        min_ptr = std::min(min_ptr, less_size.begin()->first - add_offset);
+        
     if (min_ptr < delta_capacity)
         return; // useless
     
@@ -104,12 +117,18 @@ void clients_wrapper_t::write (int fd)
     std::map <int, size_t> :: iterator it = pointers.find(fd);
     if (it == pointers.end())
         throw std::runtime_error("unknown fd");
-    ssize_t wb = ::write(fd, buffer + it->second, size - it->second);
+    size_t offset = it->second - add_offset;
+    ssize_t wb = ::write(fd, buffer + offset, size - offset);
     if (wb < 0)
         throw std::runtime_error("error write");
+    less_size.erase({it->second, it->first});
     it->second += wb;
-    if (it->second == size)
+    less_size.insert({it->second, it->first});
+    if (it->second - add_offset == size)
+    {
         epoll_reg(epoll_fd, fd, EPOLLIN);
+        not_registred.insert(it->first);
+    }
     shrink_to_fit();
 }
 
@@ -122,7 +141,7 @@ std::string clients_wrapper_t::read (int fd)
     char buff [64];
     ssize_t rb = ::read(fd, buff, sizeof(buff));
     if (rb < 0)
-        throw std::runtime_error("error write");
+        throw std::runtime_error("error read");
     return std::string(buff, rb);
 }
 
@@ -130,7 +149,6 @@ void clients_wrapper_t::append (std::string_view value)
 {
     if (size + value.size() > capacity)
         realloc(0, value.size());
-    size_t old_size = size;
     size += value.copy(buffer + size, capacity - size);
     
     size_t new_last_full_struct = last_full_struct;
@@ -142,13 +160,11 @@ void clients_wrapper_t::append (std::string_view value)
     if (new_last_full_struct == size)
         last_full_struct = size;
     
-    for (auto & i : pointers)
-    {
-        if (i.second == old_size)
-        {
-            epoll_reg(epoll_fd, i.first, EPOLLIN | EPOLLOUT);
-        }
-    }
+    for (int const & i : not_registred)
+        epoll_reg(epoll_fd, i, EPOLLIN | EPOLLOUT);
+    not_registred.clear();
+
+    shrink_to_fit();
 }
 
 

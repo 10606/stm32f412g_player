@@ -3,6 +3,7 @@
 
 #include <sys/epoll.h>
 #include <map>
+#include <set>
 #include <string>
 #include <string_view>
 
@@ -30,7 +31,11 @@ struct clients_wrapper_t
     size_t size;
     size_t capacity;
     size_t last_full_struct;
+    
     std::map <int, size_t> pointers; // fd -> offset
+    size_t add_offset; // offset buffer in history
+    std::set <std::pair <size_t, int> > less_size; // <offset, fd>
+    std::set <int> not_registred; // not registred fd on write in epoll
 };
 
 #endif
