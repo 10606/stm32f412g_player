@@ -37,7 +37,7 @@ static uint32_t get_data (file_descriptor * _file, uint8_t * buffer, uint32_t si
     uint32_t total_read = 0;
     uint32_t ret;
     uint32_t tried = 2;
-    while ((ret = f_read(_file, buffer, size, &total_read)) && (tried))
+    while ((ret = _file->read(buffer, size, &total_read)) && (tried))
     {
         if (ret == err::eof_file)
         {

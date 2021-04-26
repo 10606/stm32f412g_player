@@ -14,7 +14,7 @@ uint32_t playlist::seek (uint32_t new_pos)
     song_header old_song_header;
     memcpy(&old_song_header, &song, sizeof(song_header));
     {
-        ret = f_seek(&fd, sizeof(playlist_header) + new_pos * sizeof(song_header));
+        ret = fd.seek(sizeof(playlist_header) + new_pos * sizeof(song_header));
         if (ret)
             return ret;
         ret = read_song(&song, &fd);
@@ -41,14 +41,13 @@ uint32_t playlist::seek (uint32_t new_pos)
     }
     
     {
-        ret = f_seek(&fd, song.path_offset);
+        ret = fd.seek(song.path_offset);
         if (ret)
         {
             memcpy(&song, &old_song_header, sizeof(song_header));
             return ret;
         }
-        uint32_t rd;
-        ret = f_read_all_fixed(&fd, (char *)path, song.path_len * sizeof(char[12]), &rd);
+        ret = fd.read_all_fixed((char *)path, song.path_len * sizeof(char[12]));
         if (ret)
         {
             memcpy(&song, &old_song_header, sizeof(song_header));
@@ -92,7 +91,7 @@ uint32_t playlist::init ()
         return 0;
     
     uint32_t ret;
-    ret = f_seek(&fd, 0);
+    ret = fd.seek( 0);
     if (ret) // fseek 0 don't fail
         return ret;
 
@@ -134,7 +133,7 @@ uint32_t playlist::set_file (file_descriptor * _fd, uint32_t pos_selected)
 
 void playlist::move (playlist && other)
 {
-    fd.copy(other.fd);
+    fd = other.fd;
     other.fd.init_fake();
     
     memmove(&header, &other.header, sizeof(playlist_header));

@@ -8,7 +8,7 @@ uint32_t light_playlist::seek (uint32_t _pos)
     _pos %= header.cnt_songs;
     pos = _pos;
     uint32_t ret;
-    if ((ret = f_seek(&fd, sizeof(playlist_header) + pos * sizeof(song_header))))
+    if ((ret = fd.seek(sizeof(playlist_header) + pos * sizeof(song_header))))
         return ret;
     if ((ret = read_song(&song, &fd)))
         return ret;
@@ -34,9 +34,9 @@ void light_playlist::init_base ()
     memset(header.playlist_name, ' ', pl_name_sz);
 }
 
-light_playlist::light_playlist ()
+light_playlist::light_playlist () :
+    fd()
 {
-    fd.init_fake();
     init_base();
 }
 
@@ -49,7 +49,7 @@ uint32_t light_playlist::open_file ()
     uint32_t ret;
     playlist_header old_header;
     memcpy(&old_header, &header, sizeof(playlist_header));
-    if ((ret = f_seek(&fd, 0)))
+    if ((ret = fd.seek(0)))
         return ret;
     if ((ret = read_header(&header, &fd)))
         return ret;
@@ -65,7 +65,7 @@ void light_playlist::copy (light_playlist const & other)
 {
     memcpy(&header, &other.header, sizeof(header));
     memcpy(&song, &other.song, sizeof(song));
-    fd.copy(other.fd);
+    fd = other.fd;
     pos = other.pos;
 }
 

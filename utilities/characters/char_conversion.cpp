@@ -13,32 +13,27 @@ std::vector <uint32_t> utf8_to_ucs4 (std::string_view const & utf8)
         uint8_t c = utf8[i++];
         uint32_t ans;
         uint8_t rem;
-        [[likely]] 
-        if (c < 0x80)
+        if (c < 0x80) [[likely]] 
         {
             ans = c;
             rem = 0;
         }
-        else [[unlikely]] 
-        if (c < 0xc0)
+        else if (c < 0xc0) [[unlikely]] 
         {
             continue;
             // ignore err
         }
-        else [[likely]] 
-        if (c < 0xe0)
+        else if (c < 0xe0) [[likely]] 
         {
             ans = c & 0x1f;
             rem = 1;
         }
-        else [[likely]] 
-        if (c < 0xf0)
+        else if (c < 0xf0) [[likely]] 
         {
             ans = c & 0x0f;
             rem = 2;
         }
-        else [[likely]] 
-        if (c < 0xf8)
+        else if (c < 0xf8) [[likely]] 
         {
             ans = c & 0x07;
             rem = 3;
@@ -57,10 +52,9 @@ std::vector <uint32_t> utf8_to_ucs4 (std::string_view const & utf8)
             rem--;
         }
         
-        [[unlikely]] 
         if (rem ||
             (ans >= 0xd800 && ans < 0xe000) ||
-            (ans >= 0x110000))
+            (ans >= 0x110000)) [[unlikely]] 
         {
             continue;
             // ignore err
@@ -118,30 +112,25 @@ std::string ucs4_to_utf8 (std::vector <uint32_t> const & ucs4)
         for (; p < 64 && i != ucs4.size(); ++i)
         {
             uint32_t c = ucs4[i];
-            [[likely]] 
-            if (c < 0x80)
+            if (c < 0x80) [[likely]] 
             {
                 buf[p++] = (c & 0x7f);
             }
-            else [[likely]] 
-            if (c < 0x800)    
+            else if (c < 0x800) [[likely]] 
             {
                 buf[p++] = ((c >> 6) | 0xc0);
                 buf[p++] = ((c >> 0) & 0x3f) | 0x80;
             }
-            else [[likely]] 
-            if (c < 0x00010000)
+            else if (c < 0x00010000) [[likely]] 
             {
-                [[unlikely]] 
-                if (c >= 0xd800 && c < 0xe000)
+                if (c >= 0xd800 && c < 0xe000) [[unlikely]] 
                     continue; // err
                 
                 buf[p++] = ((c >> 12) | 0xe0);
                 buf[p++] = ((c >>  6) & 0x3f) | 0x80;
                 buf[p++] = ((c >>  0) & 0x3f) | 0x80;
             }
-            else [[likely]] 
-            if (c < 0x00110000)
+            else if (c < 0x00110000) [[likely]] 
             {
                 buf[p++] = ((c >> 18) | 0xf0);
                 buf[p++] = ((c >> 12) & 0x3f) | 0x80;

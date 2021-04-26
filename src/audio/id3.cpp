@@ -18,7 +18,7 @@ static inline char is_eq (char const * a, char const * b, uint32_t length)
 static inline uint32_t id3_v1_size (file_descriptor * fd)
 {
     uint32_t ret;
-    if ((ret = f_seek(fd, 0)))
+    if ((ret = fd->seek(0)))
         return 0;
     
     id3_v1_header id3_v1_h;
@@ -27,7 +27,7 @@ static inline uint32_t id3_v1_size (file_descriptor * fd)
     
     while (total_read < 3)
     {
-        if ((ret = f_read(fd, (char *)&id3_v1_h + total_read, sizeof(id3_v1_header) - total_read, &rb)))
+        if ((ret = fd->read((char *)&id3_v1_h + total_read, sizeof(id3_v1_header) - total_read, &rb)))
             return 0;
         total_read += rb;
     }
@@ -40,7 +40,7 @@ static inline uint32_t id3_v1_size (file_descriptor * fd)
 static inline uint32_t id3_v2_size (file_descriptor * fd)
 {
     uint32_t ret;
-    if ((ret = f_seek(fd, 0)))
+    if ((ret = fd->seek(0)))
         return 0;
     
     id3_v2_header id3_v2_h;
@@ -49,7 +49,7 @@ static inline uint32_t id3_v2_size (file_descriptor * fd)
     
     while (total_read < sizeof(id3_v2_header))
     {
-        if ((ret = f_read(fd, (char *)&id3_v2_h + total_read, sizeof(id3_v2_header) - total_read, &rb)))
+        if ((ret = fd->read((char *)&id3_v2_h + total_read, sizeof(id3_v2_header) - total_read, &rb)))
             return 0;
         total_read += rb;
     }
@@ -75,7 +75,7 @@ static inline uint32_t id3_v2_size (file_descriptor * fd)
 uint32_t get_mp3_header (file_descriptor * fd, mp3_header * mp3_h, uint32_t id3_length)
 {
     uint32_t ret, rb;
-    if ((ret = f_seek(fd, id3_length)))
+    if ((ret = fd->seek(id3_length)))
         return 0xffffffff;
     
     mp3_h->value[0] = 0;
@@ -85,13 +85,13 @@ uint32_t get_mp3_header (file_descriptor * fd, mp3_header * mp3_h, uint32_t id3_
             ((mp3_h->value[1] & 0xe0) != 0xe0))
     {
         mp3_h->value[0] = mp3_h->value[1];
-        if ((ret = f_read(fd, mp3_h->value + 1, 1, &rb)))
+        if ((ret = fd->read(mp3_h->value + 1, 1, &rb)))
             return 0xffffffff;
     }
     uint32_t total_read = 2;
     while (total_read < sizeof(mp3_header))
     {
-        if ((ret = f_read(fd, (char *)mp3_h->value + total_read, sizeof(mp3_header) - total_read, &rb)))
+        if ((ret = fd->read((char *)mp3_h->value + total_read, sizeof(mp3_header) - total_read, &rb)))
             return 0xffffffff;
         total_read += rb;
     }
@@ -108,7 +108,7 @@ uint32_t get_xing_length (file_descriptor * fd, mp3_header * mp3_h, uint32_t mp3
         (((mp3_h->value[3] >> 6)/*channel_mode*/ == 3)? 17 : 32);
     uint32_t ret;
 
-    if ((ret = f_seek(fd, offset)))
+    if ((ret = fd->seek(offset)))
         return 0;
     
     xing_header xing;
@@ -116,7 +116,7 @@ uint32_t get_xing_length (file_descriptor * fd, mp3_header * mp3_h, uint32_t mp3
     while (total_read < sizeof(xing_header))
     {
         uint32_t rb;
-        if ((ret = f_read(fd, (char *)&xing + total_read, sizeof(xing_header) - total_read, &rb)))
+        if ((ret = fd->read((char *)&xing + total_read, sizeof(xing_header) - total_read, &rb)))
             return 0;
         total_read += rb;
     }
@@ -145,7 +145,7 @@ uint32_t get_vbri_length (file_descriptor * fd, mp3_header * mp3_h, uint32_t mp3
         32;
     uint32_t ret;
 
-    if ((ret = f_seek(fd, offset)))
+    if ((ret = fd->seek(offset)))
         return 0;
     
     vbri_header vbri;
@@ -153,7 +153,7 @@ uint32_t get_vbri_length (file_descriptor * fd, mp3_header * mp3_h, uint32_t mp3
     while (total_read < sizeof(vbri_header))
     {
         uint32_t rb;
-        if ((ret = f_read(fd, (char *)&vbri + total_read, sizeof(vbri_header) - total_read, &rb)))
+        if ((ret = fd->read((char *)&vbri + total_read, sizeof(vbri_header) - total_read, &rb)))
             return 0;
         total_read += rb;
     }

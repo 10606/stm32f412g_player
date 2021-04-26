@@ -61,7 +61,7 @@ uint32_t view::seek (uint8_t * need_redraw, uint32_t value, uint8_t direction /*
         add_in_bound(new_pos, 0, audio_ctl->audio_file.size, value) :
         sub_in_bound(new_pos, 0, audio_ctl->audio_file.size, value);
     audio_ctl->seeked = 1;
-    ret = f_seek(&audio_ctl->audio_file, new_pos);
+    ret = audio_ctl->audio_file.seek(new_pos);
     if (ret)
         return ret;
     return 0;

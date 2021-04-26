@@ -280,7 +280,7 @@ uint32_t playlist_view::to_playing_playlist (playlist const & pl)
     uint32_t ret;
     if ((ret = init()))
     {
-        lpl.fd.copy(old_fd);
+        lpl.fd = old_fd;
         return ret;
     }
     return 0;
@@ -296,10 +296,9 @@ uint32_t playlist_view::open_playlist
     file_descriptor fd(lpl.fd);
     if ((ret = open(&FAT_info, &lpl.fd, path, path_len)))
         return ret;
-    // trivially destructible
     if ((ret = init()))
     {
-        lpl.fd.copy(fd);
+        lpl.fd = fd;
         return ret;
     }
     return 0;

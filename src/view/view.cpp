@@ -50,7 +50,7 @@ uint32_t view::open_song ()
         return ret;
     audio_ctl->seeked = 1;
     get_length(&audio_ctl->audio_file, &audio_ctl->info);
-    if ((ret = f_seek(&audio_ctl->audio_file, audio_ctl->info.offset)))
+    if ((ret = audio_ctl->audio_file.seek(audio_ctl->info.offset)))
         return ret;
     return 0;
 }

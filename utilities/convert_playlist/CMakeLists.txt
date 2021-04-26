@@ -44,7 +44,7 @@ add_library(libFAT
     ${FAT32_driver_path}/fat_info/fat_info.cpp
     ${FAT32_driver_path}/fat_info/load_FAT.cpp
     ${FAT32_driver_path}/open/open.cpp
-    ${FAT32_driver_path}/read/read.cpp
+    ${FAT32_driver_path}/file_descriptor/read.cpp
     ${FAT32_driver_path}/read_file_info/read_file_info.cpp
 )
 

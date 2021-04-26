@@ -93,8 +93,7 @@ uint32_t pl_list::init (char (* dir_name)[12], size_t len_name)
         }
         
         playlist_header header;
-        uint32_t br;
-        res = f_read_all_fixed(&file, (char *)&header, sizeof(header), &br);
+        res = file.read_all_fixed((char *)&header, sizeof(header));
         if (res != 0)
         {
             cnt = i;

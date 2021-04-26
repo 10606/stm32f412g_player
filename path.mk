@@ -73,7 +73,7 @@ FAT32_sources_ = \
 	fat_info/fat_info.cpp \
 	fat_info/load_FAT.cpp \
 	open/open.cpp \
-	read/read.cpp \
+	file_descriptor/read.cpp \
 	read_file_info/read_file_info.cpp 
 FAT32_sources = $(addprefix $(FAT32_driver)/, $(FAT32_sources_))
 

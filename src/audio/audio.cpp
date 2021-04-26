@@ -133,7 +133,7 @@ uint32_t audio_ctl_t::new_song_or_repeat ()
     if (repeat_mode)
     {
         uint32_t ret;
-        if ((ret = f_seek(&audio_file, info.offset)))
+        if ((ret = audio_file.seek(info.offset)))
         {
             display::error("err seek");
             return ret;
