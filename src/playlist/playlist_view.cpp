@@ -180,17 +180,17 @@ uint32_t playlist_view::up ()
     return 0;
 }
 
-uint32_t playlist_view::play (playlist * pl) 
+uint32_t playlist_view::play (playlist & pl) const
 {
-    return pl->open(lpl, pos_selected);
+    return pl.open(lpl, pos_selected);
 }
 
-bool playlist_view::compare (playlist const * b)
+bool playlist_view::compare (playlist const & b) const
 {
-    return lpl.fd == b->fd;
+    return lpl.fd == b.fd;
 }
 
-bool playlist_view::check_near (playlist * playing_pl)
+bool playlist_view::check_near (playlist const & playing_pl) const
 {
     if (!compare(playing_pl))
         return 0;
@@ -198,7 +198,7 @@ bool playlist_view::check_near (playlist * playing_pl)
     return ::check_near
     (
         pos_selected, 
-        playing_pl->pos, 
+        playing_pl.pos, 
         lpl.header.cnt_songs, 
         playlist_view_cnt, 
         playlist_border_cnt
@@ -207,12 +207,12 @@ bool playlist_view::check_near (playlist * playing_pl)
 
 void playlist_view::print
 (
-    playlist * playing_pl,
+    playlist const & playing_pl,
     char (* song_name)[song_name_sz + 1], 
     char (* group_name)[group_name_sz + 1], 
     char * selected,
     char (* number)[3 + 1]
-)
+) const
 {
     memset(selected, 0, playlist_view_cnt);
     if (lpl.header.cnt_songs <= playlist_view_cnt)
@@ -238,7 +238,7 @@ void playlist_view::print
         if ((compare(playing_pl)) &&
             (lpl.header.cnt_songs != 0))
         {
-            selected[playing_pl->pos] |= 2;
+            selected[playing_pl.pos] |= 2;
         }
         return;
     }
@@ -261,7 +261,7 @@ void playlist_view::print
     }
 
     if (check_near(playing_pl))
-        selected[playing_pl->pos - index] |= 2;
+        selected[playing_pl.pos - index] |= 2;
 
     for (size_t i = 0; i != playlist_view_cnt; ++i)
     {
@@ -269,7 +269,6 @@ void playlist_view::print
         memcpy(group_name[i], this->name_group[(i + pos_begin) % playlist_view_cnt], group_name_sz + 1);
         snprintf(number[i], 3 + 1, "%3lu", ((index + i) % 1000));
     }
-    
 }
 
 uint32_t playlist_view::to_playing_playlist (playlist const & pl)
@@ -304,7 +303,7 @@ uint32_t playlist_view::open_playlist
     return 0;
 }
 
-bool playlist_view::is_fake ()
+bool playlist_view::is_fake () const
 {
     return lpl.fd.is_fake();
 }

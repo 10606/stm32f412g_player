@@ -8,30 +8,34 @@
 namespace display
 {
 
-void cur_song (playlist * pl_p, char to_screen, uint8_t * need_redraw)
+void cur_song (playlist const & pl, bool & need_redraw)
 {
     char cur_song_name[song_name_sz + 1];
     char cur_group_name[group_name_sz + 1];
-    memcpy(cur_song_name, pl_p->song.song_name, song_name_sz);
+    memcpy(cur_song_name, pl.song.song_name, song_name_sz);
     cur_song_name[song_name_sz] = 0;
-    memcpy(cur_group_name, pl_p->song.group_name, group_name_sz);
+    memcpy(cur_group_name, pl.song.group_name, group_name_sz);
     cur_group_name[group_name_sz] = 0;
     color_t yb = {lcd_color_yellow, lcd_color_blue};
-    if (to_screen)
-    {
-        display_string(10, display::offsets::song_name, cur_group_name, &font_16, &yb);
-        display_string(10, display::offsets::song_name + display::offsets::in_song_name, cur_song_name, &font_16, &yb);
-        audio_ctl.audio_process(need_redraw);
-    }
+    
+    display_string(10, display::offsets::song_name, cur_group_name, &font_16, &yb);
+    display_string(10, display::offsets::song_name + display::offsets::in_song_name, cur_song_name, &font_16, &yb);
+    audio_ctl.audio_process(need_redraw);
+    
     send_cur_song(cur_group_name, cur_song_name);
 }
 
-void cur_playlist (playlist_view * plv, playlist * pl_p, char to_screen, uint8_t * need_redraw)
+void cur_playlist 
+(
+    playlist_view const & plv, 
+    playlist const & pl, 
+    bool to_screen, 
+    bool & need_redraw
+)
 {
     uint32_t y_pos = display::offsets::list + display::offsets::line * playlist_view_cnt;
     if (to_screen)
         fill_rect(0, y_pos, 240, 240 - y_pos, lcd_color_white);
-    cur_song(pl_p, to_screen, need_redraw);
     HAL_Delay(1);
     audio_ctl.audio_process(need_redraw);
     
@@ -44,7 +48,7 @@ void cur_playlist (playlist_view * plv, playlist * pl_p, char to_screen, uint8_t
         // 3 - playing and selected
     char number[playlist_view_cnt][3 + 1];
     
-    plv->print(pl_p, song_name, group_name, selected, number);
+    plv.print(pl, song_name, group_name, selected, number);
     
     for (uint32_t i = 0; i != playlist_view_cnt; ++i)
     {

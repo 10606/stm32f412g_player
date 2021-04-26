@@ -151,7 +151,7 @@ uint32_t pl_list::open_selected (playlist_view * plv, uint32_t * selected_pl)
     return open_index(plv, current_pos, selected_pl);
 }
 
-void fill_name (char * dst, char * src, uint32_t size)
+void fill_name (char * dst, char const * src, uint32_t size)
 {
     memset(dst, ' ', size - 1);
     memcpy(dst, src, size - 1);
@@ -165,7 +165,7 @@ void fill_name (char * dst, char * src, uint32_t size)
     dst[size - 1] = 0;
 }
 
-bool pl_list::check_near (uint32_t pos)
+bool pl_list::check_near (uint32_t pos) const
 {
     if (cnt == 0)
         return 0;
@@ -189,7 +189,7 @@ uint32_t pl_list::print
     char (* number)[3 + 1],
     char (* count)[3 + 1], 
     char * selected
-)
+) const
 {
     memset(selected, 0, plb_view_cnt);
     if (cnt < plb_view_cnt)

@@ -73,7 +73,13 @@ void start_image ()
     }
 }
 
-void song_volume (playlist * pl, audio_ctl_t * actl, state_song_view_t state, char to_screen, uint8_t * need_redraw) 
+void song_volume 
+(
+    audio_ctl_t const & actl, 
+    state_song_view_t state, 
+    bool to_screen, 
+    bool & need_redraw
+) 
 {
     char c_state = ' ';
     switch (state)
@@ -96,8 +102,8 @@ void song_volume (playlist * pl, audio_ctl_t * actl, state_song_view_t state, ch
     memset(s_volume, ' ', sizeof(s_volume));
     memset(s_state, ' ', sizeof(s_state));
     color_t bw = {lcd_color_blue, lcd_color_white};
-    snprintf(s_volume, sizeof(s_volume), " %3u%%", actl->volume);
-    snprintf(s_state, sizeof(s_state), "  %c %c", (actl->repeat_mode? 'r' : ' '), c_state);
+    snprintf(s_volume, sizeof(s_volume), " %3u%%", actl.volume);
+    snprintf(s_state, sizeof(s_state), "  %c %c", (actl.repeat_mode? 'r' : ' '), c_state);
     if (to_screen)
     {
         display_string(200, display::offsets::list, s_volume, &font_12, &bw);
@@ -108,7 +114,7 @@ void song_volume (playlist * pl, audio_ctl_t * actl, state_song_view_t state, ch
     send_volume(s_volume, s_state);
 }
 
-void display_picture (uint8_t * need_redraw)
+void display_picture (bool & need_redraw)
 {
     uint32_t parts = 5;
     uint32_t p_size = (240 - display::offsets::picture + parts - 1) / parts;
@@ -123,15 +129,21 @@ void display_picture (uint8_t * need_redraw)
     }
 }
 
-void song (playlist * pl, audio_ctl_t * actl, state_song_view_t state, char to_screen, char redraw_picture, uint8_t * need_redraw) 
+void song 
+(
+    audio_ctl_t const & actl, 
+    state_song_view_t state, 
+    bool to_screen, 
+    bool redraw_picture, 
+    bool & need_redraw
+) 
 {
     if (to_screen && redraw_picture) // don't redraw picture if not need
     {
         display_picture(need_redraw);
         audio_ctl.audio_process(need_redraw);
     }
-    cur_song(pl, to_screen, need_redraw);
-    song_volume(pl, actl, state, to_screen, need_redraw);
+    song_volume(actl, state, to_screen, need_redraw);
     audio_ctl.audio_process(need_redraw);
 }
 

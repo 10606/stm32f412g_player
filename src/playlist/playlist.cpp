@@ -91,7 +91,7 @@ playlist::playlist () :
     init_base();
 }
 
-uint32_t playlist::open (light_playlist & lpl, uint32_t pos_selected)
+uint32_t playlist::open (light_playlist const & lpl, uint32_t pos_selected)
 {
     uint32_t ret;
     playlist old_pl(std::move(*this));
@@ -156,7 +156,7 @@ playlist::~playlist ()
     path = 0;
 }
 
-bool playlist::is_fake ()
+bool playlist::is_fake () const
 {
     return fd.is_fake();
 }

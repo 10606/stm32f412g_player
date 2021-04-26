@@ -16,7 +16,7 @@ enum joystick_buttons
 
 struct joystick_state_t
 {
-    uint32_t joystick_check (view & vv, uint8_t * need_redraw);
+    uint32_t joystick_check (view & vv, bool & need_redraw);
 
     uint8_t pressed[joystick_states_cnt];
     uint8_t process[joystick_states_cnt];

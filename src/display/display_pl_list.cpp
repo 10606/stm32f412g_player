@@ -9,12 +9,17 @@
 namespace display
 {
 
-void cur_pl_list (pl_list * pll, uint32_t playing_pl, playlist * pl_p, char to_screen, uint8_t * need_redraw)
+void cur_pl_list 
+(
+    pl_list const & pll, 
+    uint32_t playing_pl, 
+    bool to_screen, 
+    bool & need_redraw
+)
 {
     uint32_t y_pos =display::offsets:: list +display::offsets:: line * plb_view_cnt;
     if (to_screen)
         fill_rect(0, y_pos, 240, 240 - y_pos, lcd_color_white);
-    cur_song(pl_p, to_screen, need_redraw);
     
     char playlist_name[plb_view_cnt][pl_name_sz + 1];
     char number[plb_view_cnt][3 + 1];
@@ -29,7 +34,7 @@ void cur_pl_list (pl_list * pll, uint32_t playing_pl, playlist * pl_p, char to_s
     memset(empty, ' ', sizeof(empty));
     empty[count_offset + 3] = 0;
     
-    pll->print(playing_pl, playlist_name, number, count, selected);
+    pll.print(playing_pl, playlist_name, number, count, selected);
     
     for (uint32_t i = 0; i != plb_view_cnt; ++i)
     {

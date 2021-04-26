@@ -20,11 +20,11 @@ struct point
 
 struct touch_processing
 {
-    void touch_region (view * vv, uint8_t * need_redraw);
-    int32_t move_left (int32_t offset, char speed, view * vv, uint8_t * need_redraw);
-    int32_t move_right (int32_t offset, char speed, view * vv, uint8_t * need_redraw);
-    int32_t move_up (int32_t offset, char speed, view * vv, uint8_t * need_redraw);
-    int32_t move_down (int32_t offset, char speed, view * vv, uint8_t * need_redraw);
+    void touch_region (view * vv, bool & need_redraw);
+    int32_t move_left  (int32_t offset, char speed, view * vv, bool & need_redraw);
+    int32_t move_right (int32_t offset, char speed, view * vv, bool & need_redraw);
+    int32_t move_up    (int32_t offset, char speed, view * vv, bool & need_redraw);
+    int32_t move_down  (int32_t offset, char speed, view * vv, bool & need_redraw);
 
     int32_t do_move 
     (
@@ -32,7 +32,7 @@ struct touch_processing
         int32_t offset, 
         char speed, 
         view * vv, 
-        uint8_t * need_redraw
+        bool & need_redraw
     );
     
     point start;
@@ -44,7 +44,7 @@ private:
         int32_t offset, 
         char speed, 
         view * vv, 
-        uint8_t * need_redraw,
+        bool & need_redraw,
         uint8_t direction // 0 left, 1 - right
     );
     int32_t move_up_down
@@ -52,7 +52,7 @@ private:
         int32_t offset, 
         char speed, 
         view * vv, 
-        uint8_t * need_redraw,
+        bool & need_redraw,
         uint8_t direction // 0 - down, 1 - up 
     );
 };

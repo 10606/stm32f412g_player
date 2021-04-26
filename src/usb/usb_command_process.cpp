@@ -5,9 +5,9 @@
 #include <type_traits>
 #include <stdint.h>
 
-uint32_t usb_process_t::usb_process (view * vv, uint8_t * need_redraw)
+uint32_t usb_process_t::usb_process (view * vv, bool & need_redraw)
 {
-    static uint32_t (view::* process_view_do[16]) (uint8_t *) =
+    static uint32_t (view::* process_view_do[16]) (bool &) =
     {
         &view::do_nothing,
         &view::process_up,
@@ -30,11 +30,9 @@ uint32_t usb_process_t::usb_process (view * vv, uint8_t * need_redraw)
     for (; start != end;)
     {
         uint32_t ret = 0;
-        uint8_t need_redraw_nv = 0;
         uint8_t command = buffer[start];
         if (command < 16)
-            ret = (vv->*process_view_do[command])(&need_redraw_nv);
-        *need_redraw |= need_redraw_nv;
+            ret = (vv->*process_view_do[command])(need_redraw);
         if (!ret)
             start = (start + 1) % std::extent <decltype(buffer)> ::value;
     }

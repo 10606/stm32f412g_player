@@ -22,20 +22,20 @@ struct playlist_view
     uint32_t down ();
     uint32_t up ();
     uint32_t seek (uint32_t pos);
-    uint32_t play (playlist * pl);
+    uint32_t play (playlist & pl) const;
     uint32_t to_playing_playlist (playlist const & pl);
-    bool is_fake ();
-    bool check_near (playlist * playing_pl);
-    bool compare (playlist const * b);
+    bool is_fake () const;
+    bool check_near (playlist const & playing_pl) const;
+    bool compare (playlist const & b) const;
 
     void print
     (
-        playlist * playing_pl,
+        playlist const & playing_pl,
         char (* song_name)[song_name_sz + 1],
         char (* group_name)[group_name_sz + 1],
         char * selected,
         char (* number)[3 + 1]
-    );
+    ) const;
 
     uint32_t open_playlist
     (

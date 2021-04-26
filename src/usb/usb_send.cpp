@@ -1,7 +1,6 @@
 #include "usb_send.h"
 
 #include "view.h"
-#include "display.h"
 #include "usb_commands.h"
 
 uint8_t send_cur_song 

@@ -26,7 +26,7 @@ struct pl_list
     void seek (uint32_t pos);
     uint32_t open_index (playlist_view * plv, uint32_t index, uint32_t * selected_pl);
     uint32_t open_selected (playlist_view * plv, uint32_t * selected_pl);
-    bool check_near (uint32_t pos);
+    bool check_near (uint32_t pos) const;
 
     uint32_t print 
     (
@@ -35,7 +35,7 @@ struct pl_list
         char (* number)[3 + 1],
         char (* count)[3 + 1], 
         char * selected
-    );
+    ) const;
 
     
     char (* root_path)[12];

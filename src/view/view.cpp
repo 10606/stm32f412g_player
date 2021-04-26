@@ -23,16 +23,17 @@ uint32_t view::init (char (* path)[12], uint32_t len)
     return 0;
 }
 
-void view::display (uint8_t * need_redraw)
+void view::display (bool & need_redraw)
 {
     char ts_playlist = (state == state_t::playlist);
     char ts_pl_list = (state == state_t::pl_list);
     char ts_song = (state == state_t::song);
 
     send_state(state);
-    display::cur_playlist(&plv, &pl, ts_playlist, need_redraw);
-    display::cur_pl_list(&pll, playing_playlist, &pl, ts_pl_list, need_redraw);
-    display::song(&pl, audio_ctl, state_song_view, ts_song, (old_state != state_t::song), need_redraw);
+    display::cur_song(pl, need_redraw);
+    display::cur_playlist(plv, pl, ts_playlist, need_redraw);
+    display::cur_pl_list(pll, playing_playlist, ts_pl_list, need_redraw);
+    display::song(*audio_ctl, state_song_view, ts_song, (old_state != state_t::song), need_redraw);
     old_state = state;
 }
 
@@ -88,14 +89,14 @@ void view::fake_song_and_playlist ()
     audio_ctl->audio_file.init_fake();
 }
 
-uint32_t view::do_nothing (uint8_t * need_redraw)
+uint32_t view::do_nothing (bool & need_redraw)
 {
     return 0;
 }
 
-uint32_t view::send_info (uint8_t * need_redraw)
+uint32_t view::send_info (bool & need_redraw)
 {
-    *need_redraw = 1;
+    need_redraw = 1;
     return 0;
 }
 

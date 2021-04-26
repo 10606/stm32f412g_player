@@ -51,7 +51,7 @@ static inline int32_t normalize_y (int32_t y)
     return clump(answer);
 }
 
-static inline uint8_t is_delta_moved (point delta)
+static inline bool is_delta_moved (point delta)
 {
     return  (abs(delta.x) >= e::soft_offset.x) ||
             (abs(delta.y) >= e::soft_offset.y);
@@ -64,7 +64,7 @@ touch_state::touch_state () :
     ts_ft6x06.init();
 }
 
-uint8_t touch_state::is_moved (point p) const
+bool touch_state::is_moved (point p) const
 {
     return  (abs(old.x - p.x) >= e::offset.x) ||
             (abs(old.y - p.y) >= e::offset.y);
@@ -101,7 +101,7 @@ direction_t touch_state::get_direction (point p) const
 }
 
 
-void touch_state::unpressed (view * vv, uint8_t * need_redraw)
+void touch_state::unpressed (view * vv, bool & need_redraw)
 {
     if (!press)
         return;
@@ -149,7 +149,7 @@ void touch_state::unpressed (view * vv, uint8_t * need_redraw)
     moved = 0;
 }
 
-void touch_state::pressed (point p, view * vv, uint8_t * need_redraw)
+void touch_state::pressed (point p, view * vv, bool & need_redraw)
 {
     if (press)
     {
@@ -199,7 +199,7 @@ void touch_state::pressed (point p, view * vv, uint8_t * need_redraw)
     }
 }
 
-void touch_state::touch_check (view * vv, uint8_t * need_redraw)
+void touch_state::touch_check (view * vv, bool & need_redraw)
 {
     TS_StateTypeDef ts_state = {0};
     ts_ft6x06.ts_touch_detect(&ts_state);

@@ -14,7 +14,7 @@ struct offsets
 void touch_processing::touch_region 
 (
     view * vv, 
-    uint8_t * need_redraw
+    bool & need_redraw
 )
 {
     if (start.y < static_cast <int32_t> (display::offsets::list))
@@ -28,11 +28,11 @@ int32_t touch_processing::move_left_right
     int32_t offset, 
     char speed, 
     view * vv, 
-    uint8_t * need_redraw,
+    bool & need_redraw,
     uint8_t direction // 0 left, 1 - right
 )
 {
-    static uint32_t (view::* process_view_do[2]) (uint8_t * need_redraw) =
+    static uint32_t (view::* process_view_do[2]) (bool & need_redraw) =
     {
         &view::process_center,
         &view::process_left
@@ -50,12 +50,12 @@ int32_t touch_processing::move_left_right
     return direction? ans : -ans;
 }
 
-int32_t touch_processing::move_left (int32_t offset, char speed, view * vv, uint8_t * need_redraw)
+int32_t touch_processing::move_left (int32_t offset, char speed, view * vv, bool & need_redraw)
 {
     return move_left_right(offset, speed, vv, need_redraw, 0);
 }
 
-int32_t touch_processing::move_right (int32_t offset, char speed, view * vv, uint8_t * need_redraw)
+int32_t touch_processing::move_right (int32_t offset, char speed, view * vv, bool & need_redraw)
 {
     return move_left_right(offset, speed, vv, need_redraw, 1);
 }
@@ -65,7 +65,7 @@ int32_t touch_processing::move_up_down
     int32_t offset, 
     char speed, 
     view * vv, 
-    uint8_t * need_redraw,
+    bool & need_redraw,
     uint8_t direction // 0 - down, 1 - up 
 )
 {
@@ -81,12 +81,12 @@ int32_t touch_processing::move_up_down
     return direction? -ans : ans;
 }
 
-int32_t touch_processing::move_up (int32_t offset, char speed, view * vv, uint8_t * need_redraw)
+int32_t touch_processing::move_up (int32_t offset, char speed, view * vv, bool & need_redraw)
 {
     return move_up_down(offset, speed, vv, need_redraw, 1);
 }
 
-int32_t touch_processing::move_down (int32_t offset, char speed, view * vv, uint8_t * need_redraw)
+int32_t touch_processing::move_down (int32_t offset, char speed, view * vv, bool & need_redraw)
 {
     return move_up_down(offset, speed, vv, need_redraw, 0);
 }
@@ -97,7 +97,7 @@ int32_t touch_processing::do_move
     int32_t offset, 
     char speed, 
     view * vv, 
-    uint8_t * need_redraw
+    bool & need_redraw
 )
 {
     int32_t (touch_processing::* do_move_impl) 
@@ -105,7 +105,7 @@ int32_t touch_processing::do_move
         int32_t offset, 
         char speed, 
         view * vv, 
-        uint8_t * need_redraw
+        bool & need_redraw
     );
 
     switch (direction)

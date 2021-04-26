@@ -6,7 +6,7 @@
 
 struct usb_process_t
 {
-    uint32_t usb_process (view * vv, uint8_t * need_redraw);
+    uint32_t usb_process (view * vv, bool & need_redraw);
     void receive_callback (volatile uint8_t * buf, uint32_t len);
     void clear ();
 

@@ -17,12 +17,12 @@ struct playlist
     playlist (playlist const & other) = delete;
     playlist & operator = (playlist const & other) = delete;
     
-    uint32_t open (light_playlist & lpl, uint32_t pos_selected);
+    uint32_t open (light_playlist const & lpl, uint32_t pos_selected);
     uint32_t seek (uint32_t pos);
     uint32_t next ();
     uint32_t prev ();
     void make_fake ();
-    bool is_fake ();
+    bool is_fake () const;
 
     char (*path)[12];
     uint32_t path_sz;

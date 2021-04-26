@@ -12,7 +12,7 @@ size_t const str_time_size = 100;
 
 audio_ctl_t  audio_ctl;
 
-audio_ctl_t::audio_ctl_t ():
+audio_ctl_t::audio_ctl_t () :
     audio_freq(44100),
     volume(70),
     pause_status(0), // 0 when audio is running, 1 when Pause is on 
@@ -50,7 +50,7 @@ void audio_ctl_t::audio_destruct ()
     deinit_mad();
 }
 
-void audio_ctl_t::byte_to_time (tik_t * time, uint32_t value)
+void audio_ctl_t::byte_to_time (tik_t * time, uint32_t value) const
 {
     if (audio_file.size == 0)
     {
@@ -99,7 +99,7 @@ void audio_ctl_t::next_pcm_part ()
     }
 }
 
-void audio_ctl_t::display_time ()
+void audio_ctl_t::display_time () const
 {
     tik_t cur_time;
     tik_t total_time;
@@ -159,17 +159,17 @@ uint32_t audio_ctl_t::new_song_or_repeat ()
     return 0;
 }
 
-uint32_t audio_ctl_t::audio_process (uint8_t * need_redraw)
+uint32_t audio_ctl_t::audio_process (bool & need_redraw)
 {
     display_time();
     //end of song reached
     if (audio_file.current_position() >= audio_file.size)
     {
         uint32_t ret;
-        uint8_t is_fake = audio_file.is_fake();
+        bool is_fake = audio_file.is_fake();
         if ((ret = new_song_or_repeat()))
             return ret;
-        *need_redraw |= !is_fake || !audio_file.is_fake();
+        need_redraw |= !is_fake || !audio_file.is_fake();
     }
     next_pcm_part();
     return 0;

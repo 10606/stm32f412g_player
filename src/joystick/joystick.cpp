@@ -28,7 +28,7 @@ void joystick_state_t::check_buttons ()
 uint8_t joystick_state_t::check_button_state (uint32_t joy_button)
 {
     static uint8_t const cost[3] = {1, 8, 1}; // first second next
-    uint8_t ans = process[joy_button] >= cost[prev_processed[joy_button]];
+    bool ans = process[joy_button] >= cost[prev_processed[joy_button]];
     if (ans)
     {
         process[joy_button] -= cost[prev_processed[joy_button]];
@@ -39,10 +39,10 @@ uint8_t joystick_state_t::check_button_state (uint32_t joy_button)
     return ans;
 }
 
-uint32_t joystick_state_t::joystick_check (view & vv, uint8_t * need_redraw)
+uint32_t joystick_state_t::joystick_check (view & vv, bool & need_redraw)
 {
     check_buttons();
-    static uint32_t (view::* const process_view_do[joystick_states_cnt]) (uint8_t *) = 
+    static uint32_t (view::* const process_view_do[joystick_states_cnt]) (bool &) = 
     {
         &view::process_up,
         &view::process_down,

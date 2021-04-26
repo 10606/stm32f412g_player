@@ -18,6 +18,12 @@ struct epoll_wraper
     void unreg (int fd);
     std::vector <std::pair <int, uint32_t> > wait ();
     
+    int fd ()
+    {
+        return epoll_fd;
+    }
+    
+private:
     int epoll_fd;
 };
 

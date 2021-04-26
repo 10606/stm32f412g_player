@@ -18,7 +18,7 @@ struct audio_ctl_t
     audio_ctl_t ();
     uint32_t audio_init ();
     void audio_destruct ();
-    uint32_t audio_process (uint8_t * need_redraw);
+    uint32_t audio_process (bool & need_redraw);
     
     static size_t const mp3_frames_in_buffer = 4;
     static size_t const decoded_mp3_frame_size = 4608;
@@ -43,9 +43,9 @@ private:
         uint16_t ms;
     };
 
-    void byte_to_time (tik_t * time, uint32_t value);
+    void byte_to_time (tik_t * time, uint32_t value) const;
     void next_pcm_part ();
-    void display_time ();
+    void display_time () const;
     uint32_t new_song_or_repeat ();
 };
 

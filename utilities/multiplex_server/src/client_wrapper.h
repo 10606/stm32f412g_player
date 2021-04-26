@@ -25,6 +25,7 @@ struct clients_wrapper_t
     std::string read (int fd);
     void append (std::string_view value);
     
+private:
     static size_t const delta_capacity = 1024;
     int epoll_fd; // not owned
     char * buffer;

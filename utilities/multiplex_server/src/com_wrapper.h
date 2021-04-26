@@ -21,8 +21,14 @@ struct com_wrapper_t
     void append (std::string_view value);
     std::string read ();
     
-    static size_t const delta_capacity = 128;
+    int file_descriptor ()
+    {
+        return fd;
+    }
+    
+private:
     int fd;
+    static size_t const delta_capacity = 128;
     char * buffer;
     size_t pos;
     size_t size;

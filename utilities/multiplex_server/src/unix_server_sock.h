@@ -15,6 +15,12 @@ struct unix_server_sock_t
 
     int accept ();
     
+    int file_descriptor ()
+    {
+        return fd;
+    }
+    
+private:
     int fd;
     int epoll_fd;
 };
