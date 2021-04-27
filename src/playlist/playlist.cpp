@@ -11,8 +11,7 @@ uint32_t playlist::seek (uint32_t new_pos)
 
     new_pos %= header.cnt_songs;
     uint32_t ret;
-    song_header old_song_header;
-    memcpy(&old_song_header, &song, sizeof(song_header));
+    song_header old_song_header(song);
     {
         ret = fd.seek(sizeof(playlist_header) + new_pos * sizeof(song_header));
         if (ret)
@@ -27,7 +26,7 @@ uint32_t playlist::seek (uint32_t new_pos)
         char (* tmp)[12] = (char (*)[12])malloc(song.path_len * sizeof(char[12]));
         if (!tmp)
         {
-            memcpy(&song, &old_song_header, sizeof(song_header));
+            song = old_song_header;
             return memory_limit;
         }
         
@@ -44,13 +43,13 @@ uint32_t playlist::seek (uint32_t new_pos)
         ret = fd.seek(song.path_offset);
         if (ret)
         {
-            memcpy(&song, &old_song_header, sizeof(song_header));
+            song = old_song_header;
             return ret;
         }
         ret = fd.read_all_fixed((char *)path, song.path_len * sizeof(char[12]));
         if (ret)
         {
-            memcpy(&song, &old_song_header, sizeof(song_header));
+            song = old_song_header;
             return ret;
         }
     }
@@ -100,7 +99,7 @@ uint32_t playlist::open (light_playlist const & lpl, uint32_t pos_selected)
     if (fd.is_fake())
         return 0;
     
-    memcpy(&header, &lpl.header, sizeof(playlist_header));
+    header = lpl.header;
     if ((ret = seek(pos_selected)) == 0)
         return 0;
 

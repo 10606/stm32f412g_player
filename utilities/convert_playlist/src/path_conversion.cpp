@@ -29,44 +29,38 @@ std::vector <std::string> split_path (std::string const & path)
             return answer;
         }
         if (old_pos >= path.size())
-        {
             return answer;
-        }
     }
 }
-
 
 
 converted_path make_long_path (std::vector <std::string> const & path)
 {
     std::vector <std::basic_string <uint16_t> > wpath;
     for (std::string const & p : path)
-    {
         wpath.push_back(utf8_to_ucs2(p));
-    }
+
     size_t max_size = 0;
     for (std::basic_string <uint16_t> const & p : wpath)
-    {
         max_size = std::max(max_size, p.size());
-    }
+
     max_size *= sizeof(uint16_t);
     converted_path answer(path.size(), max_size + 2);
     for (size_t i = 0; i != wpath.size(); ++i)
-    {
-        std::memcpy(answer.path[i], reinterpret_cast <char const *> (wpath[i].c_str()), sizeof(uint16_t) * (wpath[i].size() + 1));
-    }
+        std::memcpy(answer.path[i], wpath[i].c_str(), sizeof(uint16_t) * (wpath[i].size() + 1));
+
     return answer;
 }
 
-std::unique_ptr <char[][12]> convert_path (FAT_info_t * FAT_info, converted_path const & path)
+
+std::unique_ptr <char[][12]> converted_path::convert_path (FAT_info_t * FAT_info) const
 {
-    std::unique_ptr <char[][12]> answer(new char [path.path.size()][12]);
+    std::unique_ptr <char[][12]> answer(new char [path.size()][12]);
     file_descriptor fd;
     uint32_t ret;
-    if ((ret = open_lfn(FAT_info, &fd, path.path.data(), answer.get(), path.path.size())) != 0)
-    {
+    if ((ret = open_lfn(FAT_info, &fd, path.data(), answer.get(), path.size())) != 0)
         throw std::runtime_error(std::to_string(ret) + " while open file");
-    }
+
     return answer;
 }
 
@@ -105,6 +99,7 @@ std::string remove_bad (std::string const & value, std::vector <std::string> con
     return answer;
 }
 
+
 std::vector <std::string> const bad_in_name =
 {
     "(promusic.me)",
@@ -119,7 +114,6 @@ std::vector <std::string> const bad_in_name =
     "(seehall.me)",
     "(zoop.su)"
 };
-
 
 
 std::pair <std::string, std::string> 

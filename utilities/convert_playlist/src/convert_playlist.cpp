@@ -24,11 +24,6 @@ uint32_t read_sector (uint32_t sector_number, void * buffer)
     {
         partition_with_FAT.seekg(static_cast <uint64_t> (sector_number) * 512);
         partition_with_FAT.read(static_cast <char *> (buffer), 512);
-        if (!partition_with_FAT.good())
-        {
-            std::cerr << "bad \n";
-            return 1;
-        }
         return 0;
     }
     catch (std::exception const & e)
@@ -63,7 +58,7 @@ get_group_song_names
         }
     }
     std::string answer = value.substr(0, value.find('.'));
-    return std::make_pair <std::string const &, char const (&) [1]> (answer, "");
+    return {answer, ""};
 }
 
 // utf8 -> ucs4 -> my_custom_code_table
@@ -88,9 +83,7 @@ void write (char * dst, std::string const & _src, uint32_t size, char fill = ' '
     std::basic_string <uint8_t> src = convert_to_custom_char_table(_src);
     std::memcpy(dst, src.c_str(), std::min <uint32_t> (src.size(), size));
     if (src.size() < size)
-    {
         std::memset(dst + src.size(), fill, size - src.size());
-    }
 }
 
 void write_group_song_names (std::string const & value, song_header * song)
@@ -110,57 +103,70 @@ void write_header (std::ostream & out, std::string const & name, uint32_t cnt)
     out.write(reinterpret_cast <char *> (&header), sizeof(playlist_header));
 }
 
+
+using songs_t = std::vector <std::pair <song_header, std::unique_ptr <char[][12]> > >;
+
+void write_songs
+(
+    std::ostream & out, 
+    std::string const & name, 
+    songs_t & songs // <header, path>
+)
+{
+    write_header(out, name, songs.size()); 
+    uint32_t offset = 0;
+    for (auto & song : songs)
+    {
+        song.first.path_offset = 
+            sizeof(playlist_header) + 
+            songs.size() * sizeof(song_header) +
+            offset * sizeof(char[12]);
+        offset += song.first.path_len;
+        out.write(reinterpret_cast <char const *> (&song.first), sizeof(song_header));
+    }
+    for (size_t i = 0; i != songs.size(); ++i)
+        out.write(reinterpret_cast <char const *> (songs[i].second.get()), songs[i].first.path_len * sizeof(char[12]));
+}
+
+
+songs_t init_songs (std::vector <std::string> const & paths)
+{
+    songs_t answer;
+    
+    uint32_t offset = 0;
+    for (std::string const & path : paths)
+    {
+        try
+        {
+            std::vector <std::string> s_path = split_path(path);
+            converted_path l_path = make_long_path(s_path);
+            std::unique_ptr <char[][12]> c_path = l_path.convert_path(&FAT_info);
+            song_header song;
+            write_group_song_names(s_path.back(), &song);
+            song.path_len = l_path.size();
+            offset += song.path_len;
+            answer.emplace_back(song, std::move(c_path));
+        }
+        catch (std::exception const & e)
+        {
+            std::cerr << e.what() << " : " << path << "\n";
+        }
+    }
+    
+    return answer;
+}
+
+
 void write_all (std::ostream & out, std::istream & in, std::string const & name)
 {
     std::vector <std::string> paths;
     for (std::string path; std::getline(in, path);)
-    {
         paths.push_back(path);   
-    }
     
-    std::vector <song_header> songs;
-    std::vector <std::unique_ptr <char[][12]> > c_paths;
-    {
-        uint32_t offset = 0;
-        for (std::string const & path : paths)
-        {
-            try
-            {
-                std::vector <std::string> s_path = split_path(path);
-                converted_path l_path = make_long_path(s_path);
-                std::unique_ptr <char[][12]> c_path = convert_path(&FAT_info, l_path);
-                song_header song;
-                write_group_song_names(s_path.back(), &song);
-                song.path_len = l_path.path.size();
-                offset += song.path_len;
-                songs.push_back(song);
-                c_paths.push_back(std::move(c_path));
-            }
-            catch (std::exception const & e)
-            {
-                std::cerr << e.what() << " : " << path << "\n";
-            }
-        }
-    }
-    
-    {
-        write_header(out, name, songs.size()); 
-        uint32_t offset = 0;
-        for (song_header & song : songs)
-        {
-            song.path_offset = 
-                sizeof(playlist_header) + 
-                songs.size() * sizeof(song_header) +
-                offset * sizeof(char[12]);
-            offset += song.path_len;
-            out.write(reinterpret_cast <char const *> (&song), sizeof(song_header));
-        }
-        for (size_t i = 0; i != c_paths.size(); ++i)
-        {
-            out.write(reinterpret_cast <char *> (c_paths[i].get()), songs[i].path_len * sizeof(char[12]));
-        }
-    }
+    songs_t songs = init_songs(paths);
+    write_songs(out, name, songs);
 }
+
 
 int main (int argc, char ** argv)
 {
@@ -170,24 +176,26 @@ int main (int argc, char ** argv)
         return 1;
     }
     
-    std::ifstream playlist_src(argv[1]);
-    std::ofstream playlist_dst(argv[2]);
-    
-    partition_with_FAT = std::ifstream("/dev/mmcblk0");
-    
-    if (FAT_info.init())
-    {
-        std::cerr << "init FATfs error\n";
-        return 1;
-    }
-    
     try
     {
+        std::ifstream playlist_src(argv[1]);
+        std::ofstream playlist_dst(argv[2]);
+        
+        partition_with_FAT = std::ifstream("/dev/mmcblk0");
+        partition_with_FAT.exceptions(std::ifstream::failbit | std::ifstream::badbit | std::ifstream::eofbit);
+        
+        if (FAT_info.init())
+        {
+            std::cerr << "init FATfs error\n";
+            return 1;
+        }
+    
         write_all(playlist_dst, playlist_src, argv[1]);   
     }
     catch (std::exception const & e)
     {
         std::cerr << e.what() << "\n";
+        return 1;
     }
 }
 

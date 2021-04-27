@@ -47,15 +47,14 @@ uint32_t light_playlist::open_file ()
         return 0;
     
     uint32_t ret;
-    playlist_header old_header;
-    memcpy(&old_header, &header, sizeof(playlist_header));
+    playlist_header old_header(header);
     if ((ret = fd.seek(0)))
         return ret;
     if ((ret = read_header(&header, &fd)))
         return ret;
     if ((ret = seek(0)))
     {
-        memcpy(&header, &old_header, sizeof(playlist_header));
+        header = old_header;
         return ret;
     }
     return 0;
