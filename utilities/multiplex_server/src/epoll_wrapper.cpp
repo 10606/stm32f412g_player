@@ -43,7 +43,8 @@ std::vector <std::pair <int, uint32_t> > epoll_wraper::wait ()
     ans.reserve(ret);
     for (int i = 0; i != ret; ++i)
     {
-        ans.emplace_back(std::cref(events[i].data.fd), std::cref(events[i].events));
+        ans.emplace_back(static_cast <uint32_t> (events[i].data.fd), 
+                         static_cast <uint32_t> (events[i].events));
     }
     
     return ans;

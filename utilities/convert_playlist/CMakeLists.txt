@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.0)
 project(convert_playlist VERSION 1.0 LANGUAGES C CXX)
 
 set(release_flags
-    "-Os -flto -march=native -Wall -ftemplate-depth=10000 -std=c++20"
+    "-Os -flto -march=native -Wall -ftemplate-depth=10000 -std=c++20  -DNDEBUG"
 )
 
 set(compile_flags 
@@ -56,6 +56,9 @@ add_executable(convert_playlist
 )
 
 target_link_libraries(convert_playlist
+    -static
     libFAT
+    -static-libstdc++    
+    -static-libgcc
 )
 

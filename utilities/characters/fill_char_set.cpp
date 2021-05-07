@@ -1,6 +1,6 @@
 #include "fill_char_set.h"
 
-void fill_char_set (std::array <uint32_t, 256> & char_set)
+void fill_char_set (std::array <uint32_t, 256> & char_set) noexcept
 {
     static uint32_t head [32] =
     {

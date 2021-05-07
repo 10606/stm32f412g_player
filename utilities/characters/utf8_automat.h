@@ -5,9 +5,6 @@
 
 struct utf8_automat
 {
-    uint8_t symbols;
-    uint32_t ans;
-    
     utf8_automat () :
         symbols(0),
         ans(0)
@@ -20,12 +17,16 @@ struct utf8_automat
         err,
     };
     
-    state_t next (char _c);
+    state_t next (char _c) noexcept;
     
-    uint32_t get_ans ()
+    uint32_t get_ans () const noexcept
     {
         return ans;
     }
+    
+private:
+    uint8_t symbols;
+    uint32_t ans;
 };
 
 

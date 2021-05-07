@@ -35,7 +35,10 @@ void main_player ()
         }
 
         if (BSP_SD_IsDetected() != SD_PRESENT)
-        {
+        {   
+            HAL_Delay(1);
+            if (BSP_SD_IsDetected() == SD_PRESENT)
+                continue;
             audio_ctl.audio_destruct();
             break;
         }

@@ -57,9 +57,3 @@ unix_server_sock_t::~unix_server_sock_t ()
     close(fd);
 }
 
-int unix_server_sock_t::accept ()
-{
-    return ::accept(fd, NULL, NULL);
-}
-
-

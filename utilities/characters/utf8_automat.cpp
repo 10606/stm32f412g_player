@@ -1,6 +1,6 @@
 #include "utf8_automat.h"
 
-utf8_automat::state_t utf8_automat::next (char _c)
+utf8_automat::state_t utf8_automat::next (char _c) noexcept
 {
     unsigned char c = static_cast <unsigned char> (_c);
     if (symbols) [[unlikely]] 

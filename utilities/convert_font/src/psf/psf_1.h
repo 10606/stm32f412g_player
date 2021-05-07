@@ -32,12 +32,12 @@ protected:
         return std::to_string(height);
     }
     
-    virtual uint32_t font_width ()
+    virtual uint32_t font_width () const noexcept
     {
         return 8;
     }
     
-    virtual uint32_t font_height ()
+    virtual uint32_t font_height () const noexcept
     {
         return height;
     }

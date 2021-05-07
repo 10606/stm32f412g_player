@@ -29,7 +29,7 @@ clients_wrapper_t::~clients_wrapper_t ()
     delete [] buffer;
 }
 
-size_t inc_struct_ptr (char c)
+size_t inc_struct_ptr (char c) noexcept
 {
     switch (c)
     {

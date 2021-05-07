@@ -13,18 +13,19 @@ int main (int argc, char ** argv)
     {
         if (argc < 2)
         {
-            std::cout << argv[0] << " font_name (without .psf)\n";
-            std::cout << argv[0] << " src_file_name dst_file_name\n";
+            std::cout << argv[0] << " <font_name (without .psf)>\n";
+            std::cout << argv[0] << " <src_file_name> <dst_file_name>\n";
             return 1;
         }
         
-        std::string psf_name =
-            (argc == 2)? (std::string(argv[1]) + ".psf") :
-            argv[1];
+        std::string psf_name = argv[1];
+        std::string header_name = argv[2];
         
-        std::string header_name =
-            (argc == 2)? (std::string(argv[1]) + ".c") :
-            argv[2];
+        if (argc == 2)
+        {
+            psf_name += ".psf";
+            header_name += ".c";
+        }
         
         std::ifstream psf_file(psf_name);
         std::ofstream header_file(header_name);

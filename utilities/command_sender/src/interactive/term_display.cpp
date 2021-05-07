@@ -19,7 +19,7 @@ operator +
 (
     std::pair <size_t, size_t> const & a, 
     std::pair <size_t, size_t> const & b
-)
+) noexcept
 {
     return std::make_pair (a.first + b.first, a.second + b.second);
 }
@@ -29,7 +29,7 @@ operator *
 (
     std::pair <size_t, size_t> const & a, 
     size_t b
-)
+) noexcept
 {
     return std::make_pair (a.first * b, a.second * b);
 }
@@ -39,7 +39,7 @@ operator *
 (
     size_t b,
     std::pair <size_t, size_t> const & a
-)
+) noexcept
 {
     return std::make_pair (a.first * b, a.second * b);
 }
@@ -84,7 +84,7 @@ inline void set_color (size_t current, size_t cmd, size_t line, size_t s = 0)
     std::cout << colors::table[cmd][line][current][s];
 }
 
-bool is_spaces (std::string const & str)
+bool is_spaces (std::string const & str) noexcept
 {
     for (std::string::const_iterator it = str.begin(); it != str.end(); ++it)
     {

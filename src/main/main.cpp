@@ -113,14 +113,12 @@ void init_base () //joystick, led, LCD, USB
     }
     
     display_init();
-    display::start_image();
     init_usb();
 }
 
 uint32_t init_fs (char (* path)[12], uint32_t len)
 {
-    while (BSP_SD_IsDetected() != SD_PRESENT)
-        display::start_image();
+    while (BSP_SD_IsDetected() != SD_PRESENT);
 
     while (sd_card_init())
     {}
@@ -184,6 +182,7 @@ uint32_t init (char (* path)[12], uint32_t len)
 {
     uint32_t ret;
     //init_base();
+    display::start_image();
     ret = init_fs(path, len);
     if (ret)
         return ret;

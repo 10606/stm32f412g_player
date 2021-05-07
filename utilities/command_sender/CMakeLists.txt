@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.0)
 project(command_sender VERSION 1.0 LANGUAGES C CXX)
 
 set(release_flags
-    "-Os -flto -march=native -Wall -ftemplate-depth=10000 -std=c++20"
+    "-Os -flto -march=native -Wall -ftemplate-depth=10000 -std=c++20 -DNDEBUG"
 )
 
 set(compile_flags 
@@ -43,5 +43,11 @@ add_executable(player_send_command
     src/interactive/char_reconvert.cpp
     ../characters/fill_char_set.cpp
     ../characters/char_conversion.cpp
+)
+
+target_link_libraries(player_send_command
+    -static
+    -static-libstdc++
+    -static-libgcc
 )
 

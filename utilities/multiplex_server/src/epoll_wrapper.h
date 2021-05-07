@@ -18,7 +18,7 @@ struct epoll_wraper
     void unreg (int fd);
     std::vector <std::pair <int, uint32_t> > wait ();
     
-    int fd ()
+    int fd () const noexcept
     {
         return epoll_fd;
     }

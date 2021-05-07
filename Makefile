@@ -28,7 +28,7 @@ make_files = \
 # debug build?
 DEBUG = 0
 # optimization
-OPT = -Wall -Os -flto
+OPT = -Wall -O2 -flto
 
 
 #######################################
@@ -141,7 +141,7 @@ LDSCRIPT = STM32F412ZGTx_FLASH.ld
 LIBS = -lc -lm -lnosys -lstdc++
 LIBDIR = 
 #LDFLAGS = $(MCU) -specs=nano.specs -specs=nosys.specs $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections
-LDFLAGS = $(MCU) -specs=nano.specs -specs=nosys.specs -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections -flto -fno-exceptions -Os -fno-rtti
+LDFLAGS = $(MCU) -specs=nano.specs -specs=nosys.specs -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections -flto -fno-exceptions -O2 -fno-rtti
 
 # default action: build all
 all: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).hex $(BUILD_DIR)/$(TARGET).bin
@@ -192,8 +192,38 @@ clean:
 #######################################
 -include $(wildcard $(BUILD_DIR)/*.d)
 
+LOADER = st-flash --reset write
 
 load: $(BUILD_DIR)/$(TARGET).bin
-	st-flash --reset write $< 0x08000000
+	$(LOADER) $< 0x08000000
+	
+	
+	
+#######################################
+# pictures (240 x 240)
+#######################################
+pictures/%.rgb565: pictures/%.png
+	magick $< -depth 8 rgb:- | bmp2rgb565 $@
+	
+pictures/%.rgb565: pictures/%.jpg
+	magick $< -depth 8 rgb:- | bmp2rgb565 $@
+	
+pictures/%.rgb565: pictures/%.jpeg
+	magick $< -depth 8 rgb:- | bmp2rgb565 $@
+	
+
+load_pic_song_0: pictures/song_0.rgb565 
+	$(LOADER) $<  0x08080000
+	
+load_pic_song_1: pictures/song_1.rgb565 
+	$(LOADER) $<  0x080a0000
+	
+load_pic_start_0: pictures/start_0.rgb565 
+	$(LOADER) $<  0x080c0000
+	
+load_pic_start_1: pictures/start_1.rgb565 
+	$(LOADER) $<  0x080e0000
+	
+load_pictures: load_pic_song_0 load_pic_song_1 load_pic_start_0 load_pic_start_1
 
 # *** EOF ***

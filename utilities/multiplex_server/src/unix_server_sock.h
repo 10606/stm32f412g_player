@@ -2,6 +2,7 @@
 #define UNIX_SERVER_SOCK_H
 
 #include <string>
+#include <sys/socket.h>
 
 struct unix_server_sock_t
 {
@@ -13,9 +14,12 @@ struct unix_server_sock_t
     unix_server_sock_t (unix_server_sock_t &&) = delete;
     unix_server_sock_t & operator = (unix_server_sock_t &&) = delete;
 
-    int accept ();
+    int accept () noexcept
+    {
+        return ::accept(fd, NULL, NULL);
+    }
     
-    int file_descriptor ()
+    int file_descriptor () const noexcept
     {
         return fd;
     }

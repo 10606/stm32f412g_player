@@ -15,18 +15,19 @@ struct com_wrapper_t
     com_wrapper_t (com_wrapper_t &&) = delete;
     com_wrapper_t & operator = (com_wrapper_t &&) = delete;
     
-    void realloc (size_t needed);
-    void shrink_to_fit ();
     void write ();
     void append (std::string_view value);
     std::string read ();
     
-    int file_descriptor ()
+    int file_descriptor () const noexcept
     {
         return fd;
     }
     
 private:
+    void realloc (size_t needed);
+    void shrink_to_fit ();
+    
     int fd;
     static size_t const delta_capacity = 128;
     char * buffer;

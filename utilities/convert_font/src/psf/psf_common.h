@@ -48,8 +48,8 @@ protected:
     std::ofstream header_file;
 
     virtual std::string fonst_name () = 0;
-    virtual uint32_t font_width () = 0;
-    virtual uint32_t font_height () = 0;
+    virtual uint32_t font_width () const noexcept = 0;
+    virtual uint32_t font_height () const noexcept = 0;
     
     virtual std::map <uint32_t, uint32_t> read_map () = 0; /* symbol -> offset in file */
     

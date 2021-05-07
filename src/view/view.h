@@ -62,7 +62,6 @@ private:
     uint32_t seek (bool & need_redraw, uint32_t value, uint8_t direction /* 0 - backward, 1 - forward */);
     uint32_t change_song (bool & need_redraw, uint8_t direction /* 0 - next, 1 - prev */);
     uint32_t play_new_playlist ();
-    uint32_t to_playing_playlist (bool & need_redraw);
 };
 
 
