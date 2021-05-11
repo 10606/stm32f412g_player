@@ -1,5 +1,6 @@
 #include "display.h"
 
+#include "display_common.h"
 #include "lcd_display.h"
 #include <stdio.h>
 #include "audio.h"
@@ -52,6 +53,23 @@ const uint16_t * const picture_info_t::song = reinterpret_cast <uint16_t const *
 const uint16_t * const picture_info_t::err = reinterpret_cast <uint16_t const *> (0x080c0000);
  
 
+void cur_song (playlist const & pl, bool & need_redraw)
+{
+    char cur_song_name[song_name_sz + 1];
+    char cur_group_name[group_name_sz + 1];
+    memcpy(cur_song_name, pl.song.song_name, song_name_sz);
+    cur_song_name[song_name_sz] = 0;
+    memcpy(cur_group_name, pl.song.group_name, group_name_sz);
+    cur_group_name[group_name_sz] = 0;
+    color_t yb = {lcd_color_yellow, lcd_color_blue};
+    
+    display_string(10, display::offsets::song_name, cur_group_name, &font_16, &yb);
+    display_string(10, display::offsets::song_name + display::offsets::in_song_name, cur_song_name, &font_16, &yb);
+    audio_ctl.audio_process(need_redraw);
+    
+    send_cur_song(cur_group_name, cur_song_name);
+}
+
 void song_hint ()
 {
     fill_rect(0, display::offsets::headband, 240, 240 - display::offsets::headband, lcd_color_white);
@@ -60,6 +78,7 @@ void song_hint ()
 
 void start_image ()
 {
+    scroller.reset();
     picture_info.update_start_pic_num();
     draw_RGB_image(0, 0, 240, 240, picture_info.start_pic());
     
@@ -156,6 +175,7 @@ void song_volume
 
 void display_picture (bool & need_redraw)
 {
+    scroller.reset();
     picture_info.update_song_pic_num();
     static constexpr uint32_t parts = 5;
     uint32_t p_size = (240 - display::offsets::picture + parts - 1) / parts;

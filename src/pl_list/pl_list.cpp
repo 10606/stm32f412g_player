@@ -13,7 +13,7 @@ pl_list::pl_list () :
     root_path(nullptr),
     path_len(0),
     cnt(0),
-    current_pos(0)
+    current_state{0, 0, redraw_type_t::not_easy}
 {}
 
 pl_list::~pl_list ()
@@ -31,8 +31,9 @@ void pl_list::destroy ()
 uint32_t pl_list::init (char (* dir_name)[12], size_t len_name)
 {
     cnt = 0;
-    current_pos = 0;
+    current_state.pos = 0;
     path_len = 0;
+    current_state.type = redraw_type_t::not_easy;
     root_path = (char (*)[12])malloc((len_name + 1) * sizeof(char[12]));
     if (!root_path)
         return memory_limit;
@@ -110,45 +111,68 @@ void pl_list::up ()
 {
     if (cnt == 0)
         return;
-    current_pos = (current_pos + 1) % cnt;
+    
+    if ((current_state.pos + 1 == cnt) || (current_state.type != redraw_type_t::nothing))
+        current_state.type = redraw_type_t::not_easy;
+    else if (current_state.pos < plb_border_cnt) // on top
+        current_state.type = redraw_type_t::top_bottom;
+    else if (current_state.pos + plb_border_cnt + 1 >= cnt) // on bottom
+        current_state.type = redraw_type_t::top_bottom;
+    else // on middle
+        current_state.type = redraw_type_t::middle;
+        
+    current_state.pos = (current_state.pos + 1) % cnt;
+    current_state.direction = 0;
 }
 
 void pl_list::down ()
 {
     if (cnt == 0)
         return;
-    current_pos = (current_pos + cnt - 1) % cnt;
+    
+    if ((current_state.pos == 0) || (current_state.type != redraw_type_t::nothing))
+        current_state.type = redraw_type_t::not_easy;
+    else if (current_state.pos <= plb_border_cnt) // on top
+        current_state.type = redraw_type_t::top_bottom;
+    else if (current_state.pos + plb_border_cnt >= cnt) // on bottom
+        current_state.type = redraw_type_t::top_bottom;
+    else // on middle
+        current_state.type = redraw_type_t::middle;
+        
+    current_state.pos = (current_state.pos + cnt - 1) % cnt;
+    current_state.direction = 1;
 }
 
 void pl_list::seek (uint32_t pos)
 {
     if (cnt == 0)
         return;
-    current_pos = pos % cnt;
+    current_state.type = redraw_type_t::not_easy;
+    current_state.pos = pos % cnt;
 }
 
-uint32_t pl_list::open_index (playlist_view * plv, uint32_t index, uint32_t * selected_pl)
+uint32_t pl_list::open_index (playlist_view & plv, uint32_t index, uint32_t & selected_pl) const
 {
     if (cnt == 0)
         return 0;
-    if (*selected_pl == index)
+    if (selected_pl == index)
         return 0;
     char old_path [12];
     memmove(old_path, root_path[path_len - 1], sizeof(char[12]));
     memcpy(root_path[path_len - 1], pl_path[index], sizeof(char[12]));
-    uint32_t ret = plv->open_playlist(root_path, path_len);
+    uint32_t ret = plv.open_playlist(root_path, path_len);
     if (ret)
     {
         memcpy(root_path[path_len - 1], old_path, sizeof(char[12]));
         return ret;
     }
-    *selected_pl = index;
+    selected_pl = index;
     return 0;
 }
 
-uint32_t pl_list::open_selected (playlist_view * plv, uint32_t * selected_pl)
+uint32_t pl_list::open_selected (playlist_view & plv, uint32_t & selected_pl) const
 {
-    return open_index(plv, current_pos, selected_pl);
+    return open_index(plv, current_state.pos, selected_pl);
 }
 
 void fill_name (char * dst, char const * src, uint32_t size)
@@ -174,7 +198,7 @@ bool pl_list::check_near (uint32_t pos) const
     
     return ::check_near
     (
-        current_pos, 
+        current_state.pos, 
         pos, 
         cnt, 
         plb_view_cnt, 
@@ -196,7 +220,7 @@ uint32_t pl_list::print
     {
         if (cnt != 0)
         {
-            selected[current_pos] |= 1;
+            selected[current_state.pos] |= 1;
             if (playing_pl < cnt)
                 selected[playing_pl] |= 2;
         }
@@ -217,20 +241,20 @@ uint32_t pl_list::print
     }
     
     uint32_t index;
-    if (current_pos <= plb_border_cnt) // on top
+    if (current_state.pos <= plb_border_cnt) // on top
     {
-        selected[current_pos] |= 1;
+        selected[current_state.pos] |= 1;
         index = 0;
     }
-    else if (current_pos + plb_border_cnt >= cnt) // on bottom
+    else if (current_state.pos + plb_border_cnt >= cnt) // on bottom
     {
-        selected[cnt - plb_view_cnt + current_pos] |= 1;
+        selected[cnt - plb_view_cnt + current_state.pos] |= 1;
         index = cnt - plb_view_cnt;
     }
     else // on middle
     {
         selected[plb_border_cnt] |= 1;
-        index = current_pos - plb_border_cnt ;
+        index = current_state.pos - plb_border_cnt ;
     }
 
     if (check_near(playing_pl))
@@ -243,5 +267,23 @@ uint32_t pl_list::print
         snprintf(number[i], sizeof(number[i]), "%3lu", (index + i) % 1000);
     }
     return 0;
+}
+
+void pl_list::reset_display ()
+{
+    current_state.type = redraw_type_t::nothing;
+}
+
+redraw_type_t pl_list::redraw_type () const
+{
+    redraw_type_t ans = current_state;
+
+    if (current_state.pos <= plb_border_cnt) // on top
+        ans.pos = current_state.pos;
+    else if (current_state.pos + plb_border_cnt >= cnt) // on bottom
+        ans.pos = current_state.pos + plb_view_cnt - cnt;
+    else // on middle
+        ans.pos = plb_border_cnt;
+    return ans;
 }
 

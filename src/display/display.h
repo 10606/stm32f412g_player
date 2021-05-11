@@ -14,14 +14,15 @@ namespace display
 
 void cur_song (playlist const & pl, bool & need_redraw);
 
-void cur_pl_list  (pl_list const & pll, uint32_t playing_pl,          bool to_screen, bool & need_redraw);
-void cur_playlist (playlist_view const & plv, playlist const & pl,    bool to_screen, bool & need_redraw);
+void cur_pl_list  (pl_list & pll,            uint32_t playing_pl,     bool to_screen, bool redraw_screen,  bool & need_redraw);
+void cur_playlist (playlist_view & plv,      playlist const & pl,     bool to_screen, bool redraw_screen,  bool & need_redraw);
 void song         (audio_ctl_t const & actl, state_song_view_t state, bool to_screen, bool redraw_picture, bool & need_redraw);
 void song_volume  (audio_ctl_t const & actl, state_song_view_t state, bool to_screen, bool & need_redraw);
 
 void start_image ();
 void error (char const * msg);
 void song_hint ();
+
 
 struct offsets
 {

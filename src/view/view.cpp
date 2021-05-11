@@ -31,8 +31,8 @@ void view::display (bool & need_redraw)
 
     send_state(state);
     display::cur_song(pl, need_redraw);
-    display::cur_playlist(plv, pl, ts_playlist, need_redraw);
-    display::cur_pl_list(pll, playing_playlist, ts_pl_list, need_redraw);
+    display::cur_playlist(plv, pl, ts_playlist, (old_state != state_t::playlist), need_redraw);
+    display::cur_pl_list(pll, playing_playlist, ts_pl_list, (old_state != state_t::pl_list), need_redraw);
     display::song(*audio_ctl, state_song_view, ts_song, (old_state != state_t::song), need_redraw);
     old_state = state;
 }

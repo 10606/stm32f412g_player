@@ -11,11 +11,26 @@
 
 extern FAT_info_t FAT_info;
 
+struct redraw_type_t 
+{
+    enum type_t
+    {
+        nothing,
+        not_easy,
+        top_bottom,
+        middle
+    };
+    
+    uint32_t pos;
+    bool direction; // 0 - up
+    type_t type;
+};
+
 struct playlist_view
 {
     playlist_view () :
         pos_begin(0),
-        pos_selected(0)
+        current_state{0, 0, redraw_type_t::not_easy}
     {}
     
     uint32_t init (); //set fd and read playlist
@@ -37,6 +52,9 @@ struct playlist_view
         char (* number)[3 + 1]
     ) const;
 
+    void reset_display ();
+    redraw_type_t redraw_type () const;
+
     uint32_t open_playlist
     (
         char const (* const path)[12],
@@ -45,7 +63,7 @@ struct playlist_view
 
 
     uint32_t pos_begin;
-    uint32_t pos_selected;
+    redraw_type_t current_state;
     light_playlist lpl;
     char name_group[playlist_view_cnt][group_name_sz + 1];
     char name_song[playlist_view_cnt][song_name_sz + 1];

@@ -212,7 +212,7 @@ uint32_t view::process_right (bool & need_redraw)
     {
     case state_t::pl_list:
         state = state_t::playlist;
-        ret = pll.open_selected(&plv, &selected_playlist);
+        ret = pll.open_selected(plv, selected_playlist);
         if (ret)
             return ret;
         need_redraw = 1;
@@ -246,7 +246,7 @@ uint32_t view::process_center (bool & need_redraw)
     case state_t::pl_list:
         if (pll.check_near(playing_playlist))
         {
-            uint32_t ret = pll.open_index(&plv, playing_playlist, &selected_playlist);
+            uint32_t ret = pll.open_index(plv, playing_playlist, selected_playlist);
             if (ret)
                 return ret;
             state = state_t::playlist;

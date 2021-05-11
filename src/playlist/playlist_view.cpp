@@ -46,7 +46,8 @@ uint32_t playlist_view::init ()
         return ret;
     }
     pos_begin = 0;
-    pos_selected = 0;
+    current_state.pos = 0;
+    current_state.type = redraw_type_t::not_easy;
     return 0;
 }
 
@@ -73,7 +74,8 @@ uint32_t playlist_view::seek (uint32_t pos)
 
     if (lpl.header.cnt_songs <= playlist_view_cnt)
     {
-        pos_selected = pos;
+        current_state.type = redraw_type_t::not_easy;
+        current_state.pos = pos;
         return 0;
     }
     
@@ -95,43 +97,58 @@ uint32_t playlist_view::seek (uint32_t pos)
         return ret;
     }
     pos_begin = 0;
-    pos_selected = pos;
+    current_state.pos = pos;
+    current_state.type = redraw_type_t::not_easy;
     
     return 0;
 }
 
 uint32_t playlist_view::down ()
 {
+    current_state.direction = 0;
     if (lpl.header.cnt_songs == 0)
         return 0;
     
     if (lpl.header.cnt_songs <= playlist_view_cnt)
     {
-        pos_selected = (pos_selected + 1) % lpl.header.cnt_songs;
+        if (current_state.type == redraw_type_t::nothing)
+        {
+            if ((current_state.pos + 1) == lpl.header.cnt_songs)
+                current_state.type = redraw_type_t::not_easy; // TODO
+            else
+                current_state.type = redraw_type_t::top_bottom;
+        }
+        current_state.pos = (current_state.pos + 1) % lpl.header.cnt_songs;
         return 0;
     }
     
     uint32_t ret;
-    if (pos_selected + 1 == lpl.header.cnt_songs) //at end 
+    if (current_state.pos + 1 == lpl.header.cnt_songs) //at end 
     {
-        pos_selected = 0;
-        pos_begin = 0;
         if ((ret = lpl.seek(0)))
             return ret;
         if ((ret = fill_names()))
             return ret;
+        current_state.type = redraw_type_t::not_easy;
+        current_state.pos = 0;
+        pos_begin = 0;
         return 0;
     }
     
-    if (pos_selected < playlist_border_cnt)
-        pos_selected++;
-    else if (pos_selected + playlist_border_cnt + 1 >= lpl.header.cnt_songs)
-        pos_selected++;
+    if ((current_state.pos < playlist_border_cnt) || // on top
+        (current_state.pos + playlist_border_cnt + 1 >= lpl.header.cnt_songs)) // on bottom
+    {
+        if (current_state.type == redraw_type_t::nothing)
+            current_state.type = redraw_type_t::top_bottom;
+        current_state.pos++;
+    }
     else
     {
-        if ((ret = lpl.seek(pos_selected + playlist_border_cnt + 1)))
+        if ((ret = lpl.seek(current_state.pos + playlist_border_cnt + 1)))
             return ret;
-        pos_selected++;
+        if (current_state.type == redraw_type_t::nothing)
+            current_state.type = redraw_type_t::middle;
+        current_state.pos++;
         pos_begin++;
         size_t ins_pos = pos_begin + playlist_view_cnt - 1;
         pn_common(ins_pos);
@@ -142,37 +159,51 @@ uint32_t playlist_view::down ()
 
 uint32_t playlist_view::up ()
 {
+    current_state.direction = 1;
     if (lpl.header.cnt_songs == 0)
         return 0;
     
     if (lpl.header.cnt_songs <= playlist_view_cnt)
     {
-        pos_selected = (pos_selected + lpl.header.cnt_songs - 1) % lpl.header.cnt_songs;
+        if (current_state.type == redraw_type_t::nothing)
+        {
+            if (current_state.pos == 0)
+                current_state.type = redraw_type_t::not_easy; // TODO
+            else
+                current_state.type = redraw_type_t::top_bottom;
+        }
+        current_state.pos = (current_state.pos + lpl.header.cnt_songs - 1) % lpl.header.cnt_songs;
         return 0;
     }
     
     uint32_t ret;
-    if (pos_selected == 0) // at begin
+    if (current_state.pos == 0) // at begin
     {
-        pos_selected = lpl.header.cnt_songs - 1;
-        pos_begin = 0;
         if ((ret = lpl.seek(lpl.header.cnt_songs - playlist_view_cnt)))
             return ret;
         if ((ret = fill_names()))
             return ret;
+        current_state.type = redraw_type_t::not_easy;
+        current_state.pos = lpl.header.cnt_songs - 1;
+        pos_begin = 0;
         return 0;
     }
     
-    if (pos_selected <= playlist_border_cnt)
-        pos_selected--;
-    else if (pos_selected + playlist_border_cnt >= lpl.header.cnt_songs)
-        pos_selected--;
+    if ((current_state.pos <= playlist_border_cnt) || // on top
+        (current_state.pos + playlist_border_cnt >= lpl.header.cnt_songs)) // on bottom
+    {
+        if (current_state.type == redraw_type_t::nothing)
+            current_state.type = redraw_type_t::top_bottom;
+        current_state.pos--;
+    }
     else
     {
-        if ((ret = lpl.seek(pos_selected - playlist_border_cnt - 1)))
+        if ((ret = lpl.seek(current_state.pos - playlist_border_cnt - 1)))
             return ret;
+        if (current_state.type == redraw_type_t::nothing)
+            current_state.type = redraw_type_t::middle;
         pos_begin = pos_begin + playlist_view_cnt - 1;
-        pos_selected--;
+        current_state.pos--;
         size_t ins_pos = pos_begin;
         pn_common(ins_pos);
     }
@@ -182,7 +213,7 @@ uint32_t playlist_view::up ()
 
 uint32_t playlist_view::play (playlist & pl) const
 {
-    return pl.open(lpl, pos_selected);
+    return pl.open(lpl, current_state.pos);
 }
 
 bool playlist_view::compare (playlist const & b) const
@@ -197,7 +228,7 @@ bool playlist_view::check_near (playlist const & playing_pl) const
     
     return ::check_near
     (
-        pos_selected, 
+        current_state.pos, 
         playing_pl.pos, 
         lpl.header.cnt_songs, 
         playlist_view_cnt, 
@@ -218,7 +249,7 @@ void playlist_view::print
     if (lpl.header.cnt_songs <= playlist_view_cnt)
     {
         if (lpl.header.cnt_songs != 0)
-            selected[pos_selected] |= 1;
+            selected[current_state.pos] |= 1;
         for (size_t i = 0; i != lpl.header.cnt_songs; ++i)
         {
             memcpy(song_name[i], this->name_song[i + pos_begin], song_name_sz + 1);
@@ -244,19 +275,19 @@ void playlist_view::print
     }
     
     uint32_t index;
-    if (pos_selected < playlist_border_cnt) // on top
+    if (current_state.pos < playlist_border_cnt) // on top
     {
         index = 0;
-        selected[pos_selected] |= 1;
+        selected[current_state.pos] |= 1;
     }
-    else if (pos_selected + playlist_border_cnt >= lpl.header.cnt_songs) // on bottom
+    else if (current_state.pos + playlist_border_cnt >= lpl.header.cnt_songs) // on bottom
     {
         index = lpl.header.cnt_songs - playlist_view_cnt;
-        selected[pos_selected + playlist_view_cnt - lpl.header.cnt_songs] |= 1;
+        selected[current_state.pos + playlist_view_cnt - lpl.header.cnt_songs] |= 1;
     }
     else // on middle
     {
-        index = pos_selected - playlist_border_cnt;
+        index = current_state.pos - playlist_border_cnt;
         selected[playlist_border_cnt] |= 1;
     }
 
@@ -306,5 +337,24 @@ uint32_t playlist_view::open_playlist
 bool playlist_view::is_fake () const
 {
     return lpl.fd.is_fake();
+}
+
+
+void playlist_view::reset_display ()
+{
+    current_state.type = redraw_type_t::nothing;
+}
+
+redraw_type_t playlist_view::redraw_type () const
+{
+    redraw_type_t ans = current_state;
+
+    if (current_state.pos <= playlist_border_cnt) // on top
+        ans.pos = current_state.pos;
+    else if (current_state.pos + playlist_border_cnt >= lpl.header.cnt_songs) // on bottom
+        ans.pos = current_state.pos + playlist_view_cnt - lpl.header.cnt_songs;
+    else // on middle
+        ans.pos = playlist_border_cnt;
+    return ans;
 }
 

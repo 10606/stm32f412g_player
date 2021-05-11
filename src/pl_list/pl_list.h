@@ -24,8 +24,8 @@ struct pl_list
     void up ();
     void down ();
     void seek (uint32_t pos);
-    uint32_t open_index (playlist_view * plv, uint32_t index, uint32_t * selected_pl);
-    uint32_t open_selected (playlist_view * plv, uint32_t * selected_pl);
+    uint32_t open_index (playlist_view & plv, uint32_t index, uint32_t & selected_pl) const;
+    uint32_t open_selected (playlist_view & plv, uint32_t & selected_pl) const;
     bool check_near (uint32_t pos) const;
 
     uint32_t print 
@@ -37,17 +37,21 @@ struct pl_list
         char * selected
     ) const;
 
-    
-    char (* root_path)[12];
-    uint32_t path_len;
-    uint32_t cnt;
-    uint32_t current_pos;
-    char pl_path[max_plb_files][12];
-    char pl_name[max_plb_files][pl_name_sz];
-    uint32_t pl_songs[max_plb_files];
+    void reset_display ();
+    redraw_type_t redraw_type () const;
     
 private:
     void destroy ();
+
+    char (* root_path)[12];
+    uint32_t path_len;
+    uint32_t cnt;
+    
+    redraw_type_t current_state;
+    
+    char pl_path[max_plb_files][12];
+    char pl_name[max_plb_files][pl_name_sz];
+    uint32_t pl_songs[max_plb_files];
 };
 
 #endif
