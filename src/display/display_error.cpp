@@ -1,4 +1,4 @@
-#include "display.h"
+#include "display_error.h"
 
 #include "lcd_display.h"
 

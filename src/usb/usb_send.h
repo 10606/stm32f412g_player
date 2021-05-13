@@ -2,7 +2,6 @@
 #define USB_SEND_H
 
 #include "usbd_cdc_if.h"
-#include "display.h"
 #include "view.h"
 #include <stdint.h>
 

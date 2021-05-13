@@ -1,7 +1,7 @@
 #include "moving.h"
 
 #include "view.h"
-#include "display.h"
+#include "display_offsets.h"
 
 struct offsets
 {

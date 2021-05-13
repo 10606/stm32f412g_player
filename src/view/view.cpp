@@ -1,6 +1,7 @@
 #include "view.h"
 
-#include "display.h"
+#include "display_song.h"
+#include "display_playlists.h"
 #include "usb_send.h"
 #include <new>
 

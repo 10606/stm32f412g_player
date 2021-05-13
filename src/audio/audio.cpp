@@ -3,7 +3,9 @@
 #include "view.h"
 #include "lcd_display.h"
 #include "stm32412g_discovery_audio.h"
-#include "display.h"
+#include "display_offsets.h"
+#include "display_song.h"
+#include "display_error.h"
 #include "mp3.h"
 #include <stdio.h>
 #include <stdint.h>

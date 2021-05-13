@@ -3,7 +3,7 @@
 #include "FAT.h"
 #include "lcd_display.h"
 #include "stm32412g_discovery_audio.h"
-#include "display.h"
+#include "display_error.h"
 #include "audio.h"
 #include <algorithm>
 #include <string.h>

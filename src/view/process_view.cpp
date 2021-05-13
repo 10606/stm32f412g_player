@@ -1,7 +1,7 @@
 #include "view.h"
 
 #include "stm32412g_discovery_audio.h"
-#include "display.h"
+#include "display_song.h"
 #include "joystick.h"
 #include "mp3.h"
 #include <utility>

@@ -147,6 +147,7 @@ display_sources_ = \
 	display_pl_list.cpp \
 	display_song.cpp \
 	display_error.cpp \
+	display_picture.cpp \
 	display_common.cpp
 display_sources = $(addprefix src/display/, $(display_sources_))
 

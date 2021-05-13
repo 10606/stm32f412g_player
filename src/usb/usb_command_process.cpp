@@ -1,7 +1,6 @@
 #include "usb_command_process.h"
 
 #include "view.h"
-#include "display.h"
 #include <type_traits>
 #include <stdint.h>
 

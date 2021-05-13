@@ -1,4 +1,4 @@
-#include "display.h"
+#include "display_playlists.h"
 
 #include "display_common.h"
 #include "lcd_display.h"
@@ -37,12 +37,12 @@ void cur_pl_list
 
     if (to_screen)
         scroll_text <plb_view_cnt> (redraw_type);  
-    
     static uint32_t old_pos_playing = plb_view_cnt;
     
     uint32_t pos_playing = plb_view_cnt;
     for (uint32_t i = 0; i != plb_view_cnt; ++i)
     {
+        
         char s_playlist[name_offset + pl_name_sz + count_offset + 3 + 1];
         memset(s_playlist, ' ', sizeof(s_playlist));
         memcpy(s_playlist, number[i], 3);
