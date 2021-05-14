@@ -57,24 +57,24 @@ void display_lines
     bool force_redraw
 )
 {
+    // disabled scroll 
+    /*
     uint32_t old_pos = (redraw_type.pos + view_cnt + (redraw_type.direction? 1 : -1)) % view_cnt;
     uint32_t border = redraw_type.direction? 0 : (view_cnt - 1);
     
-    if (//(redraw_type.type != redraw_type_t::nothing) &&
-        (
-            force_redraw ||
+    if (force_redraw ||
             
-            (i == old_pos_playing) || // playing
-            (selected[i] & 2) ||
+        (i == old_pos_playing) || // playing
+        (selected[i] & 2) ||
             
-            (redraw_type.type == redraw_type_t::not_easy) ||
+        (redraw_type.type == redraw_type_t::not_easy) ||
             
-            (i == redraw_type.pos) ||
-            (i == old_pos) ||
-            ((i == border) && 
+        (i == redraw_type.pos) ||
+        (i == old_pos) ||
+        ((i == border) && 
              (redraw_type.type == redraw_type_t::middle))
-        )
     )
+    */
     {
         uint16_t back_color_line_0, text_color_line_0;
         uint16_t back_color_line_1, text_color_line_1;

@@ -42,11 +42,14 @@ extern scroller_t scroller;
 template <uint32_t view_cnt>
 void scroll_text (redraw_type_t const & redraw_type)
 {
+    // disabled scroll 
+    /*
     if (redraw_type.type == redraw_type_t::middle)
     {
         uint16_t scroll_value = display::offsets::line * ((redraw_type.direction == 0)? 1 : (view_cnt - 1));
         scroller.scroll(scroll_value);
     }
+    */
 }
 
 template <uint32_t view_cnt>
