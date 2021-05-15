@@ -14,9 +14,9 @@ void cur_song (playlist const & pl, bool & need_redraw)
 {
     char cur_song_name[song_name_sz + 1];
     char cur_group_name[group_name_sz + 1];
-    memcpy(cur_song_name, pl.song.song_name, song_name_sz);
+    memcpy(cur_song_name, pl.lpl.song.song_name, song_name_sz);
     cur_song_name[song_name_sz] = 0;
-    memcpy(cur_group_name, pl.song.group_name, group_name_sz);
+    memcpy(cur_group_name, pl.lpl.song.group_name, group_name_sz);
     cur_group_name[group_name_sz] = 0;
     color_t yb = {lcd_color_yellow, lcd_color_blue};
     

@@ -34,8 +34,8 @@ struct playlist_view
     {}
     
     uint32_t init (); //set fd and read playlist
-    uint32_t down ();
-    uint32_t up ();
+    uint32_t next ();
+    uint32_t prev ();
     uint32_t seek (uint32_t pos);
     uint32_t play (playlist & pl) const;
     uint32_t to_playing_playlist (playlist const & pl);

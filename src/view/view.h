@@ -25,24 +25,24 @@ struct view
     uint32_t open_song_not_found (uint8_t direction); // direction == 1 - reverse
     void fake_song_and_playlist ();
 
-    uint32_t process_up      (bool & need_redraw);
-    uint32_t process_down    (bool & need_redraw);
-    uint32_t process_up_down (bool & need_redraw, uint8_t direction /* 0 - down, 1 - up */);
-    uint32_t process_left    (bool & need_redraw);
-    uint32_t process_right   (bool & need_redraw);
-    uint32_t process_center  (bool & need_redraw);
+    uint32_t process_up        (bool & need_redraw);
+    uint32_t process_down      (bool & need_redraw);
+    uint32_t process_next_prev (bool & need_redraw, uint8_t direction /* 0 - next, 1 - prev */);
+    uint32_t process_left      (bool & need_redraw);
+    uint32_t process_right     (bool & need_redraw);
+    uint32_t process_center    (bool & need_redraw);
 
-    uint32_t play_pause      (bool & need_redraw);
-    uint32_t toggle_repeat   (bool & need_redraw);
-    uint32_t inc_volume      (bool & need_redraw);
-    uint32_t dec_volume      (bool & need_redraw);
-    uint32_t seek_forward    (bool & need_redraw);
-    uint32_t seek_backward   (bool & need_redraw);
-    uint32_t prev_song       (bool & need_redraw);
-    uint32_t next_song       (bool & need_redraw);
+    uint32_t play_pause        (bool & need_redraw);
+    uint32_t toggle_repeat     (bool & need_redraw);
+    uint32_t inc_volume        (bool & need_redraw);
+    uint32_t dec_volume        (bool & need_redraw);
+    uint32_t seek_forward      (bool & need_redraw);
+    uint32_t seek_backward     (bool & need_redraw);
+    uint32_t prev_song         (bool & need_redraw);
+    uint32_t next_song         (bool & need_redraw);
 
-    uint32_t do_nothing      (bool & need_redraw); // can use in table of function
-    uint32_t send_info       (bool & need_redraw);
+    uint32_t do_nothing        (bool & need_redraw); // can use in table of function
+    uint32_t send_info         (bool & need_redraw);
 
     
     uint32_t playing_playlist;

@@ -17,7 +17,7 @@ struct playlist
     playlist (playlist const & other) = delete;
     playlist & operator = (playlist const & other) = delete;
     
-    uint32_t open (light_playlist const & lpl, uint32_t pos_selected);
+    uint32_t open (light_playlist const & other_lpl, uint32_t pos_selected);
     uint32_t seek (uint32_t pos);
     uint32_t next ();
     uint32_t prev ();
@@ -26,10 +26,13 @@ struct playlist
 
     char (*path)[12];
     uint32_t path_sz;
+    light_playlist lpl;
+    /*
     uint32_t pos;
     playlist_header header;
     song_header song;
     file_descriptor fd;
+    */
     
 private:
     void init_base ();

@@ -76,7 +76,7 @@ int32_t touch_processing::move_up_down
     int32_t ans;
     // reverse direction on pl_list and playlist
     uint8_t process_view_direction = (vv->state == state_t::song)? direction : 1 - direction;
-    vv->process_up_down(need_redraw, process_view_direction);
+    vv->process_next_prev(need_redraw, process_view_direction);
     ans = speed? offsets::add_speed : offsets::add;
     return direction? -ans : ans;
 }

@@ -40,7 +40,7 @@ void view::display (bool & need_redraw)
 
 uint32_t view::open_song ()
 {
-    if (pl.header.cnt_songs == 0)
+    if (pl.lpl.header.cnt_songs == 0)
     {
         audio_ctl->audio_file.init_fake();
         audio_ctl->info.offset = 0;
@@ -48,7 +48,7 @@ uint32_t view::open_song ()
     }
 
     uint32_t ret;
-    if ((ret = open(&FAT_info, &audio_ctl->audio_file, pl.path, pl.song.path_len)))
+    if ((ret = open(&FAT_info, &audio_ctl->audio_file, pl.path, pl.lpl.song.path_len)))
         return ret;
     audio_ctl->seeked = 1;
     get_length(&audio_ctl->audio_file, &audio_ctl->info);
@@ -66,7 +66,7 @@ uint32_t view::open_song_not_found (uint8_t direction)
     };
     
     uint32_t ret = 0;
-    for (uint32_t i = 0; i != pl.header.cnt_songs; ++i)
+    for (uint32_t i = 0; i != pl.lpl.header.cnt_songs; ++i)
     {
         if ((ret = open_song()))
         {

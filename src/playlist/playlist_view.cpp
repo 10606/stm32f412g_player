@@ -103,7 +103,7 @@ uint32_t playlist_view::seek (uint32_t pos)
     return 0;
 }
 
-uint32_t playlist_view::down ()
+uint32_t playlist_view::next ()
 {
     current_state.direction = 0;
     if (lpl.header.cnt_songs == 0)
@@ -157,7 +157,7 @@ uint32_t playlist_view::down ()
     return 0;
 }
 
-uint32_t playlist_view::up ()
+uint32_t playlist_view::prev ()
 {
     current_state.direction = 1;
     if (lpl.header.cnt_songs == 0)
@@ -218,7 +218,7 @@ uint32_t playlist_view::play (playlist & pl) const
 
 bool playlist_view::compare (playlist const & b) const
 {
-    return lpl.fd == b.fd;
+    return lpl.fd == b.lpl.fd;
 }
 
 bool playlist_view::check_near (playlist const & playing_pl) const
@@ -229,7 +229,7 @@ bool playlist_view::check_near (playlist const & playing_pl) const
     return ::check_near
     (
         current_state.pos, 
-        playing_pl.pos, 
+        playing_pl.lpl.pos, 
         lpl.header.cnt_songs, 
         playlist_view_cnt, 
         playlist_border_cnt
@@ -269,7 +269,7 @@ void playlist_view::print
         if ((compare(playing_pl)) &&
             (lpl.header.cnt_songs != 0))
         {
-            selected[playing_pl.pos] |= 2;
+            selected[playing_pl.lpl.pos] |= 2;
         }
         return;
     }
@@ -292,7 +292,7 @@ void playlist_view::print
     }
 
     if (check_near(playing_pl))
-        selected[playing_pl.pos - index] |= 2;
+        selected[playing_pl.lpl.pos - index] |= 2;
 
     for (size_t i = 0; i != playlist_view_cnt; ++i)
     {
@@ -306,7 +306,7 @@ uint32_t playlist_view::to_playing_playlist (playlist const & pl)
 {
     file_descriptor old_fd(lpl.fd);
     
-    lpl.fd.copy_seek_0(pl.fd);
+    lpl.fd.copy_seek_0(pl.lpl.fd);
     uint32_t ret;
     if ((ret = init()))
     {

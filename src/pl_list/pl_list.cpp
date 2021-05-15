@@ -107,7 +107,7 @@ uint32_t pl_list::init (char (* dir_name)[12], size_t len_name)
     return 0;
 }
 
-void pl_list::up ()
+void pl_list::next ()
 {
     if (cnt == 0)
         return;
@@ -125,7 +125,7 @@ void pl_list::up ()
     current_state.direction = 0;
 }
 
-void pl_list::down ()
+void pl_list::prev ()
 {
     if (cnt == 0)
         return;

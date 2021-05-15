@@ -108,17 +108,17 @@ uint32_t view::next_song (bool & need_redraw)
     return change_song(need_redraw, 0);
 }
 
-uint32_t view::process_up_down (bool & need_redraw, uint8_t direction /* 0 - down, 1 - up */)
+uint32_t view::process_next_prev (bool & need_redraw, uint8_t direction /* 0 - next, 1 - prev */)
 {
     static void (pl_list::* const do_on_pl_list[2]) () = 
     {
-        &pl_list::down,
-        &pl_list::up
+        &pl_list::next,
+        &pl_list::prev
     };
     static uint32_t (playlist_view::* const do_on_playlist_view[2]) () = 
     {
-        &playlist_view::down,
-        &playlist_view::up
+        &playlist_view::next,
+        &playlist_view::prev
     };
     
     switch (state)
@@ -150,12 +150,12 @@ uint32_t view::process_up_down (bool & need_redraw, uint8_t direction /* 0 - dow
 
 uint32_t view::process_up (bool & need_redraw)
 {
-    return process_up_down(need_redraw, 1);
+    return process_next_prev(need_redraw, 1);
 }
 
 uint32_t view::process_down (bool & need_redraw)
 {
-    return process_up_down(need_redraw, 0);
+    return process_next_prev(need_redraw, 0);
 }
 
 uint32_t view::play_pause (bool & need_redraw)
@@ -267,7 +267,7 @@ uint32_t view::process_center (bool & need_redraw)
         }
         else
         {
-            if (pl.header.cnt_songs != 0)
+            if (pl.lpl.header.cnt_songs != 0)
             {
                 uint32_t ret;
                 if (!plv.compare(pl))
@@ -279,7 +279,7 @@ uint32_t view::process_center (bool & need_redraw)
                     selected_playlist = playing_playlist;
                 }
                 need_redraw = 1;
-                ret = plv.seek(pl.pos);
+                ret = plv.seek(pl.lpl.pos);
                 if (ret)
                     return ret;
             }

@@ -21,8 +21,8 @@ struct pl_list
     pl_list & operator = (pl_list &&) = delete;
     
     uint32_t init (char (* dir_name)[12], size_t len_name);
-    void up ();
-    void down ();
+    void next ();
+    void prev ();
     void seek (uint32_t pos);
     uint32_t open_index (playlist_view & plv, uint32_t index, uint32_t & selected_pl) const;
     uint32_t open_selected (playlist_view & plv, uint32_t & selected_pl) const;
