@@ -178,6 +178,7 @@ audio_sources = $(addprefix src/audio/, $(audio_sources_))
 local_sources =  \
 	$(main_sources) \
 	src/sd_card/sd_card_operation.cpp  \
+	src/util/util.cpp \
 	src/view/view.cpp \
 	src/view/process_view.cpp \
 	$(audio_sources) \

@@ -63,7 +63,7 @@ struct pl_list_info_t
     uint8_t cmd;
     char selected;
     uint8_t pos;
-    char name[sz::number + sz::pl_name + sz::count + 4];
+    char name[sz::count_offset + sz::count + 1];
 };
 
 struct volume_info_t

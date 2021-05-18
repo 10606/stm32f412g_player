@@ -241,31 +241,28 @@ bool playlist_view::check_near (playlist const & playing_pl) const
 void playlist_view::print
 (
     playlist const & playing_pl,
-    char (* song_name)[sz::song_name + 1], 
-    char (* group_name)[sz::group_name + 1], 
-    char * selected,
-    char (* number)[3 + 1]
+    char (* song_name)[sz::number + sz::song_name + 1], 
+    char (* group_name)[sz::number + sz::group_name + 1], 
+    char * selected
 ) const
 {
     memset(selected, 0, playlist_view_cnt);
+    uint32_t index = 0;
+    uint32_t print_cnt = playlist_view_cnt;
+    
     if (lpl.header.cnt_songs <= playlist_view_cnt)
     {
+        index = 0;
+        print_cnt = lpl.header.cnt_songs;
+        
         if (lpl.header.cnt_songs != 0)
             selected[current_state.pos] |= 1;
-        for (size_t i = 0; i != lpl.header.cnt_songs; ++i)
-        {
-            memcpy(song_name[i], this->name_song[i + pos_begin], sz::song_name + 1);
-            memcpy(group_name[i], this->name_group[i + pos_begin], sz::group_name + 1);
-            snprintf(number[i], 3 + 1, "%3u", (i % 1000));
-        }
         for (size_t i = lpl.header.cnt_songs; i != playlist_view_cnt; ++i)
         {
-            memset(song_name[i], ' ', sz::song_name);
-            memset(group_name[i], ' ', sz::group_name);
-            memset(number[i], ' ', 3);
-            song_name[i][sz::song_name] = 0;
-            group_name[i][sz::group_name] = 0;
-            number[i][3] = 0;
+            memset(song_name[i], ' ', sizeof(song_name[i]));
+            memset(group_name[i], ' ', sizeof(group_name[i]));
+            song_name[i][sizeof(song_name[i]) - 1] = 0;
+            group_name[i][sizeof(group_name[i]) - 1] = 0;
         }
         
         if ((compare(playing_pl)) &&
@@ -273,34 +270,36 @@ void playlist_view::print
         {
             selected[playing_pl.lpl.pos] |= 2;
         }
-        return;
     }
-    
-    uint32_t index;
-    if (current_state.pos < playlist_border_cnt) // on top
+    else
     {
-        index = 0;
-        selected[current_state.pos] |= 1;
-    }
-    else if (current_state.pos + playlist_border_cnt >= lpl.header.cnt_songs) // on bottom
-    {
-        index = lpl.header.cnt_songs - playlist_view_cnt;
-        selected[current_state.pos + playlist_view_cnt - lpl.header.cnt_songs] |= 1;
-    }
-    else // on middle
-    {
-        index = current_state.pos - playlist_border_cnt;
-        selected[playlist_border_cnt] |= 1;
+        print_cnt = playlist_view_cnt;
+        if (current_state.pos < playlist_border_cnt) // on top
+        {
+            index = 0;
+            selected[current_state.pos] |= 1;
+        }
+        else if (current_state.pos + playlist_border_cnt >= lpl.header.cnt_songs) // on bottom
+        {
+            index = lpl.header.cnt_songs - playlist_view_cnt;
+            selected[current_state.pos + playlist_view_cnt - lpl.header.cnt_songs] |= 1;
+        }
+        else // on middle
+        {
+            index = current_state.pos - playlist_border_cnt;
+            selected[playlist_border_cnt] |= 1;
+        }
+
+        if (check_near(playing_pl))
+            selected[playing_pl.lpl.pos - index] |= 2;
     }
 
-    if (check_near(playing_pl))
-        selected[playing_pl.lpl.pos - index] |= 2;
-
-    for (size_t i = 0; i != playlist_view_cnt; ++i)
+    for (size_t i = 0; i != print_cnt; ++i)
     {
-        memcpy(song_name[i], this->name_song[(i + pos_begin) % playlist_view_cnt], sz::song_name + 1);
-        memcpy(group_name[i], this->name_group[(i + pos_begin) % playlist_view_cnt], sz::group_name + 1);
-        snprintf(number[i], 3 + 1, "%3lu", ((index + i) % 1000));
+        memcpy(song_name[i] + sz::number, name_song[(i + pos_begin) % playlist_view_cnt], sz::song_name + 1);
+        memcpy(group_name[i] + sz::number, name_group[(i + pos_begin) % playlist_view_cnt], sz::group_name + 1);
+        sprint_mod_1000(group_name[i], sz::number, index + i);
+        memset(song_name[i], ' ', sz::number);
     }
 }
 

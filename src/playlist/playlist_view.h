@@ -46,10 +46,9 @@ struct playlist_view
     void print
     (
         playlist const & playing_pl,
-        char (* song_name)[sz::song_name + 1],
-        char (* group_name)[sz::group_name + 1],
-        char * selected,
-        char (* number)[3 + 1]
+        char (* song_name)[sz::number + sz::song_name + 1],
+        char (* group_name)[sz::number + sz::group_name + 1],
+        char * selected
     ) const;
 
     void reset_display ();

@@ -31,9 +31,7 @@ struct pl_list
     uint32_t print 
     (
         uint32_t playing_pl,
-        char (* playlist_name)[sz::pl_name + 1], 
-        char (* number)[3 + 1],
-        char (* count)[3 + 1], 
+        char (* playlist_name)[sz::count_offset + sz::count + 1], 
         char * selected
     ) const;
 
