@@ -31,7 +31,7 @@ struct pl_list
     uint32_t print 
     (
         uint32_t playing_pl,
-        char (* playlist_name)[pl_name_sz + 1], 
+        char (* playlist_name)[sz::pl_name + 1], 
         char (* number)[3 + 1],
         char (* count)[3 + 1], 
         char * selected
@@ -50,7 +50,7 @@ private:
     redraw_type_t current_state;
     
     char pl_path[max_plb_files][12];
-    char pl_name[max_plb_files][pl_name_sz];
+    char pl_name[max_plb_files][sz::pl_name];
     uint32_t pl_songs[max_plb_files];
 };
 

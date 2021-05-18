@@ -9,8 +9,8 @@
 namespace display
 {
 
-void cur_pl_list  (pl_list & pll,            uint32_t playing_pl,     bool to_screen, bool redraw_screen, bool & need_redraw);
-void cur_playlist (playlist_view & plv,      playlist const & pl,     bool to_screen, bool redraw_screen, bool & need_redraw);
+void cur_pl_list  (pl_list & pll,       uint32_t playing_pl, bool to_screen, bool redraw_screen, bool & need_redraw);
+void cur_playlist (playlist_view & plv, playlist const & pl, bool to_screen, bool redraw_screen, bool & need_redraw);
 
 }
 

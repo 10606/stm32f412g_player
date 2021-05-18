@@ -22,14 +22,14 @@ void cur_pl_list
     if (to_screen)
         fill_borders <plb_view_cnt> ();
     
-    char playlist_name[plb_view_cnt][pl_name_sz + 1];
+    char playlist_name[plb_view_cnt][sz::pl_name + 1];
     char number[plb_view_cnt][3 + 1];
     char count[plb_view_cnt][3 + 1];
     char selected[plb_view_cnt];
  
-    char empty[name_offset + pl_name_sz + count_offset + 3 + 1];
+    char empty[sz::number + sz::pl_name + sz::count + 3 + 1];
     memset(empty, ' ', sizeof(empty));
-    empty[count_offset + 3] = 0;
+    empty[sz::count + 3] = 0;
     
     pll.print(playing_pl, playlist_name, number, count, selected);
     redraw_type_t redraw_type = pll.redraw_type();
@@ -43,12 +43,12 @@ void cur_pl_list
     for (uint32_t i = 0; i != plb_view_cnt; ++i)
     {
         
-        char s_playlist[name_offset + pl_name_sz + count_offset + 3 + 1];
+        char s_playlist[sz::number + sz::pl_name + sz::count + 3 + 1];
         memset(s_playlist, ' ', sizeof(s_playlist));
         memcpy(s_playlist, number[i], 3);
-        memcpy(s_playlist + name_offset, playlist_name[i], pl_name_sz);
-        memcpy(s_playlist + count_offset, count[i], 3);
-        s_playlist[count_offset + 3] = 0;
+        memcpy(s_playlist + sz::number, playlist_name[i], sz::pl_name);
+        memcpy(s_playlist + sz::count, count[i], 3);
+        s_playlist[sz::count + 3] = 0;
 
         if (to_screen)
             display_lines(i, old_pos_playing, s_playlist, empty, selected, redraw_type, plb_view_cnt, lcd_color_green, redraw_screen);

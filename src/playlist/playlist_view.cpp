@@ -2,26 +2,31 @@
 
 #include "util.h"
 #include <stdio.h>
+#include <type_traits>
+
+void playlist_view::copy_from_lpl (size_t ins_pos)
+{
+    memcpy(name_group[ins_pos], lpl.song.group_name, sizeof(song_header::group_name));
+    name_group[ins_pos][sizeof(song_header::group_name)] = 0;
+    memcpy(name_song[ins_pos], lpl.song.song_name, sizeof(song_header::song_name));
+    name_song[ins_pos][sizeof(song_header::song_name)] = 0;
+}
 
 uint32_t playlist_view::fill_names ()
 {
     if (lpl.header.cnt_songs == 0)
         return 0;
 
-    char name_group_backup[playlist_view_cnt][group_name_sz + 1];
-    char name_song_backup[playlist_view_cnt][song_name_sz + 1];
+    decltype(name_group) name_group_backup;
+    decltype(name_song)  name_song_backup;
     memcpy(name_group_backup, name_group, sizeof(name_group));
     memcpy(name_song_backup, name_song, sizeof(name_song));
     for (size_t i = 0; i != playlist_view_cnt; ++i)
     {
-        memcpy(name_group[i], lpl.song.group_name, group_name_sz);
-        name_group[i][group_name_sz] = 0;
-        memcpy(name_song[i], lpl.song.song_name, song_name_sz);
-        name_song[i][song_name_sz] = 0;
+        copy_from_lpl(i);
         if (i + 1 == lpl.header.cnt_songs)
             break;
-        uint32_t ret;
-        ret = lpl.next(); 
+        uint32_t ret = lpl.next(); 
         if (ret)
         {
             memcpy(name_group, name_group_backup, sizeof(name_group));
@@ -59,10 +64,7 @@ void playlist_view::pn_common (size_t ins_pos)
     ins_pos %= lpl.header.cnt_songs;
     ins_pos %= playlist_view_cnt;
     
-    memcpy(name_group[ins_pos], lpl.song.group_name, group_name_sz);
-    name_group[ins_pos][group_name_sz] = 0;
-    memcpy(name_song[ins_pos], lpl.song.song_name, song_name_sz);
-    name_song[ins_pos][song_name_sz] = 0;
+    copy_from_lpl(ins_pos);
 }
 
 uint32_t playlist_view::seek (uint32_t pos)
@@ -239,8 +241,8 @@ bool playlist_view::check_near (playlist const & playing_pl) const
 void playlist_view::print
 (
     playlist const & playing_pl,
-    char (* song_name)[song_name_sz + 1], 
-    char (* group_name)[group_name_sz + 1], 
+    char (* song_name)[sz::song_name + 1], 
+    char (* group_name)[sz::group_name + 1], 
     char * selected,
     char (* number)[3 + 1]
 ) const
@@ -252,17 +254,17 @@ void playlist_view::print
             selected[current_state.pos] |= 1;
         for (size_t i = 0; i != lpl.header.cnt_songs; ++i)
         {
-            memcpy(song_name[i], this->name_song[i + pos_begin], song_name_sz + 1);
-            memcpy(group_name[i], this->name_group[i + pos_begin], group_name_sz + 1);
+            memcpy(song_name[i], this->name_song[i + pos_begin], sz::song_name + 1);
+            memcpy(group_name[i], this->name_group[i + pos_begin], sz::group_name + 1);
             snprintf(number[i], 3 + 1, "%3u", (i % 1000));
         }
         for (size_t i = lpl.header.cnt_songs; i != playlist_view_cnt; ++i)
         {
-            memset(song_name[i], ' ', song_name_sz);
-            memset(group_name[i], ' ', group_name_sz);
+            memset(song_name[i], ' ', sz::song_name);
+            memset(group_name[i], ' ', sz::group_name);
             memset(number[i], ' ', 3);
-            song_name[i][song_name_sz] = 0;
-            group_name[i][group_name_sz] = 0;
+            song_name[i][sz::song_name] = 0;
+            group_name[i][sz::group_name] = 0;
             number[i][3] = 0;
         }
         
@@ -296,8 +298,8 @@ void playlist_view::print
 
     for (size_t i = 0; i != playlist_view_cnt; ++i)
     {
-        memcpy(song_name[i], this->name_song[(i + pos_begin) % playlist_view_cnt], song_name_sz + 1);
-        memcpy(group_name[i], this->name_group[(i + pos_begin) % playlist_view_cnt], group_name_sz + 1);
+        memcpy(song_name[i], this->name_song[(i + pos_begin) % playlist_view_cnt], sz::song_name + 1);
+        memcpy(group_name[i], this->name_group[(i + pos_begin) % playlist_view_cnt], sz::group_name + 1);
         snprintf(number[i], 3 + 1, "%3lu", ((index + i) % 1000));
     }
 }

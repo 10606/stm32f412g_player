@@ -126,6 +126,7 @@ external_sources =  \
 # main
 main_sources_ = \
 	main.cpp \
+	init.cpp \
 	player.cpp \
 	stm32f4xx_it.cpp  \
 	system_stm32f4xx.c

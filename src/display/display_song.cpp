@@ -12,12 +12,12 @@ namespace display
 
 void cur_song (playlist const & pl, bool & need_redraw)
 {
-    char cur_song_name[song_name_sz + 1];
-    char cur_group_name[group_name_sz + 1];
-    memcpy(cur_song_name, pl.lpl.song.song_name, song_name_sz);
-    cur_song_name[song_name_sz] = 0;
-    memcpy(cur_group_name, pl.lpl.song.group_name, group_name_sz);
-    cur_group_name[group_name_sz] = 0;
+    char cur_song_name[sz::song_name + 1];
+    char cur_group_name[sz::group_name + 1];
+    memcpy(cur_song_name, pl.lpl.song.song_name, sizeof(pl.lpl.song.song_name));
+    cur_song_name[sz::song_name] = 0;
+    memcpy(cur_group_name, pl.lpl.song.group_name, sizeof(pl.lpl.song.group_name));
+    cur_group_name[sz::group_name] = 0;
     color_t yb = {lcd_color_yellow, lcd_color_blue};
     
     display_string(10, display::offsets::song_name, cur_group_name, &font_16, &yb);
@@ -57,8 +57,8 @@ void song_volume
         break;
     }
     
-    char s_volume[volume_width];
-    char s_state[volume_width];
+    char s_volume[sz::volume];
+    char s_state[sz::volume];
     memset(s_volume, ' ', sizeof(s_volume));
     memset(s_state, ' ', sizeof(s_state));
     snprintf(s_volume, sizeof(s_volume), " %3u%%", actl.volume);
@@ -67,12 +67,13 @@ void song_volume
     {
         auto calc_offset = [] (uint32_t x, uint32_t y) -> uint32_t { return 240 * (display::offsets::list - display::offsets::picture + y) + x; };
         uint16_t const * picture = picture_info.song_pic(); 
+        // adapvite background color 
         display_string_c(200, display::offsets::list, 
                          s_volume, &font_12, 
-                         picture[calc_offset(199, 6)], lcd_color_blue);
+                         picture[calc_offset(200, 6)], lcd_color_blue);
         display_string_c(200, display::offsets::list + display::offsets::in_line, 
                          s_state, &font_12, 
-                         picture[calc_offset(199, 2 * display::offsets::in_line)], lcd_color_blue);
+                         picture[calc_offset(200, 2 * display::offsets::in_line)], lcd_color_blue);
         audio_ctl.audio_process(need_redraw);
     }
     HAL_Delay(1);

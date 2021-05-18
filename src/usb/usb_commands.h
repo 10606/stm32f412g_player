@@ -45,8 +45,8 @@ typedef enum
 struct cur_song_info_t
 {
     uint8_t cmd;
-    char line_0[group_name_sz + 1];
-    char line_1[song_name_sz + 1];
+    char line_0[sz::group_name + 1];
+    char line_1[sz::song_name + 1];
 };
 
 struct displayed_song_info_t
@@ -54,8 +54,8 @@ struct displayed_song_info_t
     uint8_t cmd;
     char selected;
     uint8_t pos;
-    char line_0[name_offset + group_name_sz + 1];
-    char line_1[name_offset + song_name_sz + 1];
+    char line_0[sz::number + sz::group_name + 1];
+    char line_1[sz::number + sz::song_name + 1];
 };
 
 struct pl_list_info_t
@@ -63,14 +63,14 @@ struct pl_list_info_t
     uint8_t cmd;
     char selected;
     uint8_t pos;
-    char name[name_offset + pl_name_sz + count_offset + 4];
+    char name[sz::number + sz::pl_name + sz::count + 4];
 };
 
 struct volume_info_t
 {
     uint8_t cmd;
-    char line_0[volume_width];
-    char line_1[volume_width];
+    char line_0[sz::volume];
+    char line_1[sz::volume];
 };
 
 struct state_info_t

@@ -46,8 +46,8 @@ struct playlist_view
     void print
     (
         playlist const & playing_pl,
-        char (* song_name)[song_name_sz + 1],
-        char (* group_name)[group_name_sz + 1],
+        char (* song_name)[sz::song_name + 1],
+        char (* group_name)[sz::group_name + 1],
         char * selected,
         char (* number)[3 + 1]
     ) const;
@@ -65,12 +65,13 @@ struct playlist_view
     uint32_t pos_begin;
     redraw_type_t current_state;
     light_playlist lpl;
-    char name_group[playlist_view_cnt][group_name_sz + 1];
-    char name_song[playlist_view_cnt][song_name_sz + 1];
+    char name_group[playlist_view_cnt][sizeof(song_header::group_name) + 1];
+    char name_song[playlist_view_cnt][sizeof(song_header::song_name) + 1];
     
 private:
     uint32_t fill_names ();
     void pn_common (size_t ins_pos);
+    void copy_from_lpl (size_t ins_pos);
 };
 
 

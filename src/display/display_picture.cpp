@@ -19,18 +19,18 @@ void start_image ()
     draw_RGB_image(0, 0, 240, 240, picture_info.start_pic());
     
     {
-        char s_volume[volume_width];
-        char s_state[volume_width];
+        decltype(volume_info_t::line_0) s_volume;
+        decltype(volume_info_t::line_1) s_state;
         memset(s_volume, ' ', sizeof(s_volume));
         memset(s_state, ' ', sizeof(s_state));
         HAL_Delay(1);
         send_volume(s_volume, s_state);
     }
     {
-        char cur_song_name[song_name_sz + 1];
-        char cur_group_name[group_name_sz + 1];
-        memset(cur_song_name, ' ', sizeof(cur_song_name));
+        decltype(cur_song_info_t::line_0) cur_group_name;
+        decltype(cur_song_info_t::line_1) cur_song_name;
         memset(cur_group_name, ' ', sizeof(cur_group_name));
+        memset(cur_song_name, ' ', sizeof(cur_song_name));
         HAL_Delay(1);
         send_cur_song(cur_group_name, cur_song_name);
     }
@@ -38,8 +38,8 @@ void start_image ()
         char selected[playlist_view_cnt];
         memset(selected, 0, sizeof(selected));
         
-        char s_group[name_offset + group_name_sz + 1];
-        char s_song[name_offset + song_name_sz + 1];
+        decltype(displayed_song_info_t::line_0) s_group;
+        decltype(displayed_song_info_t::line_1) s_song;
         memset(s_group, ' ', sizeof(s_group));
         memset(s_song, ' ', sizeof(s_song));
     
@@ -52,7 +52,7 @@ void start_image ()
     {
         char selected[plb_view_cnt];
         memset(selected, 0, sizeof(selected));
-        char s_playlist[name_offset + pl_name_sz + count_offset + 3 + 1];
+        decltype(pl_list_info_t::name) s_playlist;
         memset(s_playlist, ' ', sizeof(s_playlist));
         
         for (uint32_t i = 0; i != plb_view_cnt; ++i)

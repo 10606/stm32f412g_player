@@ -23,8 +23,8 @@ void cur_playlist
     HAL_Delay(1);
     audio_ctl.audio_process(need_redraw);
     
-    char song_name[playlist_view_cnt][song_name_sz + 1];
-    char group_name[playlist_view_cnt][group_name_sz + 1];
+    char song_name[playlist_view_cnt][sz::song_name + 1];
+    char group_name[playlist_view_cnt][sz::group_name + 1];
     char selected[playlist_view_cnt];
     char number[playlist_view_cnt][3 + 1];
     
@@ -39,16 +39,16 @@ void cur_playlist
     uint32_t pos_playing = playlist_view_cnt;
     for (uint32_t i = 0; i != playlist_view_cnt; ++i)
     {
-        char s_group[name_offset + group_name_sz + 1];
-        memset(s_group, ' ', name_offset + 1);
+        char s_group[sz::number + sz::group_name + 1];
+        memset(s_group, ' ', sz::number + 1);
         memcpy(s_group, number[i], 3);
-        memcpy(s_group + name_offset, group_name[i], group_name_sz);
-        s_group[name_offset + group_name_sz] = 0;
+        memcpy(s_group + sz::number, group_name[i], sz::group_name);
+        s_group[sz::number + sz::group_name] = 0;
 
-        char s_song[name_offset + song_name_sz + 1];
-        memset(s_song, ' ', name_offset + 1);
-        memcpy(s_song + name_offset, song_name[i], song_name_sz);
-        s_song[name_offset + song_name_sz] = 0;
+        char s_song[sz::number + sz::song_name + 1];
+        memset(s_song, ' ', sz::number + 1);
+        memcpy(s_song + sz::number, song_name[i], sz::song_name);
+        s_song[sz::number + sz::song_name] = 0;
     
         if (to_screen)
             display_lines(i, old_pos_playing, s_song, s_group, selected, redraw_type, playlist_view_cnt, lcd_color_yellow, redraw_screen);

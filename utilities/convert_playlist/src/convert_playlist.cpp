@@ -90,15 +90,15 @@ void write_group_song_names (std::string const & value, song_header * song)
 {
     std::pair <std::string, std::string> names = 
         get_group_song_names (value);
-    write(song->song_name, names.second, song_name_sz);
-    write(song->group_name, names.first, group_name_sz);
+    write(song->song_name, names.second, sz::song_name);
+    write(song->group_name, names.first, sz::group_name);
 }
 
 
 void write_header (std::ostream & out, std::string const & name, uint32_t cnt)
 {
     playlist_header header;
-    write(header.playlist_name, name, pl_name_sz);
+    write(header.playlist_name, name, sz::pl_name);
     header.cnt_songs = cnt;
     out.write(reinterpret_cast <char *> (&header), sizeof(playlist_header));
 }

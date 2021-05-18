@@ -101,7 +101,7 @@ uint32_t pl_list::init (char (* dir_name)[12], size_t len_name)
             destroy();
             return res;
         }
-        memmove(pl_name[i], header.playlist_name, pl_name_sz);
+        memmove(pl_name[i], header.playlist_name, sizeof(playlist_header::playlist_name));
         pl_songs[i] = header.cnt_songs;
     }
     return 0;
@@ -209,7 +209,7 @@ bool pl_list::check_near (uint32_t pos) const
 uint32_t pl_list::print
 (
     uint32_t playing_pl,
-    char (* playlist_name)[pl_name_sz + 1], 
+    char (* playlist_name)[sz::pl_name + 1], 
     char (* number)[3 + 1],
     char (* count)[3 + 1], 
     char * selected
@@ -226,14 +226,14 @@ uint32_t pl_list::print
         }
         for (uint32_t i = 0; i != cnt; ++i)
         {
-            fill_name(playlist_name[i], pl_name[i], pl_name_sz + 1);
+            fill_name(playlist_name[i], pl_name[i], sz::pl_name + 1);
             snprintf(count[i], sizeof(count[i]), "%3lu", pl_songs[i]);
             snprintf(number[i], sizeof(number[i]), "%3lu", (i % 1000));
         }
         for (uint32_t i = cnt; i != plb_view_cnt; ++i)
         {
-            memset(playlist_name[i], ' ', pl_name_sz);
-            playlist_name[i][pl_name_sz] = 0;
+            memset(playlist_name[i], ' ', sz::pl_name);
+            playlist_name[i][sz::pl_name] = 0;
             memset(count[i], ' ', sizeof(count[i]));
             memset(number[i], ' ', sizeof(number[i]));
         }
@@ -254,7 +254,7 @@ uint32_t pl_list::print
     else // on middle
     {
         selected[plb_border_cnt] |= 1;
-        index = current_state.pos - plb_border_cnt ;
+        index = current_state.pos - plb_border_cnt;
     }
 
     if (check_near(playing_pl))
@@ -262,7 +262,7 @@ uint32_t pl_list::print
     
     for (uint32_t i = 0; i != plb_view_cnt; ++i)
     {
-        fill_name(playlist_name[i], pl_name[i], pl_name_sz + 1);
+        fill_name(playlist_name[i], pl_name[i], sz::pl_name + 1);
         snprintf(count[i], sizeof(count[i]), "%3lu", pl_songs[index + i]);
         snprintf(number[i], sizeof(number[i]), "%3lu", (index + i) % 1000);
     }

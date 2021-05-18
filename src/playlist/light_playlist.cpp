@@ -5,12 +5,16 @@ uint32_t light_playlist::seek (uint32_t _pos)
     if (header.cnt_songs == 0)
         return 0;
     _pos %= header.cnt_songs;
-    pos = _pos;
     uint32_t ret;
-    if ((ret = fd.seek(sizeof(playlist_header) + pos * sizeof(song_header))))
+    file_descriptor old_fd = fd;
+    if ((ret = fd.seek(sizeof(playlist_header) + _pos * sizeof(song_header))))
         return ret;
     if ((ret = read_song(&song, fd)))
+    {
+        fd = old_fd;
         return ret;
+    }
+    pos = _pos;
     return 0;
 }
 
@@ -21,16 +25,22 @@ uint32_t light_playlist::next ()
     if (pos + 1 == header.cnt_songs)
         return seek(0);
     else
-        return read_song(&song, fd);
+    {
+        uint32_t ret = read_song(&song, fd);
+        if (ret)
+            return ret;
+        pos++;
+    }
+    return 0;
 }
     
 void light_playlist::init_base ()
 {
     pos = 0;
-    memset(song.song_name, ' ', song_name_sz);
-    memset(song.group_name, ' ', group_name_sz);
+    memset(song.song_name, ' ', sizeof(song.song_name));
+    memset(song.group_name, ' ', sizeof(song.group_name));
     header.cnt_songs = 0;
-    memset(header.playlist_name, ' ', pl_name_sz);
+    memset(header.playlist_name, ' ', sizeof(header.playlist_name));
 }
 
 light_playlist::light_playlist () :

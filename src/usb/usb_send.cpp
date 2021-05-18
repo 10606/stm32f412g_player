@@ -5,21 +5,21 @@
 
 uint8_t send_cur_song 
 (
-    char cur_group_name[group_name_sz + 1],
-    char cur_song_name[song_name_sz + 1]
+    std::decay_t <decltype(cur_song_info_t::line_0)> cur_group_name,
+    std::decay_t <decltype(cur_song_info_t::line_1)> cur_song_name
 )
 {
     cur_song_info_t answer;
     answer.cmd = cur_song_info;
-    memcpy(answer.line_0, cur_group_name, group_name_sz + 1);
-    memcpy(answer.line_1, cur_song_name, song_name_sz + 1);
+    memcpy(answer.line_0, cur_group_name, sizeof(answer.line_0));
+    memcpy(answer.line_1, cur_song_name, sizeof(answer.line_1));
     return CDC_Transmit_FS((uint8_t *)&answer, sizeof(answer));
 }
 
 uint8_t send_displayed_song 
 (
-    char s_group[name_offset + group_name_sz + 1], 
-    char s_song[name_offset + song_name_sz + 1], 
+    std::decay_t <decltype(displayed_song_info_t::line_0)> s_group,
+    std::decay_t <decltype(displayed_song_info_t::line_1)> s_song,
     char selected, 
     uint32_t pos
 )
@@ -28,14 +28,14 @@ uint8_t send_displayed_song
     answer.cmd = displayed_song_info;
     answer.selected = selected;
     answer.pos = pos;
-    memcpy(answer.line_0, s_group, name_offset + group_name_sz + 1);
-    memcpy(answer.line_1, s_song, name_offset + song_name_sz + 1);
+    memcpy(answer.line_0, s_group, sizeof(answer.line_0));
+    memcpy(answer.line_1, s_song, sizeof(answer.line_1));
     return CDC_Transmit_FS((uint8_t *)&answer, sizeof(answer));
 }
 
 uint8_t send_pl_list
 (
-    char s_playlist[sizeof(pl_list_info_t::name)],
+    std::decay_t <decltype(pl_list_info_t::name)> s_playlist,
     char selected, 
     uint32_t pos
 )
@@ -50,14 +50,14 @@ uint8_t send_pl_list
 
 uint8_t send_volume
 (
-    char s_volume[volume_width],
-    char s_state[volume_width]
+    std::decay_t <decltype(volume_info_t::line_0)> s_volume,
+    std::decay_t <decltype(volume_info_t::line_1)> s_state
 )
 {
     volume_info_t answer;
     answer.cmd = volume_info;
-    memcpy(answer.line_0, s_volume, volume_width);
-    memcpy(answer.line_1, s_state, volume_width);
+    memcpy(answer.line_0, s_volume, sizeof(answer.line_0));
+    memcpy(answer.line_1, s_state, sizeof(answer.line_1));
     return CDC_Transmit_FS((uint8_t *)&answer, sizeof(answer));
 }
 
