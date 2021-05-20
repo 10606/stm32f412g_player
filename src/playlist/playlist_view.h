@@ -6,8 +6,6 @@
 #include "playlist_structures.h"
 #include "FAT.h"
 
-#define playlist_border_cnt 3
-#define playlist_view_cnt (2 * playlist_border_cnt + 1)
 
 extern FAT_info_t FAT_info;
 
@@ -28,6 +26,9 @@ struct redraw_type_t
 
 struct playlist_view
 {
+    static const uint32_t border_cnt = 3;
+    static const uint32_t view_cnt = (2 * border_cnt + 1);
+
     playlist_view () :
         pos_begin(0),
         current_state{0, 0, redraw_type_t::not_easy}
@@ -42,37 +43,38 @@ struct playlist_view
     bool is_fake () const;
     bool check_near (playlist const & playing_pl) const;
     bool compare (playlist const & b) const;
+    uint32_t open_playlist (char const (* const path)[12], uint32_t path_len);
 
-    void print
-    (
-        playlist const & playing_pl,
-        char (* song_name)[sz::number + sz::song_name + 1],
-        char (* group_name)[sz::number + sz::group_name + 1],
-        char * selected
-    ) const;
-
+    
+    struct print_info
+    {
+        print_info ()
+        {
+            memset(selected, 0, view_cnt);
+        }
+    
+        char song_name[view_cnt][sz::number + sz::song_name + 1];
+        char group_name[view_cnt][sz::number + sz::group_name + 1];
+        char selected[view_cnt];
+    };
+    
+    print_info print (playlist const & playing_pl_) const;
     void reset_display ();
     redraw_type_t redraw_type () const;
 
-    uint32_t open_playlist
-    (
-        char const (* const path)[12],
-        uint32_t path_len
-    );
-
-
-    uint32_t pos_begin;
-    redraw_type_t current_state;
-    light_playlist lpl;
-    char name_group[playlist_view_cnt][sizeof(song_header::group_name) + 1];
-    char name_song[playlist_view_cnt][sizeof(song_header::song_name) + 1];
-    
 private:
     uint32_t fill_names ();
     void pn_common (size_t ins_pos);
     void copy_from_lpl (size_t ins_pos);
-};
+    void next_prev_for_short (uint32_t diff, uint32_t border);
+    uint32_t jump_over (uint32_t seek_pos, uint32_t new_pos);
 
+    uint32_t pos_begin;
+    redraw_type_t current_state;
+    light_playlist lpl;
+    char name_group[view_cnt][sizeof(song_header::group_name) + 1];
+    char name_song[view_cnt][sizeof(song_header::song_name) + 1];
+};
 
 #endif
 

@@ -39,5 +39,7 @@ uint8_t send_state
     state_t state
 );
 
+uint8_t send_empty ();
+
 #endif
 

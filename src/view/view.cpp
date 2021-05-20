@@ -11,8 +11,8 @@ view::view (audio_ctl_t * _audio_ctl)
     state = state_t::pl_list;
     old_state = state;
     state_song_view = state_song_view_t::volume;
-    playing_playlist = max_plb_files;
-    selected_playlist = max_plb_files;
+    playing_playlist = pl_list::max_plb_files;
+    selected_playlist = pl_list::max_plb_files;
 }
 
 uint32_t view::init (char (* path)[12], uint32_t len)
@@ -26,15 +26,11 @@ uint32_t view::init (char (* path)[12], uint32_t len)
 
 void view::display (bool & need_redraw)
 {
-    char ts_playlist = (state == state_t::playlist);
-    char ts_pl_list = (state == state_t::pl_list);
-    char ts_song = (state == state_t::song);
-
     send_state(state);
     display::cur_song(pl, need_redraw);
-    display::cur_playlist(plv, pl, ts_playlist, (old_state != state_t::playlist), need_redraw);
-    display::cur_pl_list(pll, playing_playlist, ts_pl_list, (old_state != state_t::pl_list), need_redraw);
-    display::song(*audio_ctl, state_song_view, ts_song, (old_state != state_t::song), need_redraw);
+    display::cur_playlist(plv, pl, state, old_state, need_redraw);
+    display::cur_pl_list(pll, playing_playlist, state, old_state, need_redraw);
+    display::song(*audio_ctl, state_song_view, state, old_state, need_redraw);
     old_state = state;
 }
 

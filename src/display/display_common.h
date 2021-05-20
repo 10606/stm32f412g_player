@@ -8,17 +8,23 @@
 namespace display
 {
 
-void display_lines 
+bool need_draw_line 
 (
     uint32_t i, 
     uint32_t old_pos_playing,
+    char * selected, 
+    redraw_type_t const & redraw_type,
+    uint32_t view_cnt,
+    bool force_redraw
+);
+
+void display_lines 
+(
+    uint32_t i, 
     char * line_0, 
     char * line_1, 
     char * selected, 
-    redraw_type_t const & redraw_type, 
-    uint32_t view_cnt, 
-    uint16_t l0_text_color,
-    bool force_redraw
+    uint16_t l0_text_color
 );
 
 

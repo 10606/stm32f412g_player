@@ -13,38 +13,35 @@ void cur_playlist
 (
     playlist_view & plv, 
     playlist const & pl, 
-    bool to_screen, 
-    bool redraw_screen,  
+    state_t cur_state,
+    state_t old_state,
     bool & need_redraw
 )
 {
+    bool to_screen = cur_state == state_t::playlist;
     if (to_screen)
-        fill_borders <playlist_view_cnt> ();
+        fill_borders <playlist_view::view_cnt> ();
     HAL_Delay(1);
     audio_ctl.audio_process(need_redraw);
     
-    char s_song[playlist_view_cnt][sz::number + sz::song_name + 1];
-    char s_group[playlist_view_cnt][sz::number + sz::group_name + 1];
-    char selected[playlist_view_cnt];
-    
-    plv.print(pl, s_song, s_group, selected);
+    playlist_view::print_info print = plv.print(pl);
     redraw_type_t redraw_type = plv.redraw_type();
     plv.reset_display();
 
     if (to_screen)
-        scroll_text <playlist_view_cnt> (redraw_type);  
-    static uint32_t old_pos_playing = playlist_view_cnt;
+        scroll_text <playlist_view::view_cnt> (redraw_type);  
+    static uint32_t old_pos_playing = playlist_view::view_cnt;
     
-    uint32_t pos_playing = playlist_view_cnt;
-    for (uint32_t i = 0; i != playlist_view_cnt; ++i)
+    uint32_t pos_playing = playlist_view::view_cnt;
+    for (uint32_t i = 0; i != playlist_view::view_cnt; ++i)
     {
-        if (to_screen)
-            display_lines(i, old_pos_playing, s_song[i], s_group[i], selected, redraw_type, playlist_view_cnt, lcd_color_yellow, redraw_screen);
-        if (selected[i] & 2)
+        if (to_screen && need_draw_line(i, old_pos_playing, print.selected, redraw_type, playlist_view::view_cnt, old_state != state_t::playlist)) 
+            display_lines(i, print.song_name[i], print.group_name[i], print.selected, lcd_color_yellow);
+        if (print.selected[i] & 2)
             pos_playing = i; 
         
         audio_ctl.audio_process(need_redraw);
-        send_displayed_song(s_group[i], s_song[i], selected[i], i);
+        send_displayed_song(print.group_name[i], print.song_name[i], print.selected[i], i);
     }
     old_pos_playing = pos_playing;
 }

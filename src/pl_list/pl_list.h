@@ -6,12 +6,13 @@
 #include "playlist_view.h"
 #include "playlist_structures.h"
 
-#define plb_border_cnt 3
-#define plb_view_cnt (2 * plb_border_cnt + 1)
-#define max_plb_files 25
 
 struct pl_list
 {
+    static const uint32_t border_cnt = playlist_view::border_cnt;
+    static const uint32_t view_cnt = playlist_view::view_cnt;
+    static const uint32_t max_plb_files = 25;
+
     pl_list ();
     ~pl_list ();
     
@@ -28,20 +29,26 @@ struct pl_list
     uint32_t open_selected (playlist_view & plv, uint32_t & selected_pl) const;
     bool check_near (uint32_t pos) const;
 
-    uint32_t print 
-    (
-        uint32_t playing_pl,
-        char (* playlist_name)[sz::count_offset + sz::count + 1], 
-        char * selected
-    ) const;
-
+    
+    struct print_info
+    {
+        print_info ()
+        {
+            memset(selected, 0, view_cnt);
+        }
+    
+        char playlist_name[view_cnt][sz::count_offset + sz::count + 1];
+        char selected[view_cnt];
+    };
+    
+    print_info print (uint32_t playing_pl) const;
     void reset_display ();
     redraw_type_t redraw_type () const;
     
 private:
     void destroy ();
 
-    char (* root_path)[12];
+    char (* root_path)[12]; // TODO typedef char filename_type [12];
     uint32_t path_len;
     uint32_t cnt;
     

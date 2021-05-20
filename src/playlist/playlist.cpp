@@ -3,6 +3,29 @@
 #include <utility>
 uint32_t memory_limit = 101;
 
+uint32_t playlist::realloc (light_playlist const & old_lpl)
+{
+    uint32_t new_size = lpl.song.path_len;
+    if (new_size > path_sz)
+    {
+        char (* tmp)[12] = static_cast <decltype(path)> (malloc(new_size * sizeof(*path)));
+        if (!tmp)
+        {
+            lpl = old_lpl;
+            return memory_limit;
+        }
+        
+        if (path)
+        {
+            memmove(tmp, path, old_lpl.song.path_len * sizeof(*path));
+            free(path);
+        }
+        path = tmp;
+        path_sz = lpl.song.path_len;
+    }
+    return 0;
+}
+
 uint32_t playlist::seek (uint32_t new_pos)
 {
     if (lpl.header.cnt_songs == 0)
@@ -13,30 +36,16 @@ uint32_t playlist::seek (uint32_t new_pos)
     light_playlist old_lpl = lpl;
     lpl.seek(new_pos);
 
-    if (lpl.song.path_len > path_sz)
-    {
-        char (* tmp)[12] = (char (*)[12])malloc(lpl.song.path_len * sizeof(char[12]));
-        if (!tmp)
-        {
-            lpl = old_lpl;
-            return memory_limit;
-        }
-        
-        if (path)
-        {
-            memmove(tmp, path, old_lpl.song.path_len * sizeof(char[12]));
-            free(path);
-        }
-        path = tmp;
-        path_sz = lpl.song.path_len;
-    }
+    ret = realloc(old_lpl);
+    if (ret)
+        return ret;
     
     {
         file_descriptor fd(lpl.fd, 0);
         ret = fd.seek(lpl.song.path_offset);
         if (ret)
             goto err;
-        ret = fd.read_all_fixed((char *)path, lpl.song.path_len * sizeof(char[12]));
+        ret = fd.read_all_fixed((char *)path, lpl.song.path_len * sizeof(*path));
         if (ret)
             goto err;
         return 0;

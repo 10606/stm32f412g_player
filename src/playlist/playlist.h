@@ -36,6 +36,7 @@ struct playlist
     
 private:
     void init_base ();
+    uint32_t realloc (light_playlist const & old_lpl);
 };
 
 extern uint32_t memory_limit;

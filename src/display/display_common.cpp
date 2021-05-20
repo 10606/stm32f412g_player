@@ -40,78 +40,82 @@ uint16_t scroller_t::recalc_y (uint16_t y)
     return ((y - top + /*bottom -*/ scrolled) % bottom) + top;
 }
 
-scroller_t scroller(display::offsets::list, display::offsets::line * plb_view_cnt);
+scroller_t scroller(display::offsets::list, display::offsets::line * pl_list::view_cnt);
     
-    
-    
-void display_lines 
+ 
+bool need_draw_line 
 (
     uint32_t i, 
     uint32_t old_pos_playing,
-    char * line_0, 
-    char * line_1, 
     char * selected, 
-    redraw_type_t const & redraw_type, 
-    uint32_t view_cnt, 
-    uint16_t l0_text_color,
+    redraw_type_t const & redraw_type,
+    uint32_t view_cnt,
     bool force_redraw
 )
 {
-    // disabled scroll 
+    // disabled scroll
+    return 1; 
     /*
     uint32_t old_pos = (redraw_type.pos + view_cnt + (redraw_type.direction? 1 : -1)) % view_cnt;
     uint32_t border = redraw_type.direction? 0 : (view_cnt - 1);
     
-    if (force_redraw ||
+    return  force_redraw ||
+            (redraw_type.type == redraw_type_t::not_easy) ||
             
-        (i == old_pos_playing) || // playing
-        (selected[i] & 2) ||
+            (i == old_pos_playing) || // playing
+            (selected[i] & 2) ||
             
-        (redraw_type.type == redraw_type_t::not_easy) ||
-            
-        (i == redraw_type.pos) ||
-        (i == old_pos) ||
-        ((i == border) && 
-             (redraw_type.type == redraw_type_t::middle))
-    )
+            (i == redraw_type.pos) ||
+            (i == old_pos) ||
+            ((i == border) && 
+             (redraw_type.type == redraw_type_t::middle));
     */
+}
+    
+void display_lines 
+(
+    uint32_t i, 
+    char * line_0, 
+    char * line_1, 
+    char * selected, 
+    uint16_t l0_text_color
+)
+{
+    uint16_t back_color_line_0, text_color_line_0;
+    uint16_t back_color_line_1, text_color_line_1;
+    
+    switch (selected[i])
     {
-        uint16_t back_color_line_0, text_color_line_0;
-        uint16_t back_color_line_1, text_color_line_1;
-        
-        switch (selected[i])
-        {
-            // 0
-            // 1 - selected
-            // 2 - playing
-            // 3 - playing and selected
-            case 3:
-                back_color_line_0 = lcd_color_blue;
-                text_color_line_0 = l0_text_color;
-                back_color_line_1 = lcd_color_blue;
-                text_color_line_1 = lcd_color_green;
-                break;
-            case 2:
-                back_color_line_1 = back_color_line_0 = lcd_color_white;
-                text_color_line_1 = text_color_line_0 = lcd_color_red;
-                break;
-            case 1:
-                back_color_line_1 = back_color_line_0 = lcd_color_blue;
-                text_color_line_1 = text_color_line_0 = lcd_color_white;
-                break;
-            default:
-                back_color_line_1 = back_color_line_0 = lcd_color_white;
-                text_color_line_1 = text_color_line_0 = lcd_color_blue;
-        }
-
-        color_t c_line_0 = {text_color_line_0, back_color_line_0};
-        color_t c_line_1 = {text_color_line_1, back_color_line_1};
-        
-        display_string(4, scroller.recalc_y(display::offsets::list + display::offsets::line * i),
-                    line_0, &font_12, &c_line_0);
-        display_string(4, scroller.recalc_y(display::offsets::list + display::offsets::line * i + display::offsets::in_line), 
-                    line_1, &font_12, &c_line_1);
+        // 0
+        // 1 - selected
+        // 2 - playing
+        // 3 - playing and selected
+        case 3:
+            back_color_line_0 = lcd_color_blue;
+            text_color_line_0 = l0_text_color;
+            back_color_line_1 = lcd_color_blue;
+            text_color_line_1 = lcd_color_green;
+            break;
+        case 2:
+            back_color_line_1 = back_color_line_0 = lcd_color_white;
+            text_color_line_1 = text_color_line_0 = lcd_color_red;
+            break;
+        case 1:
+            back_color_line_1 = back_color_line_0 = lcd_color_blue;
+            text_color_line_1 = text_color_line_0 = lcd_color_white;
+            break;
+        default:
+            back_color_line_1 = back_color_line_0 = lcd_color_white;
+            text_color_line_1 = text_color_line_0 = lcd_color_blue;
     }
+
+    color_t c_line_0 = {text_color_line_0, back_color_line_0};
+    color_t c_line_1 = {text_color_line_1, back_color_line_1};
+    
+    display_string(4, scroller.recalc_y(display::offsets::list + display::offsets::line * i),
+                line_0, &font_12, &c_line_0);
+    display_string(4, scroller.recalc_y(display::offsets::list + display::offsets::line * i + display::offsets::in_line), 
+                line_1, &font_12, &c_line_1);
 }
 
 }

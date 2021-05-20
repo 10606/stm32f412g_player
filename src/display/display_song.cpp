@@ -84,12 +84,13 @@ void song
 (
     audio_ctl_t const & actl, 
     state_song_view_t state, 
-    bool to_screen, 
-    bool redraw_picture, 
+    state_t cur_state, 
+    state_t old_state,
     bool & need_redraw
 ) 
 {
-    if (to_screen && redraw_picture) // don't redraw picture if not need
+    bool to_screen = cur_state == state_t::song;
+    if (to_screen && old_state != state_t::song) // don't redraw picture if not need
         song_image(need_redraw);
     song_volume(actl, state, to_screen, need_redraw);
     audio_ctl.audio_process(need_redraw);

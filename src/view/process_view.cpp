@@ -253,7 +253,7 @@ uint32_t view::process_center (bool & need_redraw)
         }
         else
         {
-            if (playing_playlist != max_plb_files)
+            if (playing_playlist != pl_list::max_plb_files)
                 pll.seek(playing_playlist);
         }
         need_redraw = 1;
