@@ -34,26 +34,25 @@ uint32_t playlist::seek (uint32_t new_pos)
     new_pos %= lpl.header.cnt_songs;
     uint32_t ret;
     light_playlist old_lpl = lpl;
-    lpl.seek(new_pos);
-
-    ret = realloc(old_lpl);
+    ret = lpl.seek(new_pos);
     if (ret)
         return ret;
-    
-    {
-        file_descriptor fd(lpl.fd, 0);
-        ret = fd.seek(lpl.song.path_offset);
-        if (ret)
-            goto err;
-        ret = fd.read_all_fixed((char *)path, lpl.song.path_len * sizeof(*path));
-        if (ret)
-            goto err;
-        return 0;
 
-    err:
-        lpl = old_lpl;
-        return ret;
-    }
+    file_descriptor fd(lpl.fd, 0);
+    ret = realloc(old_lpl);
+    if (ret)
+        goto err;
+    ret = fd.seek(lpl.song.path_offset);
+    if (ret)
+        goto err;
+    ret = fd.read_all_fixed((char *)path, lpl.song.path_len * sizeof(*path));
+    if (ret)
+        goto err;
+    return 0;
+
+err:
+    lpl = old_lpl;
+    return ret;
 }
 
 uint32_t playlist::next ()

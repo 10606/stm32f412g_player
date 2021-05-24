@@ -139,7 +139,7 @@ songs_t init_songs (std::vector <std::string> const & paths)
         try
         {
             std::vector <std::string> s_path = split_path(path);
-            converted_path l_path = make_long_path(s_path);
+            converted_path l_path(s_path);
             std::unique_ptr <char[][12]> c_path = l_path.convert_path(&FAT_info);
             song_header song;
             write_group_song_names(s_path.back(), &song);

@@ -6,7 +6,7 @@
 
 struct unix_server_sock_t
 {
-    unix_server_sock_t (std::string const & sock_name, bool socket_activation, int _epoll_fd);
+    unix_server_sock_t (char const * sock_name, bool socket_activation, int _epoll_fd);
     ~unix_server_sock_t ();
     
     unix_server_sock_t (unix_server_sock_t const &) = delete;

@@ -7,7 +7,7 @@
 
 struct com_wrapper_t
 {
-    com_wrapper_t (std::string const & _file_name, int _epoll_fd);
+    com_wrapper_t (char const * _file_name, int _epoll_fd);
     ~com_wrapper_t ();
     
     com_wrapper_t (com_wrapper_t const &) = delete;

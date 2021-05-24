@@ -20,14 +20,14 @@ struct light_playlist
     uint32_t open_file ();
     void init_base ();
 
+    static uint32_t read_song (song_header * song, file_descriptor & fd);
+    static uint32_t read_header (playlist_header * song, file_descriptor & fd);
+    
     playlist_header header;
     song_header song;
     file_descriptor fd;
     uint32_t pos;
     
-private:
-    static uint32_t read_song (song_header * song, file_descriptor & fd);
-    static uint32_t read_header (playlist_header * song, file_descriptor & fd);
 };
 
 #endif

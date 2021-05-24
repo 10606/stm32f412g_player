@@ -55,8 +55,7 @@ private:
     redraw_type_t current_state;
     
     char pl_path[max_plb_files][12];
-    char pl_name[max_plb_files][sz::pl_name];
-    uint32_t pl_songs[max_plb_files];
+    playlist_header headers[max_plb_files];
 };
 
 #endif

@@ -34,22 +34,14 @@ std::vector <std::string> split_path (std::string const & path)
 }
 
 
-converted_path make_long_path (std::vector <std::string> const & path)
+converted_path::converted_path (std::vector <std::string> const & _path) :
+    path(_path.size(), nullptr),
+    wpath()
 {
-    std::vector <std::basic_string <uint16_t> > wpath;
-    for (std::string const & p : path)
+    for (std::string const & p : _path)
         wpath.push_back(utf8_to_ucs2(p));
-
-    size_t max_size = 0;
-    for (std::basic_string <uint16_t> const & p : wpath)
-        max_size = std::max(max_size, p.size());
-
-    max_size *= sizeof(uint16_t);
-    converted_path answer(path.size(), max_size + 2);
-    for (size_t i = 0; i != wpath.size(); ++i)
-        std::memcpy(answer.path[i], wpath[i].c_str(), sizeof(uint16_t) * (wpath[i].size() + 1));
-
-    return answer;
+    for (size_t i = 0; i != path.size(); ++i)
+        path[i] = wpath[i].data();
 }
 
 

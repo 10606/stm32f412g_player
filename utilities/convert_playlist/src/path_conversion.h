@@ -9,16 +9,7 @@
 
 struct converted_path
 {
-    converted_path (size_t count, size_t size) :
-        path(count, nullptr),
-        storage(new char [count * size])
-    {
-        for (size_t i = 0; i != path.size(); ++i)
-        {
-            path[i] = storage.get() + i * size;
-        }
-    }
-    
+    converted_path (std::vector <std::string> const & _path);
     converted_path (converted_path const &) = delete;
     converted_path & operator = (converted_path const &) = delete;
     converted_path (converted_path &&) = default;
@@ -34,8 +25,8 @@ struct converted_path
     friend converted_path make_long_path (std::vector <std::string> const & path);
     
 private:
-    std::vector <char *> path;
-    std::unique_ptr <char[]> storage;
+    std::vector <uint16_t *> path;
+    std::vector <std::basic_string <uint16_t> > wpath;
 };
 
 std::vector <std::string> split_path (std::string const & path);

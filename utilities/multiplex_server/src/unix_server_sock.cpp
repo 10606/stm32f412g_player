@@ -8,7 +8,7 @@
 #include <systemd/sd-daemon.h>
 #include "epoll_reg.h"
 
-unix_server_sock_t::unix_server_sock_t (std::string const & sock_name, bool socket_activation, int _epoll_fd) :
+unix_server_sock_t::unix_server_sock_t (char const * sock_name, bool socket_activation, int _epoll_fd) :
     fd(-1),
     epoll_fd(_epoll_fd)
 {
@@ -21,9 +21,9 @@ unix_server_sock_t::unix_server_sock_t (std::string const & sock_name, bool sock
         struct sockaddr_un sa_un; 
         memset(&sa_un, 0, sizeof(struct sockaddr_un));
         sa_un.sun_family = AF_UNIX;
-        strncpy(sa_un.sun_path, sock_name.c_str(), sizeof(sa_un.sun_path) - 1);
+        strncpy(sa_un.sun_path, sock_name, sizeof(sa_un.sun_path) - 1);
         
-        unlink(sock_name.c_str());
+        unlink(sock_name);
         if (bind(fd, reinterpret_cast <sockaddr *> (&sa_un), sizeof(sa_un)) == -1)
         {
             close(fd);
@@ -31,7 +31,7 @@ unix_server_sock_t::unix_server_sock_t (std::string const & sock_name, bool sock
         }
         if (listen(fd, 10) == -1)
         {
-            unlink(sock_name.c_str());
+            unlink(sock_name);
             close(fd);
             throw std::runtime_error("listen server socket");
         }
@@ -45,7 +45,7 @@ unix_server_sock_t::unix_server_sock_t (std::string const & sock_name, bool sock
     
     if (epoll_reg(epoll_fd, fd, EPOLLIN) == -1)
     {
-        unlink(sock_name.c_str());
+        unlink(sock_name);
         close(fd);
         throw std::runtime_error("can't add to epoll");
     }

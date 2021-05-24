@@ -45,48 +45,30 @@ uint32_t pl_list::init (char (* dir_name)[12], size_t len_name)
     uint32_t index = 0;
     uint32_t res;
     
-    // get paths
+    // get paths, names and count of songs
     res = open(&FAT_info, &dir, dir_name, len_name);
     if (res != 0)
     {
-        cnt = 0;
         destroy();
         return res;
     }
-    for (;;) 
+    for (; index < max_plb_files;) 
     {
-        if (index == max_plb_files)
-            break;
         res = read_dir(&dir, &file, pl_path[index]);
         if (res != 0 || pl_path[index][0] == 0)
             break;
 
-        if (!file.is_dir && pl_path[index][0] != '.')
-            if (strncmp(pl_path[index] + 8, "PLB", 3) == 0)
-                index++;
+        if (!file.is_dir && 
+            pl_path[index][0] != '.' &&
+            strncmp(pl_path[index] + 8, "PLB", 3) == 0) // .plb
+        {
+            res = light_playlist::read_header(headers + index, file);
+            if (res != 0)
+                continue;
+            index++;
+        }
     }
     cnt = index;
-   
-    // get playlist names and count of songs
-    for (uint32_t i = 0; i != cnt; ++i)
-    {
-        memcpy(root_path[path_len - 1], pl_path[i], sizeof(char[12]));
-        res = open(&FAT_info, &file, root_path, path_len);
-        if (res != 0)
-            goto err;
-        playlist_header header;
-        res = file.read_all_fixed((char *)&header, sizeof(header));
-        if (res != 0)
-            goto err;
-        memmove(pl_name[i], header.playlist_name, sizeof(playlist_header::playlist_name));
-        pl_songs[i] = header.cnt_songs;
-        
-        continue;
-    err:
-        cnt = i;
-        destroy();
-        return res;
-    }
     return 0;
 }
 
@@ -181,17 +163,12 @@ pl_list::print_info pl_list::print (uint32_t playing_pl) const
     uint32_t index = 0;
     uint32_t print_cnt = view_cnt;
     
-    if (cnt < view_cnt)
+    if (cnt <= view_cnt)
     {
-        index = 0;
         print_cnt = cnt;
         
         if (cnt != 0)
-        {
             ans.selected[current_state.pos] |= 1;
-            if (playing_pl < cnt)
-                ans.selected[playing_pl] |= 2;
-        }
         for (uint32_t i = cnt; i != view_cnt; ++i)
         {
             memset(ans.playlist_name[i], ' ', sizeof(ans.playlist_name[i]));
@@ -200,34 +177,19 @@ pl_list::print_info pl_list::print (uint32_t playing_pl) const
     }
     else
     {
-        print_cnt = view_cnt;
-        if (current_state.pos <= border_cnt) // on top
-        {
-            ans.selected[current_state.pos] |= 1;
-            index = 0;
-        }
-        else if (current_state.pos + border_cnt >= cnt) // on bottom
-        {
-            ans.selected[cnt - view_cnt + current_state.pos] |= 1;
-            index = cnt - view_cnt;
-        }
-        else // on middle
-        {
-            ans.selected[border_cnt] |= 1;
-            index = current_state.pos - border_cnt;
-        }
-
-        if (check_near(playing_pl))
-            ans.selected[playing_pl - index] |= 2;
+        index = calc_index_set_selected <border_cnt, view_cnt> (current_state.pos, cnt, ans.selected);
     }
+    
+    if (check_near(playing_pl))
+        ans.selected[playing_pl - index] |= 2;
     
     for (uint32_t i = 0; i != print_cnt; ++i)
     {
-        uint32_t songs_cnt = (pl_songs[index + i] > 999)? 999 : pl_songs[index + i];
+        uint32_t songs_cnt = (headers[index + i].cnt_songs > 999)? 999 : headers[index + i].cnt_songs;
         sprint_mod_1000(ans.playlist_name[i], sz::number, index + i);
         sprint(ans.playlist_name[i] + sz::count_offset, sz::count, "%3lu", songs_cnt);
         
-        memcpy(ans.playlist_name[i] + sz::number, pl_name[index + i], sz::pl_name);
+        memcpy(ans.playlist_name[i] + sz::number, headers[index + i].playlist_name, sz::pl_name);
         const uint32_t sz_num_pl = sz::number + sz::pl_name;
         memset(ans.playlist_name[i] + sz_num_pl, ' ', sz::count_offset - sz_num_pl);
         ans.playlist_name[i][sizeof(ans.playlist_name[i]) - 1] = 0;

@@ -13,7 +13,7 @@
 int main (int argc, char ** argv)
 {
     char const * sock_name = "/home/wa51/code/code_microcontrollers/player/utilities/multiplex_server/qwe.socket";
-    char const * stm32_name = "/dev/serial/by-id/usb-STMicroelectronics_STM32_Virtual_ComPort_313FB9553136-if00";
+    char const * stm32_name = "/dev/serial/by-id/usb-STMicroelectronics_player_stm32f412g_313FB9553136-if00";
  
     bool socket_activation = (argc > 1) && (strcmp(argv[1], "--socket_activation") == 0);
     

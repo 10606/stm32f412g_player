@@ -66,7 +66,7 @@ private:
     uint32_t fill_names ();
     void pn_common (size_t ins_pos);
     void copy_from_lpl (size_t ins_pos);
-    void next_prev_for_short (uint32_t diff, uint32_t border);
+    void next_prev_for_short (uint32_t diff);
     uint32_t jump_over (uint32_t seek_pos, uint32_t new_pos);
 
     uint32_t pos_begin;

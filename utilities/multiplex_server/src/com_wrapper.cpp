@@ -8,7 +8,7 @@
 #include <fcntl.h>
 #include "epoll_reg.h"
 
-com_wrapper_t::com_wrapper_t (std::string const & _file_name, int _epoll_fd) :
+com_wrapper_t::com_wrapper_t (char const * _file_name, int _epoll_fd) :
     fd(-1),
     buffer(nullptr),
     pos(0),
@@ -16,7 +16,7 @@ com_wrapper_t::com_wrapper_t (std::string const & _file_name, int _epoll_fd) :
     capacity(0),
     epoll_fd(_epoll_fd)
 {
-    fd = open(_file_name.c_str(), O_RDWR | O_NOCTTY);
+    fd = open(_file_name, O_RDWR | O_NOCTTY);
     if (fd == -1)
         throw std::runtime_error("can't open file");
     
