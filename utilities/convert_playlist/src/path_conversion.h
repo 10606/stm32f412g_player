@@ -32,10 +32,11 @@ private:
 std::vector <std::string> split_path (std::string const & path);
 converted_path make_long_path (std::vector <std::string> const & path);
 
-std::pair <std::string, std::string> 
+std::pair <std::string, std::string> // <group, song>
 split_string
 (std::string const & value, size_t pos, size_t p_size);
 
+std::string remove_bad (std::string const & value);
 
 #endif
 

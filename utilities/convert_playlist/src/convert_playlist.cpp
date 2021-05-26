@@ -36,12 +36,12 @@ uint32_t read_sector (uint32_t sector_number, void * buffer)
 FAT_info_t FAT_info(512, start_partition_sector, read_sector);
 
 
-std::pair <std::string, std::string> 
+std::pair <std::string, std::string>  // <group, song>
 get_group_song_names 
 (std::string const & value)
 {
     if (value.size() < 4)
-        return std::make_pair("", value);
+        return {value, ""}; 
     size_t b3_pos = value.rfind("_-_");
     if (b3_pos != std::string::npos)
         return split_string(value, b3_pos, 3);
@@ -57,8 +57,10 @@ get_group_song_names
             return split_string(value, i - 1, 2);
         }
     }
-    std::string answer = value.substr(0, value.find('.'));
-    return {answer, ""};
+    
+    std::string answer = remove_bad(value); 
+    answer = answer.substr(0, answer.find('.'));
+    return {answer, ""}; // group_song_name.mp3
 }
 
 // utf8 -> ucs4 -> my_custom_code_table

@@ -57,6 +57,23 @@ std::unique_ptr <char[][12]> converted_path::convert_path (FAT_info_t * FAT_info
 }
 
 
+std::vector <std::string> const bad_in_name =
+{
+    "(promusic.me)",
+    "muzlostyle.ru",
+    "(larkabout.net)",
+    "(mp3CC.biz)",
+    "(zaycev.net)",
+    "(mp3no.com)",
+    "(mp3no.net)",
+    "(playmus.cc)",
+    "(playvk.com)",
+    "(44outdoors.com)",
+    "(seehall.me)",
+    "(zoop.su)"
+};
+
+
 std::string remove_bad (std::string const & value, std::vector <std::string> const & bad)
 {
     if (bad.empty())
@@ -91,21 +108,10 @@ std::string remove_bad (std::string const & value, std::vector <std::string> con
     return answer;
 }
 
-
-std::vector <std::string> const bad_in_name =
+std::string remove_bad (std::string const & value)
 {
-    "(promusic.me)",
-    "muzlostyle.ru",
-    "(larkabout.net)",
-    "(mp3CC.biz)",
-    "(zaycev.net)",
-    "(mp3no.com)",
-    "(playmus.cc)",
-    "(playvk.com)",
-    "(44outdoors.com)",
-    "(seehall.me)",
-    "(zoop.su)"
-};
+    return remove_bad(value, bad_in_name);
+}
 
 
 std::pair <std::string, std::string> 
@@ -131,6 +137,6 @@ split_string
     else
         group = "";
     
-    return std::make_pair(remove_bad(group, bad_in_name), remove_bad(song, bad_in_name));
+    return std::make_pair(remove_bad(group), remove_bad(song));
 }
 
