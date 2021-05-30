@@ -36,7 +36,7 @@ void cur_playlist
     for (uint32_t i = 0; i != playlist_view::view_cnt; ++i)
     {
         if (to_screen && need_draw_line(i, old_pos_playing, print.selected, redraw_type, playlist_view::view_cnt, old_state != state_t::playlist)) 
-            display_lines(i, print.song_name[i], print.group_name[i], print.selected, lcd_color_yellow);
+            display_lines(i, print.group_name[i], print.song_name[i], print.selected, lcd_color_yellow);
         if (print.selected[i] & 2)
             pos_playing = i; 
         
