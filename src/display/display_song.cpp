@@ -65,15 +65,13 @@ void song_volume
     snprintf(s_state, sizeof(s_state), "  %c %c", (actl.repeat_mode? 'r' : ' '), c_state);
     if (to_screen)
     {
-        auto calc_offset = [] (uint32_t x, uint32_t y) -> uint32_t { return 240 * (display::offsets::list - display::offsets::picture + y) + x; };
-        uint16_t const * picture = picture_info.song_pic(); 
         // adapvite background color 
-        display_string_c(200, display::offsets::list, 
-                         s_volume, &font_12, 
-                         picture[calc_offset(200, 6)], lcd_color_blue);
-        display_string_c(200, display::offsets::list + display::offsets::in_line, 
-                         s_state, &font_12, 
-                         picture[calc_offset(200, 2 * display::offsets::in_line)], lcd_color_blue);
+        display_string_c(208, display::offsets::list - 2, 
+                         s_volume + 1, &font_12, 
+                         picture_info.color, /*picture[calc_offset(200, 6)],*/ lcd_color_blue);
+        display_string_c(208, display::offsets::list - 2+ display::offsets::in_line, 
+                         s_state + 1, &font_12, 
+                         picture_info.color, /*picture[calc_offset(200, 2 * display::offsets::in_line)],*/ lcd_color_blue);
         audio_ctl.audio_process(need_redraw);
     }
     HAL_Delay(1);

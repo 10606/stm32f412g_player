@@ -149,6 +149,7 @@ display_sources_ = \
 	display_song.cpp \
 	display_error.cpp \
 	display_picture.cpp \
+	display_picture_offset.cpp \
 	display_common.cpp
 display_sources = $(addprefix src/display/, $(display_sources_))
 
@@ -219,7 +220,8 @@ local_includes_ = \
 	audio/mp3 \
 	audio \
 	util \
-	sd_card
+	sd_card \
+	pictures
 local_includes = $(addprefix -Isrc/, $(local_includes_))
 
 

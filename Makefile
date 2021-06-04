@@ -212,18 +212,18 @@ pictures/%.rgb565: pictures/%.jpeg
 	magick $< -depth 8 rgb:- | bmp2rgb565 $@
 	
 
-load_pic_song_0: pictures/song_0.rgb565 
-	$(LOADER) $<  0x08080000
-	
-load_pic_song_1: pictures/song_1.rgb565 
-	$(LOADER) $<  0x080a0000
-	
-load_pic_start_0: pictures/start_0.rgb565 
-	$(LOADER) $<  0x080c0000
-	
-load_pic_start_1: pictures/start_1.rgb565 
-	$(LOADER) $<  0x080e0000
-	
-load_pictures: load_pic_song_0 load_pic_song_1 load_pic_start_0 load_pic_start_1
+pictures/%.ch565: pictures/%.rgb565
+	ulitilies/huffman_encode/huffman_encode $< $@
+
+ALL_PICTURES = pictures/song_0.ch565 pictures/song_1.ch565 pictures/song_2.ch565 pictures/song_3.ch565 pictures/song_4.ch565 pictures/song_5.ch565 pictures/song_6.ch565 pictures/start_0.ch565 pictures/start_1.ch565
+
+pictures/all: $(ALL_PICTURES)
+	cat $^ > $@
+
+src/display/display_picture_offset.cpp: $(ALL_PICTURES)
+	utilities/huffman_encode/offset_calculator $@ 7 $(ALL_PICTURES)
+
+load_pictures: pictures/all
+	$(LOADER) $<  0x8040000
 
 # *** EOF ***

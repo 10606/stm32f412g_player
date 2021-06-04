@@ -64,15 +64,8 @@ uint32_t view::open_song_not_found (uint8_t direction)
     uint32_t ret = 0;
     for (uint32_t i = 0; i != pl.lpl.header.cnt_songs; ++i)
     {
-        if ((ret = open_song()))
-        {
-            if (ret != err::not_found)
-                return ret;
-        }
-        else
-        {
+        if (!(ret = open_song()))
             return 0;
-        }
         
         if ((ret = (pl.*np_playlist[direction])()))
             return ret;
