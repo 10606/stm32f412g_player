@@ -23,9 +23,11 @@ void joystick_state_t::check_buttons ()
         else
             pressed[i] = 0;
     }
+    
+    visited = 1;
 }
 
-uint8_t joystick_state_t::check_button_state (uint32_t joy_button)
+bool joystick_state_t::check_button_state (uint32_t joy_button)
 {
     static uint8_t const cost[3] = {1, 8, 1}; // first second next
     bool ans = process[joy_button] >= cost[prev_processed[joy_button]];
@@ -55,8 +57,8 @@ uint32_t joystick_state_t::joystick_check (view & vv, bool & need_redraw)
         joy_button_up,
         joy_button_down,
         joy_button_left,
-        joy_button_right,
-        joy_button_center
+        joy_button_center,
+        joy_button_right
     };
     for (uint32_t i = 0; i != joystick_states_cnt; ++i)
     {

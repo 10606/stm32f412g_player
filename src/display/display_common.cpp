@@ -112,9 +112,9 @@ void display_lines
     color_t c_line_0 = {text_color_line_0, back_color_line_0};
     color_t c_line_1 = {text_color_line_1, back_color_line_1};
     
-    display_string(4, scroller.recalc_y(display::offsets::list + display::offsets::line * i),
+    display_string(offsets::x_padding, scroller.recalc_y(display::offsets::list + display::offsets::line * i),
                 line_0, &font_12, &c_line_0);
-    display_string(4, scroller.recalc_y(display::offsets::list + display::offsets::line * i + display::offsets::in_line), 
+    display_string(offsets::x_padding, scroller.recalc_y(display::offsets::list + display::offsets::line * i + display::offsets::in_line), 
                 line_1, &font_12, &c_line_1);
 }
 

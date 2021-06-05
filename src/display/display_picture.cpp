@@ -28,13 +28,24 @@ void display_picture
     uint8_t const * picture = static_cast <uint8_t const *> (addr) + sizeof(tree);
     
     uint8_t state = inner_cnt - 1;
-    uint16_t pixel = 0;
-    uint32_t pixel_cnt = 0; // in half (2 -> 1 pixel)
     uint32_t ptr = 0;
     
-    uint8_t * end_of_flash = reinterpret_cast <uint8_t *> (0x8100000);
-    if ((picture + tree.sz > end_of_flash) || (picture + tree.sz < picture))
-        tree.sz = end_of_flash - picture;
+    // wrong picture record
+    {
+        uint8_t * end_of_flash = reinterpret_cast <uint8_t *> (0x8100000);
+        uint32_t sz_in_bytes = (tree.sz + 3) / 4;
+        if ((picture + sz_in_bytes > end_of_flash) || (picture + sz_in_bytes < picture))
+            tree.sz = (end_of_flash - picture) * 4;
+    }
+ 
+    union 
+    {
+        uint8_t symbol[2 * 240];
+        uint16_t pixel[240];
+    } line;
+    uint32_t in_line_ptr = 0;
+    uint32_t line_cnt = 0;
+    uint32_t x_size_in_bytes = 2 * x_size;
     
     for (uint32_t i = 0; i != tree.sz; ++ptr)
     {
@@ -43,35 +54,30 @@ void display_picture
         for (size_t j = 0; j != cnt; ++j, ++i)
         {
             huffman_header::state const & vertex = tree.vertex[state][value % 4];
-            if (vertex.is_term) [[unlikely]]
+            line.symbol[in_line_ptr] = vertex.value;
+            in_line_ptr += vertex.is_term;
+            
+            if (in_line_ptr == x_size_in_bytes) [[unlikely]]
             {
-                if (pixel_cnt % 2)
+                if (line_cnt % p_size == 0) [[unlikely]]
                 {
-                    pixel += (vertex.value << 8);
-                    lcd_io_write_data(pixel);
-                    if (pixel_cnt + 1 == 2 * (6 * static_cast <uint32_t> (x_size) + 208)) [[unlikely]]
-                        picture_info.color = pixel;
-                    
-                    pixel = 0;
+                    if (need_audio)
+                        audio_ctl.audio_process(need_redraw);
+                    lcd_set_region(x_pos, y_pos + p_old_size, 
+                                   x_size, p_size);
+                    lcd_io_write_reg(ST7789H2_WRITE_RAM);
+                    p_old_size += p_size;
                 }
-                else
-                {
-                    if (pixel_cnt % (x_size * p_size * 2) == 0) [[unlikely]]
-                    {
-                        if (need_audio)
-                            audio_ctl.audio_process(need_redraw);
-                        lcd_set_region(x_pos, y_pos + p_old_size, 
-                                       x_size, p_size);
-                        lcd_io_write_reg(ST7789H2_WRITE_RAM);
-                        p_old_size += p_size;
-                    }
-                    
-                    if (pixel_cnt == x_size * y_size * 2) [[unlikely]]
-                        return;
-                    
-                    pixel = vertex.value;
-                }
-                ++pixel_cnt;
+                if (line_cnt == 6) [[unlikely]]
+                    picture_info.color = line.pixel[208];
+                
+                for (size_t k = 0; k != x_size; ++k)
+                    lcd_io_write_data(line.pixel[k]);
+                
+                line_cnt++;
+                in_line_ptr = 0;
+                if (line_cnt == y_size) [[unlikely]]
+                    return;
             }
             state = vertex.next;
             value = value >> 2;
@@ -84,8 +90,13 @@ void start_image ()
 {
     picture_info.update_start_pic_num();
     bool need_redraw;
-    display_picture(picture_info.start_pic(), 0, 0, 240, 240, 0, need_redraw);
-    //draw_RGB_image(0, 0, 240, 240, picture_info.start_pic());
+    display_picture
+    (
+        picture_info.start_pic(), 
+        0, 0, 
+        240, 240, 
+        0, need_redraw
+    );
     send_empty();
 }
 
@@ -99,22 +110,6 @@ void song_image (bool & need_redraw)
         240, 240 - display::offsets::picture, 
         1, need_redraw
     );
-    /*
-    static constexpr uint32_t parts = 5;
-    uint32_t p_size = (240 - display::offsets::picture + parts - 1) / parts;
-    uint32_t p_old_size = p_size;
-    
-    uint16_t const * picture = picture_info.song_pic(); 
-    for (uint32_t part = 0; part != parts; ++part)
-    {
-        if (part + 1 == parts)
-            p_size = (240 - display::offsets::picture) - (parts - 1) * p_old_size;
-        draw_RGB_image(0, display::offsets::picture + p_old_size * part, 
-                       240, p_size, 
-                       picture + 240 * part * p_old_size);
-        audio_ctl.audio_process(need_redraw);
-    }
-    */
 }
 
 }

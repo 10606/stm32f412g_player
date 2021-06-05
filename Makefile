@@ -213,7 +213,7 @@ pictures/%.rgb565: pictures/%.jpeg
 	
 
 pictures/%.ch565: pictures/%.rgb565
-	ulitilies/huffman_encode/huffman_encode $< $@
+	utilities/huffman_encode/huffman_encode $< $@
 
 ALL_PICTURES = pictures/song_0.ch565 pictures/song_1.ch565 pictures/song_2.ch565 pictures/song_3.ch565 pictures/song_4.ch565 pictures/song_5.ch565 pictures/song_6.ch565 pictures/start_0.ch565 pictures/start_1.ch565
 

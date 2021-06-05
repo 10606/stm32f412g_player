@@ -21,10 +21,11 @@ struct joystick_state_t
     uint8_t pressed[joystick_states_cnt];
     uint8_t process[joystick_states_cnt];
     uint8_t prev_processed[joystick_states_cnt];
+    bool visited;
     
 private:
     void check_buttons ();
-    uint8_t check_button_state (uint32_t joy_button);
+    bool check_button_state (uint32_t joy_button);
 };
 extern joystick_state_t joystick_state;
 

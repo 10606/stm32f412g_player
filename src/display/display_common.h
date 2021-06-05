@@ -61,8 +61,12 @@ void scroll_text (redraw_type_t const & redraw_type)
 template <uint32_t view_cnt>
 void fill_borders ()
 {
-    uint32_t y_pos = display::offsets::list + display::offsets::line * view_cnt;
-    fill_rect(0, y_pos, 240, 240 - y_pos, lcd_color_white); // FIXME
+    fill_rect(0, offsets::headband, 240, offsets::list - offsets::headband, lcd_color_white); // top
+    uint32_t y_pos_b = offsets::list + offsets::line * view_cnt;
+    fill_rect(0, y_pos_b, 240, 240 - y_pos_b, lcd_color_white); // bottom
+    fill_rect(0, offsets::headband, offsets::x_padding, 240 - offsets::headband, lcd_color_white); // left
+    uint32_t x_pos_r = (240 - offsets::x_padding) % font_12.Width;
+    fill_rect(240 - x_pos_r, offsets::headband, x_pos_r, 240 - offsets::headband, lcd_color_white); // right
 }
     
 }
