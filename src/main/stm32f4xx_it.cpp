@@ -129,20 +129,23 @@ void DMA2_Stream3_IRQHandler (void)
 
 void TIM2_IRQHandler (void)
 {
-    for (uint8_t i = 0; i != joystick_states_cnt; ++i)
+    if (joystick_state.visited)
     {
-        if (joystick_state.pressed[i])
+        joystick_state.visited = 0;
+        for (uint8_t i = 0; i != joystick_states_cnt; ++i)
         {
-            joystick_state.process[i]++;
-            joystick_state.pressed[i] = 0;
-        }
-        else if (joystick_state.visited)
-        {
-            joystick_state.prev_processed[i] = 0;
-            joystick_state.process[i] = 0;
+            if (joystick_state.pressed[i])
+            {
+                joystick_state.process[i]++;
+                joystick_state.pressed[i] = 0;
+            }
+            else
+            {
+                joystick_state.prev_processed[i] = 0;
+                joystick_state.process[i] = 0;
+            }
         }
     }
-    joystick_state.visited = 0;
 
     if (touch_tick_counter < 10)
         touch_tick_counter++;

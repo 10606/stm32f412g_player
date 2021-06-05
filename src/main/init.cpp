@@ -49,14 +49,14 @@
 #include "usb_device.h"
 #include "lcd_display.h"
 
-#define joy_center_pin           GPIO_PIN_0
-#define joy_center_gpio_port     GPIOA
-#define joy_left_pin             GPIO_PIN_15
-#define joy_right_pin            GPIO_PIN_14
-#define joy_left_right_gpio_port GPIOF
-#define joy_up_pin               GPIO_PIN_0
-#define joy_down_pin             GPIO_PIN_1
-#define joy_up_down_gpio_port    GPIOG
+uint32_t const joy_center_pin           = GPIO_PIN_0;
+GPIO_TypeDef* const joy_center_gpio_port     = GPIOA;
+uint32_t const joy_left_pin             = GPIO_PIN_15;
+uint32_t const joy_right_pin            = GPIO_PIN_14;
+GPIO_TypeDef* const joy_left_right_gpio_port = GPIOF;
+uint32_t const joy_up_pin               = GPIO_PIN_0;
+uint32_t const joy_down_pin             = GPIO_PIN_1;
+GPIO_TypeDef* const joy_up_down_gpio_port    = GPIOG;
 
 void SystemClock_Config (void)
 {

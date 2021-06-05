@@ -18,10 +18,10 @@ struct joystick_state_t
 {
     uint32_t joystick_check (view & vv, bool & need_redraw);
 
-    uint8_t pressed[joystick_states_cnt];
-    uint8_t process[joystick_states_cnt];
-    uint8_t prev_processed[joystick_states_cnt];
-    bool visited;
+    volatile uint8_t pressed[joystick_states_cnt];
+    volatile uint8_t process[joystick_states_cnt];
+    volatile uint8_t prev_processed[joystick_states_cnt];
+    volatile bool visited;
     
 private:
     void check_buttons ();

@@ -1,29 +1,29 @@
 #include "joystick.h"
 
 #include "stm32412g_discovery.h"
+#include "init.h"
 joystick_state_t joystick_state;
 
 void joystick_state_t::check_buttons ()
 {
-    static JOYState_TypeDef joy_bsp_states[5] = 
+    struct joy_pins_t
     {
-        JOY_UP,
-        JOY_DOWN,
-        JOY_LEFT,
-        JOY_RIGHT,
-        JOY_SEL
+        GPIO_TypeDef* port;
+        uint32_t pin;
     };
     
-    JOYState_TypeDef joy_state = BSP_JOY_GetState();
-  
-    for (uint32_t i = 0; i != 5; ++i)
+    static joy_pins_t joy_pins[] =
     {
-        if (joy_state == joy_bsp_states[i])
-            pressed[i] = 1;
-        else
-            pressed[i] = 0;
-    }
-    
+        {joy_up_down_gpio_port, joy_up_pin},
+        {joy_up_down_gpio_port, joy_down_pin},
+        {joy_left_right_gpio_port, joy_left_pin},
+        {joy_left_right_gpio_port, joy_right_pin},
+        {joy_center_gpio_port, joy_center_pin},
+    };
+  
+    visited = 0;
+    for (uint32_t i = 0; i != 5; ++i)
+        pressed[i] = (HAL_GPIO_ReadPin(joy_pins[i].port, joy_pins[i].pin) == GPIO_PIN_SET);
     visited = 1;
 }
 
@@ -44,7 +44,7 @@ bool joystick_state_t::check_button_state (uint32_t joy_button)
 uint32_t joystick_state_t::joystick_check (view & vv, bool & need_redraw)
 {
     check_buttons();
-    static uint32_t (view::* const process_view_do[joystick_states_cnt]) (bool &) = 
+    static constexpr uint32_t (view::* const process_view_do[joystick_states_cnt]) (bool &) = 
     {
         &view::process_up,
         &view::process_down,
@@ -52,7 +52,7 @@ uint32_t joystick_state_t::joystick_check (view & vv, bool & need_redraw)
         &view::process_right,
         &view::process_center
     };
-    static enum joystick_buttons buttons[joystick_states_cnt] = 
+    static constexpr enum joystick_buttons buttons[joystick_states_cnt] = 
     {
         joy_button_up,
         joy_button_down,
