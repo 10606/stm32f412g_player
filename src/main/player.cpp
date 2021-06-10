@@ -15,7 +15,6 @@ void main_player ()
         return;
   
     bool need_redraw = 1;
-    touch_state touch;
     
     while (1)
     {
@@ -26,7 +25,8 @@ void main_player ()
             ;
         if ((ret = usb_process_v.usb_process(&viewer(), need_redraw)))
             ; 
-        touch.touch_check(&viewer(), need_redraw);
+        if ((ret = touch.touch_check(&viewer(), need_redraw)))
+            ;
         
         if (need_redraw)
         {

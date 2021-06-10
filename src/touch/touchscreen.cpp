@@ -4,7 +4,7 @@
 #include "ts_touchscreen.h"
 #include <stdlib.h>
 
-uint32_t touch_tick_counter = 0;
+touch_state touch;
 
 //TODO calibrate
 struct e
@@ -64,6 +64,12 @@ touch_state::touch_state () :
     ts_ft6x06.init();
 }
 
+void touch_state::on_timer ()
+{
+    if (tick_counter < 10)
+        tick_counter++;
+}
+
 bool touch_state::is_moved (point p) const
 {
     return  (abs(old.x - p.x) >= e::offset.x) ||
@@ -101,12 +107,13 @@ direction_t touch_state::get_direction (point p) const
 }
 
 
-void touch_state::unpressed (view * vv, bool & need_redraw)
+uint32_t touch_state::unpressed (view * vv, bool & need_redraw)
 {
+    uint32_t ret = 0;
     if (!press)
-        return;
+        return 0;
 
-    int32_t multiplier = 16 / touch_tick_counter;
+    int32_t multiplier = 16 / tick_counter;
     dolg.x *= multiplier;
     dolg.y *= multiplier;
     if (abs(dolg.x) / e::offset.x <= e::min_speed_cnt)
@@ -136,24 +143,30 @@ void touch_state::unpressed (view * vv, bool & need_redraw)
             dolg_v = &dolg.x;
             break;
         }
-        uint32_t offset = state.do_move(direction, abs(*dolg_v), 1, vv, need_redraw);
+        int32_t offset;
+        ret = state.do_move(offset, direction, abs(*dolg_v), 1, vv, need_redraw);
         *dolg_v -= nearest_to_zero(*dolg_v, offset);
         moved = 1;
         flag = 1;
+        
+        if (ret)
+            break;
     }
 
     if (!moved)
-        state.touch_region(vv, need_redraw);
+        ret = state.touch_region(vv, need_redraw);
 
     press = 0;
     moved = 0;
+    return ret;
 }
 
-void touch_state::pressed (point p, view * vv, bool & need_redraw)
+uint32_t touch_state::pressed (point p, view * vv, bool & need_redraw)
 {
     if (press)
     {
         int32_t offset;
+        uint32_t ret = 0;
         direction_t direction = get_direction(p);
         
         if (is_moved(p))
@@ -166,25 +179,24 @@ void touch_state::pressed (point p, view * vv, bool & need_redraw)
         case direction_t::non:
             dolg.x = p.x - old.x;
             dolg.y = p.y - old.y;
-            return;
+            return 0;
         case direction_t::up:
         case direction_t::down:
-            offset = state.do_move(direction, abs(p.y - old.y), 0, vv, need_redraw);
+            ret = state.do_move(offset, direction, abs(p.y - old.y), 0, vv, need_redraw);
             old.x = p.x;
             old.y += nearest_to_zero(offset, p.y - old.y);
-            dolg.x = 0;
-            dolg.y = offset;
+            dolg = {0, offset};
             break;
         case direction_t::left:
         case direction_t::right:
-            offset = state.do_move(direction, abs(p.x - old.x), 0, vv, need_redraw);
+            ret = state.do_move(offset, direction, abs(p.x - old.x), 0, vv, need_redraw);
             old.x += nearest_to_zero(offset, p.x - old.x);
             old.y = p.y;
-            dolg.x = offset;
-            dolg.y = 0;
+            dolg = {offset, 0};
             break;
         }
         moved = 1;
+        return ret;
     }
     else
     {
@@ -195,11 +207,12 @@ void touch_state::pressed (point p, view * vv, bool & need_redraw)
         dolg.y = 0;
         state.direction_mask = 0;
         press = 1;
-        touch_tick_counter = 0;
+        tick_counter = 0;
+        return 0;
     }
 }
 
-void touch_state::touch_check (view * vv, bool & need_redraw)
+uint32_t touch_state::touch_check (view * vv, bool & need_redraw)
 {
     TS_StateTypeDef ts_state = {0};
     ts_ft6x06.ts_touch_detect(&ts_state);
@@ -208,11 +221,11 @@ void touch_state::touch_check (view * vv, bool & need_redraw)
         point p;
         p.x = normalize_x(ts_state.touchX[0]);
         p.y = normalize_y(ts_state.touchY[0]);
-        pressed(p, vv, need_redraw);
+        return pressed(p, vv, need_redraw);
     }
     else
     {
-        unpressed(vv, need_redraw);
+        return unpressed(vv, need_redraw);
     }
 }
 

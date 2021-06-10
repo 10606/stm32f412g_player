@@ -2,6 +2,8 @@
 
 #include "stm32412g_discovery.h"
 #include "init.h"
+#include <type_traits>
+
 joystick_state_t joystick_state;
 
 void joystick_state_t::check_buttons ()
@@ -29,14 +31,16 @@ void joystick_state_t::check_buttons ()
 
 bool joystick_state_t::check_button_state (uint32_t joy_button)
 {
-    static uint8_t const cost[3] = {1, 8, 1}; // first second next
+    static uint8_t const cost[] = {1, 8, 1}; // first second next
+    static uint32_t const count = std::extent_v <decltype(cost)>; 
+    
     bool ans = process[joy_button] >= cost[prev_processed[joy_button]];
     if (ans)
     {
         process[joy_button] -= cost[prev_processed[joy_button]];
         prev_processed[joy_button]++;
-        if (prev_processed[joy_button] > 2)
-            prev_processed[joy_button] = 2;
+        if (prev_processed[joy_button] >= count)
+            prev_processed[joy_button] = count - 1;
     }
     return ans;
 }
@@ -70,5 +74,26 @@ uint32_t joystick_state_t::joystick_check (view & vv, bool & need_redraw)
         }
     }
     return 0;
+}
+
+void joystick_state_t::on_timer ()
+{
+    if (visited)
+    {
+        visited = 0;
+        for (uint8_t i = 0; i != joystick_states_cnt; ++i)
+        {
+            if (pressed[i])
+            {
+                process[i]++;
+                pressed[i] = 0;
+            }
+            else
+            {
+                prev_processed[i] = 0;
+                process[i] = 0;
+            }
+        }
+    }
 }
 

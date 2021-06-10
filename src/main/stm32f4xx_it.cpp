@@ -39,6 +39,7 @@
 #include "stm32f4xx_it.h"
 #include <stdint.h>
 #include "joystick.h"
+#include "touchscreen.h"
 
 /* uSD handler declared in "stm32412g_discovery_sd.c" file */
 extern "C"
@@ -46,7 +47,6 @@ extern "C"
 extern I2S_HandleTypeDef haudio_i2s;
 extern SD_HandleTypeDef uSdHandle;
 extern PCD_HandleTypeDef hpcd_USB_OTG_FS;
-extern uint32_t touch_tick_counter;
 }
 
 
@@ -129,27 +129,9 @@ void DMA2_Stream3_IRQHandler (void)
 
 void TIM2_IRQHandler (void)
 {
-    if (joystick_state.visited)
-    {
-        joystick_state.visited = 0;
-        for (uint8_t i = 0; i != joystick_states_cnt; ++i)
-        {
-            if (joystick_state.pressed[i])
-            {
-                joystick_state.process[i]++;
-                joystick_state.pressed[i] = 0;
-            }
-            else
-            {
-                joystick_state.prev_processed[i] = 0;
-                joystick_state.process[i] = 0;
-            }
-        }
-    }
+    joystick_state.on_timer();
+    touch.on_timer();
 
-    if (touch_tick_counter < 10)
-        touch_tick_counter++;
- 
     if (HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_2) == GPIO_PIN_RESET)
         HAL_GPIO_WritePin(GPIOE, GPIO_PIN_2, GPIO_PIN_SET);
     else
