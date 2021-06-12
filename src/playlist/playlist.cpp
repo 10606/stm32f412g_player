@@ -8,7 +8,7 @@ uint32_t playlist::realloc (light_playlist const & old_lpl)
     uint32_t new_size = lpl.song.path_len;
     if (new_size > path_sz)
     {
-        char (* tmp)[12] = static_cast <decltype(path)> (malloc(new_size * sizeof(*path)));
+        filename_t * tmp = static_cast <filename_t *> (malloc(new_size * sizeof(*path)));
         if (!tmp)
         {
             lpl = old_lpl;

@@ -15,7 +15,7 @@ struct converted_path
     converted_path (converted_path &&) = default;
     converted_path & operator = (converted_path &&) = default;
 
-    std::unique_ptr <char[][12]> convert_path (FAT_info_t * FAT_info) const;
+    std::unique_ptr <filename_t[]> convert_path (FAT_info_t * FAT_info) const;
     
     size_t size () const noexcept
     {

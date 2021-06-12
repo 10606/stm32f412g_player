@@ -19,7 +19,7 @@ struct view
     view (view &&) = delete;
     view & operator = (view &&) = delete;
 
-    uint32_t init (char (* path)[12], uint32_t len);
+    uint32_t init (filename_t * path, uint32_t len);
     void display ();
     uint32_t open_song ();
     uint32_t open_song_not_found (uint8_t direction); // direction == 1 - reverse
@@ -72,7 +72,7 @@ struct view_holder
         value.reset();
     }
     
-    uint32_t init (char (* path)[12], uint32_t len, audio_ctl_t * audio_ctl)
+    uint32_t init (filename_t * path, uint32_t len, audio_ctl_t * audio_ctl)
     {
         value.emplace(audio_ctl);
         return value.value().init(path, len);

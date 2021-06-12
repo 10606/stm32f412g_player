@@ -45,9 +45,9 @@ converted_path::converted_path (std::vector <std::string> const & _path) :
 }
 
 
-std::unique_ptr <char[][12]> converted_path::convert_path (FAT_info_t * FAT_info) const
+std::unique_ptr <filename_t[]> converted_path::convert_path (FAT_info_t * FAT_info) const
 {
-    std::unique_ptr <char[][12]> answer(new char [path.size()][12]);
+    std::unique_ptr <filename_t[]> answer(new filename_t [path.size()]);
     file_descriptor fd;
     uint32_t ret;
     if ((ret = open_lfn(FAT_info, &fd, path.data(), answer.get(), path.size())) != 0)

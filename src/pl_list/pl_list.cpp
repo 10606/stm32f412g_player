@@ -28,17 +28,17 @@ void pl_list::destroy ()
     path_len = 0;
 }
 
-uint32_t pl_list::init (char (* dir_name)[12], size_t len_name)
+uint32_t pl_list::init (filename_t * dir_name, size_t len_name)
 {
     cnt = 0;
     current_state.pos = 0;
     path_len = 0;
     current_state.type = redraw_type_t::not_easy;
-    root_path = (char (*)[12])malloc((len_name + 1) * sizeof(char[12]));
+    root_path = (filename_t *)malloc((len_name + 1) * sizeof(filename_t));
     if (!root_path)
         return memory_limit;
     path_len = len_name + 1;
-    memcpy(root_path, dir_name, len_name * sizeof(char[12]));
+    memcpy(root_path, dir_name, len_name * sizeof(filename_t));
  
     file_descriptor file;
     file_descriptor dir;
@@ -122,13 +122,13 @@ uint32_t pl_list::open_index (playlist_view & plv, uint32_t index, uint32_t & se
         return 0;
     if (selected_pl == index)
         return 0;
-    char old_path [12];
-    memmove(old_path, root_path[path_len - 1], sizeof(char[12]));
-    memcpy(root_path[path_len - 1], pl_path[index], sizeof(char[12]));
+    filename_t old_path;
+    memmove(old_path, root_path[path_len - 1], sizeof(filename_t));
+    memcpy(root_path[path_len - 1], pl_path[index], sizeof(filename_t));
     uint32_t ret = plv.open_playlist(root_path, path_len);
     if (ret)
     {
-        memcpy(root_path[path_len - 1], old_path, sizeof(char[12]));
+        memcpy(root_path[path_len - 1], old_path, sizeof(filename_t));
         return ret;
     }
     selected_pl = index;

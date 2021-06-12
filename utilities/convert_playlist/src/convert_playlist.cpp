@@ -106,7 +106,7 @@ void write_header (std::ostream & out, std::string const & name, uint32_t cnt)
 }
 
 
-using songs_t = std::vector <std::pair <song_header, std::unique_ptr <char[][12]> > >;
+using songs_t = std::vector <std::pair <song_header, std::unique_ptr <filename_t []> > >;
 
 void write_songs
 (
@@ -122,12 +122,12 @@ void write_songs
         song.first.path_offset = 
             sizeof(playlist_header) + 
             songs.size() * sizeof(song_header) +
-            offset * sizeof(char[12]);
+            offset * sizeof(filename_t);
         offset += song.first.path_len;
         out.write(reinterpret_cast <char const *> (&song.first), sizeof(song_header));
     }
     for (size_t i = 0; i != songs.size(); ++i)
-        out.write(reinterpret_cast <char const *> (songs[i].second.get()), songs[i].first.path_len * sizeof(char[12]));
+        out.write(reinterpret_cast <char const *> (songs[i].second.get()), songs[i].first.path_len * sizeof(filename_t));
 }
 
 
@@ -142,7 +142,7 @@ songs_t init_songs (std::vector <std::string> const & paths)
         {
             std::vector <std::string> s_path = split_path(path);
             converted_path l_path(s_path);
-            std::unique_ptr <char[][12]> c_path = l_path.convert_path(&FAT_info);
+            std::unique_ptr <filename_t []> c_path = l_path.convert_path(&FAT_info);
             song_header song;
             write_group_song_names(s_path.back(), &song);
             song.path_len = l_path.size();

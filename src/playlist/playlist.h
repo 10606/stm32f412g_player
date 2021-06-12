@@ -24,7 +24,7 @@ struct playlist
     void make_fake ();
     bool is_fake () const;
 
-    char (*path)[12];
+    filename_t * path;
     uint32_t path_sz;
     light_playlist lpl;
     /*

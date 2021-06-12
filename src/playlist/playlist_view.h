@@ -43,7 +43,7 @@ struct playlist_view
     bool is_fake () const;
     bool check_near (playlist const & playing_pl) const;
     bool compare (playlist const & b) const;
-    uint32_t open_playlist (char const (* const path)[12], uint32_t path_len);
+    uint32_t open_playlist (filename_t const * path, uint32_t path_len);
 
     
     struct print_info

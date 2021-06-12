@@ -15,7 +15,7 @@ view::view (audio_ctl_t * _audio_ctl)
     selected_playlist = pl_list::max_plb_files;
 }
 
-uint32_t view::init (char (* path)[12], uint32_t len)
+uint32_t view::init (filename_t * path, uint32_t len)
 {
     uint32_t ret;
     ret = pll.init(path, len);

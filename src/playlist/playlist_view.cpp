@@ -283,7 +283,7 @@ uint32_t playlist_view::to_playing_playlist (playlist const & pl)
 
 uint32_t playlist_view::open_playlist
 (
-    char const (* const path)[12],
+    filename_t const * path,
     uint32_t path_len
 )
 {

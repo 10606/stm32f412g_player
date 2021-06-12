@@ -21,7 +21,7 @@ struct pl_list
     pl_list (pl_list &&) = delete;
     pl_list & operator = (pl_list &&) = delete;
     
-    uint32_t init (char (* dir_name)[12], size_t len_name);
+    uint32_t init (filename_t * dir_name, size_t len_name);
     void next ();
     void prev ();
     void seek (uint32_t pos);
@@ -48,13 +48,13 @@ struct pl_list
 private:
     void destroy ();
 
-    char (* root_path)[12]; // TODO typedef char filename_type [12];
+    filename_t * root_path;
     uint32_t path_len;
     uint32_t cnt;
     
     redraw_type_t current_state;
     
-    char pl_path[max_plb_files][12];
+    filename_t pl_path[max_plb_files];
     playlist_header headers[max_plb_files];
 };
 

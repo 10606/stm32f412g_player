@@ -12,7 +12,7 @@
 
 FAT_info_t FAT_info(512, start_partition_sector, read_sector);
 
-uint32_t init_fs (char (* path)[12], uint32_t len)
+uint32_t init_fs ()
 {
     while (BSP_SD_IsDetected() != SD_PRESENT);
     while (sd_card_init());
@@ -26,7 +26,7 @@ uint32_t init_fs (char (* path)[12], uint32_t len)
     return 0;
 }
 
-uint32_t init_audio (char (* path)[12], uint32_t len)
+uint32_t init_audio (filename_t * path, uint32_t len)
 {
     // get the .PLB file names from path directory 
     uint32_t ret = viewer.init(path, len, &audio_ctl);
@@ -39,12 +39,12 @@ uint32_t init_audio (char (* path)[12], uint32_t len)
     return 0;
 }
 
-uint32_t init (char (* path)[12], uint32_t len)
+uint32_t init (filename_t * path, uint32_t len)
 {
     display::start_image();
     
     uint32_t ret;
-    ret = init_fs(path, len);
+    ret = init_fs();
     if (ret)
         return ret;
     ret = init_audio(path, len);
@@ -59,7 +59,7 @@ int main (void)
     init_base();
     while (1)
     {
-        char path[][12] = {"MEDIA      "};
+        filename_t path[] = {"MEDIA      "};
         if (init(path, std::extent_v <decltype(path)>))
         {
             continue;
