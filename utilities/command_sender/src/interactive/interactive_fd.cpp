@@ -125,27 +125,30 @@ struct escape_buffer
             throw std::runtime_error("can't epoll wait");
         for (int i = 0; i != cnt; ++i)
         {
-            if ((event[i].events & EPOLLIN) && event[i].data.fd == fd)
+            if (event[i].data.fd == fd)
             {
-                char buffer[1024];
-                ssize_t ret = read(fd, buffer, sizeof(buffer));
-                if (ret == -1)
-                    throw std::runtime_error("can't read");
-                readed.insert(readed.end(), buffer, buffer + ret);
-                extract(readed, state);
-            }
-            if ((event[i].events & EPOLLOUT) && event[i].data.fd == fd)
-            {
-                ssize_t ret = write(fd, to_write.c_str(), to_write.size());
-                if (ret == -1)
-                    throw std::runtime_error("can't write");
-                if (to_write.size() == static_cast <size_t> (ret))
+                if (event[i].events & EPOLLIN)
                 {
-                    mod_fd(EPOLLIN);
-                    to_write.clear();
+                    char buffer[1024];
+                    ssize_t ret = read(fd, buffer, sizeof(buffer));
+                    if (ret == -1)
+                        throw std::runtime_error("can't read");
+                    readed.insert(readed.end(), buffer, buffer + ret);
+                    extract(readed, state);
                 }
-                else
-                    to_write = to_write.substr(ret);
+                if (event[i].events & EPOLLOUT)
+                {
+                    ssize_t ret = write(fd, to_write.c_str(), to_write.size());
+                    if (ret == -1)
+                        throw std::runtime_error("can't write");
+                    if (to_write.size() == static_cast <size_t> (ret))
+                    {
+                        mod_fd(EPOLLIN);
+                        to_write.clear();
+                    }
+                    else
+                        to_write = to_write.substr(ret);
+                }
             }
             if ((event[i].events & EPOLLIN) && event[i].data.fd == STDIN_FILENO)
             {

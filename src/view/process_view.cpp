@@ -239,7 +239,7 @@ uint32_t view::process_right ()
 uint32_t view::toggle_repeat ()
 {
     audio_ctl->repeat_mode ^= 1;
-    display::song_volume(*audio_ctl, state_song_view, 1);
+    display::song_volume(*audio_ctl, state_song_view, (state == state_t::song));
     return 0;
 }
 

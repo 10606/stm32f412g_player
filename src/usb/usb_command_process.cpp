@@ -38,7 +38,7 @@ uint32_t usb_process_t::usb_process (view * vv)
     return 0;
 }
 
-void usb_process_t::receive_callback (volatile uint8_t * buf, uint32_t len)
+void usb_process_t::receive_callback (uint8_t * buf, uint32_t len)
 {
     uint32_t n = std::extent <decltype(buffer)> ::value;
     uint32_t tmp = (end + 1) % n;
@@ -47,6 +47,11 @@ void usb_process_t::receive_callback (volatile uint8_t * buf, uint32_t len)
         buffer[end] = buf[i];
         end = tmp;
     }
+}
+
+usb_process_t::usb_process_t ()
+{
+    clear();
 }
 
 void usb_process_t::clear ()
