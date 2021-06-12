@@ -15,7 +15,7 @@ void display_picture
     void const * addr, 
     uint16_t x_pos, uint16_t y_pos,
     uint16_t x_size, uint16_t y_size, 
-    bool need_audio, bool & need_redraw
+    bool need_audio
 )
 {
     scroller.reset();
@@ -28,7 +28,6 @@ void display_picture
     uint8_t const * picture = static_cast <uint8_t const *> (addr) + sizeof(tree);
     
     uint8_t state = inner_cnt - 1;
-    uint32_t ptr = 0;
     
     // wrong picture record
     {
@@ -47,41 +46,60 @@ void display_picture
     uint32_t line_cnt = 0;
     uint32_t x_size_in_bytes = 2 * x_size;
     
-    for (uint32_t i = 0; i != tree.sz; ++ptr)
+    auto write_region = [&] () -> bool
+    {
+        if (line_cnt % p_size == 0) [[unlikely]]
+        {
+            if (need_audio)
+                audio_ctl.audio_process();
+            lcd_set_region(x_pos, y_pos + p_old_size, 
+                           x_size, p_size);
+            lcd_io_write_reg(ST7789H2_WRITE_RAM);
+            p_old_size += p_size;
+        }
+        if (line_cnt == 6) [[unlikely]]
+            picture_info.color = line.pixel[208];
+        
+        for (size_t k = 0; k != x_size; ++k)
+            lcd_io_write_data(line.pixel[k]);
+        
+        line_cnt++;
+        in_line_ptr = 0;
+        if (line_cnt == y_size) [[unlikely]]
+            return 1;
+        return 0;
+    };
+    
+    uint32_t ptr = 0;
+    for (; ptr < tree.sz / 4; ++ptr)
     {
         uint8_t value = picture[ptr];
-        size_t cnt = ((tree.sz & ~3) > i)? 4 : (tree.sz % 4);
-        for (size_t j = 0; j != cnt; ++j, ++i)
+        for (size_t j = 0; j != 4; ++j)
         {
             huffman_header::state const & vertex = tree.vertex[state][value % 4];
             line.symbol[in_line_ptr] = vertex.value;
             in_line_ptr += vertex.is_term;
-            
-            if (in_line_ptr == x_size_in_bytes) [[unlikely]]
-            {
-                if (line_cnt % p_size == 0) [[unlikely]]
-                {
-                    if (need_audio)
-                        audio_ctl.audio_process(need_redraw);
-                    lcd_set_region(x_pos, y_pos + p_old_size, 
-                                   x_size, p_size);
-                    lcd_io_write_reg(ST7789H2_WRITE_RAM);
-                    p_old_size += p_size;
-                }
-                if (line_cnt == 6) [[unlikely]]
-                    picture_info.color = line.pixel[208];
-                
-                for (size_t k = 0; k != x_size; ++k)
-                    lcd_io_write_data(line.pixel[k]);
-                
-                line_cnt++;
-                in_line_ptr = 0;
-                if (line_cnt == y_size) [[unlikely]]
-                    return;
-            }
             state = vertex.next;
             value = value >> 2;
+            
+            if (in_line_ptr == x_size_in_bytes) [[unlikely]]
+                if (write_region()) [[unlikely]]
+                    return;
         }
+    }
+
+    uint8_t value = picture[ptr];
+    for (size_t j = 0; j != (tree.sz % 4); ++j)
+    {
+        huffman_header::state const & vertex = tree.vertex[state][value % 4];
+        line.symbol[in_line_ptr] = vertex.value;
+        in_line_ptr += vertex.is_term;
+        state = vertex.next;
+        value = value >> 2;
+        
+        if (in_line_ptr == x_size_in_bytes)
+            if (write_region()) [[likely]]
+                return;
     }
 }
 
@@ -89,18 +107,17 @@ void display_picture
 void start_image ()
 {
     picture_info.update_start_pic_num();
-    bool need_redraw;
     display_picture
     (
         picture_info.start_pic(), 
         0, 0, 
         240, 240, 
-        0, need_redraw
+        0
     );
     send_empty();
 }
 
-void song_image (bool & need_redraw)
+void song_image ()
 {
     picture_info.update_song_pic_num();
     display_picture
@@ -108,7 +125,7 @@ void song_image (bool & need_redraw)
         picture_info.song_pic(), 
         0, display::offsets::picture, 
         240, 240 - display::offsets::picture, 
-        1, need_redraw
+        1
     );
 }
 

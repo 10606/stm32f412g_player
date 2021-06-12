@@ -107,7 +107,7 @@ direction_t touch_state::get_direction (point p) const
 }
 
 
-uint32_t touch_state::unpressed (view * vv, bool & need_redraw)
+uint32_t touch_state::unpressed (view * vv)
 {
     uint32_t ret = 0;
     if (!press)
@@ -144,7 +144,7 @@ uint32_t touch_state::unpressed (view * vv, bool & need_redraw)
             break;
         }
         int32_t offset;
-        ret = state.do_move(offset, direction, abs(*dolg_v), 1, vv, need_redraw);
+        ret = state.do_move(offset, direction, abs(*dolg_v), 1, vv);
         *dolg_v -= nearest_to_zero(*dolg_v, offset);
         moved = 1;
         flag = 1;
@@ -154,14 +154,14 @@ uint32_t touch_state::unpressed (view * vv, bool & need_redraw)
     }
 
     if (!moved)
-        ret = state.touch_region(vv, need_redraw);
+        ret = state.touch_region(vv);
 
     press = 0;
     moved = 0;
     return ret;
 }
 
-uint32_t touch_state::pressed (point p, view * vv, bool & need_redraw)
+uint32_t touch_state::pressed (point p, view * vv)
 {
     if (press)
     {
@@ -182,14 +182,14 @@ uint32_t touch_state::pressed (point p, view * vv, bool & need_redraw)
             return 0;
         case direction_t::up:
         case direction_t::down:
-            ret = state.do_move(offset, direction, abs(p.y - old.y), 0, vv, need_redraw);
+            ret = state.do_move(offset, direction, abs(p.y - old.y), 0, vv);
             old.x = p.x;
             old.y += nearest_to_zero(offset, p.y - old.y);
             dolg = {0, offset};
             break;
         case direction_t::left:
         case direction_t::right:
-            ret = state.do_move(offset, direction, abs(p.x - old.x), 0, vv, need_redraw);
+            ret = state.do_move(offset, direction, abs(p.x - old.x), 0, vv);
             old.x += nearest_to_zero(offset, p.x - old.x);
             old.y = p.y;
             dolg = {offset, 0};
@@ -212,7 +212,7 @@ uint32_t touch_state::pressed (point p, view * vv, bool & need_redraw)
     }
 }
 
-uint32_t touch_state::touch_check (view * vv, bool & need_redraw)
+uint32_t touch_state::touch_check (view * vv)
 {
     TS_StateTypeDef ts_state = {0};
     ts_ft6x06.ts_touch_detect(&ts_state);
@@ -221,11 +221,11 @@ uint32_t touch_state::touch_check (view * vv, bool & need_redraw)
         point p;
         p.x = normalize_x(ts_state.touchX[0]);
         p.y = normalize_y(ts_state.touchY[0]);
-        return pressed(p, vv, need_redraw);
+        return pressed(p, vv);
     }
     else
     {
-        return unpressed(vv, need_redraw);
+        return unpressed(vv);
     }
 }
 

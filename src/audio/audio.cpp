@@ -25,6 +25,7 @@ audio_ctl_t::audio_ctl_t () :
 
 uint32_t audio_ctl_t::audio_init ()
 {
+    need_redraw = 1;
     display::song_hint();
     audio_file.init_fake();
   
@@ -160,7 +161,7 @@ uint32_t audio_ctl_t::new_song_or_repeat ()
     return 0;
 }
 
-uint32_t audio_ctl_t::audio_process (bool & need_redraw)
+uint32_t audio_ctl_t::audio_process ()
 {
     display_time();
     //end of song reached

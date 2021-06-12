@@ -6,7 +6,7 @@
 #include "char_sizes.h"
 #include "view_states.h"
 
-// WARNING on change: usb_process (view * vv, uint8_t * need_redraw)
+// WARNING on change: usb_process (view * vv)
 typedef enum
 {
     command_nop = 0x00,

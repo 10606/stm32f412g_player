@@ -14,15 +14,14 @@ void cur_playlist
     playlist_view & plv, 
     playlist const & pl, 
     state_t cur_state,
-    state_t old_state,
-    bool & need_redraw
+    state_t old_state
 )
 {
     bool to_screen = cur_state == state_t::playlist;
     if (to_screen)
         fill_borders <playlist_view::view_cnt> ();
     HAL_Delay(1);
-    audio_ctl.audio_process(need_redraw);
+    audio_ctl.audio_process();
     
     playlist_view::print_info print = plv.print(pl);
     redraw_type_t redraw_type = plv.redraw_type();
@@ -40,7 +39,7 @@ void cur_playlist
         if (print.selected[i] & 2)
             pos_playing = i; 
         
-        audio_ctl.audio_process(need_redraw);
+        audio_ctl.audio_process();
         send_displayed_song(print.group_name[i], print.song_name[i], print.selected[i], i);
     }
     old_pos_playing = pos_playing;

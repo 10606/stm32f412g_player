@@ -10,7 +10,7 @@
 namespace display
 {
 
-void cur_song (playlist const & pl, bool & need_redraw)
+void cur_song (playlist const & pl)
 {
     char cur_song_name[sz::song_name + 1];
     char cur_group_name[sz::group_name + 1];
@@ -22,7 +22,7 @@ void cur_song (playlist const & pl, bool & need_redraw)
     
     display_string(10, display::offsets::song_name, cur_group_name, &font_16, &yb);
     display_string(10, display::offsets::song_name + display::offsets::in_song_name, cur_song_name, &font_16, &yb);
-    audio_ctl.audio_process(need_redraw);
+    audio_ctl.audio_process();
     
     send_cur_song(cur_group_name, cur_song_name);
 }
@@ -37,8 +37,7 @@ void song_volume
 (
     audio_ctl_t const & actl, 
     state_song_view_t state, 
-    bool to_screen, 
-    bool & need_redraw
+    bool to_screen
 ) 
 {
     char c_state = ' ';
@@ -72,7 +71,7 @@ void song_volume
         display_string_c(208, display::offsets::list - 2+ display::offsets::in_line, 
                          s_state + 1, &font_12, 
                          picture_info.color, /*picture[calc_offset(200, 2 * display::offsets::in_line)],*/ lcd_color_blue);
-        audio_ctl.audio_process(need_redraw);
+        audio_ctl.audio_process();
     }
     HAL_Delay(1);
     send_volume(s_volume, s_state);
@@ -83,15 +82,14 @@ void song
     audio_ctl_t const & actl, 
     state_song_view_t state, 
     state_t cur_state, 
-    state_t old_state,
-    bool & need_redraw
+    state_t old_state
 ) 
 {
     bool to_screen = cur_state == state_t::song;
     if (to_screen && old_state != state_t::song) // don't redraw picture if not need
-        song_image(need_redraw);
-    song_volume(actl, state, to_screen, need_redraw);
-    audio_ctl.audio_process(need_redraw);
+        song_image();
+    song_volume(actl, state, to_screen);
+    audio_ctl.audio_process();
 }
 
 }

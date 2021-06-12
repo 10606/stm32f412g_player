@@ -15,8 +15,7 @@ void cur_pl_list
     pl_list & pll, 
     uint32_t playing_pl, 
     state_t cur_state, 
-    state_t old_state, 
-    bool & need_redraw
+    state_t old_state
 )
 {
     bool to_screen = cur_state == state_t::pl_list;
@@ -43,7 +42,7 @@ void cur_pl_list
         if (print.selected[i] & 2)
             pos_playing = i; 
         
-        audio_ctl.audio_process(need_redraw);
+        audio_ctl.audio_process();
         send_pl_list(print.playlist_name[i], print.selected[i], i);
     }
     old_pos_playing = pos_playing;

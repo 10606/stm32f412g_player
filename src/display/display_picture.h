@@ -49,7 +49,7 @@ extern picture_info_t picture_info;
 
 
 void start_image ();
-void song_image (bool & need_redraw);
+void song_image ();
 
 }
 

@@ -8,7 +8,7 @@
 
 const uint32_t seek_value = (1024 * 32);
 
-uint32_t view::change_volume (bool & need_redraw, int8_t value)
+uint32_t view::change_volume (int8_t value)
 {
     if (value > 100)
         value = 100;
@@ -21,18 +21,20 @@ uint32_t view::change_volume (bool & need_redraw, int8_t value)
     else
         audio_ctl->volume += value;
     BSP_AUDIO_OUT_SetVolume(audio_ctl->volume);
-    display::song_volume(*audio_ctl, state_song_view, (state == state_t::song), need_redraw);
+    if (audio_ctl->pause_status == 1)
+        BSP_AUDIO_OUT_Pause();
+    display::song_volume(*audio_ctl, state_song_view, (state == state_t::song));
     return 0;
 }
 
-uint32_t view::inc_volume (bool & need_redraw)
+uint32_t view::inc_volume ()
 {
-    return change_volume(need_redraw, 1);
+    return change_volume(1);
 }
 
-uint32_t view::dec_volume (bool & need_redraw)
+uint32_t view::dec_volume ()
 {
-    return change_volume(need_redraw, -1);
+    return change_volume(-1);
 }
 
 inline uint32_t add_in_bound (uint32_t value, uint32_t a, uint32_t b, uint32_t add)
@@ -53,7 +55,7 @@ inline uint32_t sub_in_bound (uint32_t value, uint32_t a, uint32_t b, uint32_t a
     return value - add;
 }
 
-uint32_t view::seek (bool & need_redraw, uint32_t value, uint8_t direction /* 0 - backward, 1 - forward */)
+uint32_t view::seek (uint32_t value, uint8_t direction /* 0 - backward, 1 - forward */)
 {
     uint32_t (* op_in_bound[2]) (uint32_t, uint32_t, uint32_t, uint32_t) = 
         {sub_in_bound, add_in_bound};
@@ -69,17 +71,17 @@ uint32_t view::seek (bool & need_redraw, uint32_t value, uint8_t direction /* 0 
     return 0;
 }
 
-uint32_t view::seek_forward (bool & need_redraw)
+uint32_t view::seek_forward ()
 {
-    return seek(need_redraw, seek_value, 1);
+    return seek(seek_value, 1);
 }
 
-uint32_t view::seek_backward (bool & need_redraw)
+uint32_t view::seek_backward ()
 {
-    return seek(need_redraw, seek_value, 0);
+    return seek(seek_value, 0);
 }
 
-uint32_t view::change_song (bool & need_redraw, uint8_t direction /* 0 - next, 1 - prev */)
+uint32_t view::change_song (uint8_t direction /* 0 - next, 1 - prev */)
 {
     static uint32_t (playlist::* const do_on_playlist[2]) () =
     {
@@ -96,21 +98,21 @@ uint32_t view::change_song (bool & need_redraw, uint8_t direction /* 0 - next, 1
         if ((ret = open_song_not_found(direction))) 
             return ret;
     }
-    need_redraw = 1;
+    audio_ctl->need_redraw = 1;
     return 0;
 }
 
-uint32_t view::prev_song (bool & need_redraw)
+uint32_t view::prev_song ()
 {
-    return change_song(need_redraw, 1);
+    return change_song(1);
 }
 
-uint32_t view::next_song (bool & need_redraw)
+uint32_t view::next_song ()
 {
-    return change_song(need_redraw, 0);
+    return change_song(0);
 }
 
-uint32_t view::process_next_prev (bool & need_redraw, uint8_t direction /* 0 - next, 1 - prev */)
+uint32_t view::process_next_prev (uint8_t direction /* 0 - next, 1 - prev */)
 {
     static void (pl_list::* const do_on_pl_list[2]) () = 
     {
@@ -127,40 +129,40 @@ uint32_t view::process_next_prev (bool & need_redraw, uint8_t direction /* 0 - n
     {
     case state_t::pl_list:
         (pll.*do_on_pl_list[direction])();
-        need_redraw = 1;
+        audio_ctl->need_redraw = 1;
         break;
 
     case state_t::playlist:
-        need_redraw = 1;
+        audio_ctl->need_redraw = 1;
         return (plv.*do_on_playlist_view[direction])();
         
     case state_t::song:
         switch (state_song_view)
         {
         case state_song_view_t::volume:
-            return change_volume(need_redraw, direction? 1 : -1);
+            return change_volume(direction? 1 : -1);
             
         case state_song_view_t::seek:
-            return seek(need_redraw, seek_value, direction);
+            return seek(seek_value, direction);
 
         case state_song_view_t::next_prev:
-            return change_song(need_redraw, direction);
+            return change_song(direction);
         }
     }
     return 0;
 }
 
-uint32_t view::process_up (bool & need_redraw)
+uint32_t view::process_up ()
 {
-    return process_next_prev(need_redraw, 1);
+    return process_next_prev(1);
 }
 
-uint32_t view::process_down (bool & need_redraw)
+uint32_t view::process_down ()
 {
-    return process_next_prev(need_redraw, 0);
+    return process_next_prev(0);
 }
 
-uint32_t view::play_pause (bool & need_redraw)
+uint32_t view::play_pause ()
 {
     if (audio_ctl->pause_status == 1)
     {
@@ -172,17 +174,17 @@ uint32_t view::play_pause (bool & need_redraw)
         BSP_AUDIO_OUT_Pause();
         audio_ctl->pause_status = 1;
     }
-    need_redraw = 1;
+    audio_ctl->need_redraw = 1;
     return 0;
 }
 
 
-uint32_t view::process_left (bool & need_redraw)
+uint32_t view::process_left ()
 {
     if (state != state_t::pl_list)
     {
         state = prev(state);
-        need_redraw = 1;
+        audio_ctl->need_redraw = 1;
     }
     return 0;
 }
@@ -207,7 +209,7 @@ uint32_t view::play_new_playlist ()
     return 0;
 }
 
-uint32_t view::process_right (bool & need_redraw)
+uint32_t view::process_right ()
 {
     uint32_t ret;
     switch (state)
@@ -217,31 +219,31 @@ uint32_t view::process_right (bool & need_redraw)
         ret = pll.open_selected(plv, selected_playlist);
         if (ret)
             return ret;
-        need_redraw = 1;
+        audio_ctl->need_redraw = 1;
         break;
 
     case state_t::playlist:
         if ((ret = play_new_playlist()))
             return ret;
-        need_redraw = 1;
+        audio_ctl->need_redraw = 1;
         break;
         
     case state_t::song:
         state_song_view = roll(state_song_view);
-        display::song_volume(*audio_ctl, state_song_view, 1, need_redraw);
+        display::song_volume(*audio_ctl, state_song_view, 1);
         break;
     }
     return 0;
 }
 
-uint32_t view::toggle_repeat (bool & need_redraw)
+uint32_t view::toggle_repeat ()
 {
     audio_ctl->repeat_mode ^= 1;
-    display::song_volume(*audio_ctl, state_song_view, 1, need_redraw);
+    display::song_volume(*audio_ctl, state_song_view, 1);
     return 0;
 }
 
-uint32_t view::process_center (bool & need_redraw)
+uint32_t view::process_center ()
 {
     switch (state)
     {
@@ -258,14 +260,14 @@ uint32_t view::process_center (bool & need_redraw)
             if (playing_playlist != pl_list::max_plb_files)
                 pll.seek(playing_playlist);
         }
-        need_redraw = 1;
+        audio_ctl->need_redraw = 1;
         break;
         
     case state_t::playlist:
         if (plv.check_near(pl))
         {
             state = state_t::song;
-            need_redraw = 1;
+            audio_ctl->need_redraw = 1;
         }
         else
         {
@@ -280,7 +282,7 @@ uint32_t view::process_center (bool & need_redraw)
                     pll.seek(playing_playlist);
                     selected_playlist = playing_playlist;
                 }
-                need_redraw = 1;
+                audio_ctl->need_redraw = 1;
                 ret = plv.seek(pl.lpl.pos);
                 if (ret)
                     return ret;
@@ -289,7 +291,7 @@ uint32_t view::process_center (bool & need_redraw)
         break;
         
     case state_t::song:
-        toggle_repeat(need_redraw);
+        toggle_repeat();
         break;
     }
     return 0;

@@ -18,7 +18,7 @@ struct audio_ctl_t
     audio_ctl_t ();
     uint32_t audio_init ();
     void audio_destruct ();
-    uint32_t audio_process (bool & need_redraw);
+    uint32_t audio_process ();
     
     static size_t const mp3_frames_in_buffer = 4;
     static size_t const decoded_mp3_frame_size = 4608;
@@ -33,6 +33,7 @@ struct audio_ctl_t
     mp3_info info;
     file_descriptor audio_file;
     uint8_t buff[audio_buffer_size];
+    bool need_redraw;
     
 private:
     

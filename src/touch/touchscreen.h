@@ -8,7 +8,7 @@
 struct touch_state
 {
     touch_state ();
-    uint32_t touch_check (view * vv, bool & need_redraw);
+    uint32_t touch_check (view * vv);
     void on_timer ();
 
     touch_processing state;
@@ -22,8 +22,8 @@ private:
     
     bool is_moved (point p) const;
     direction_t get_direction (point p) const;
-    uint32_t unpressed (view * vv, bool & need_redraw);
-    uint32_t pressed (point p, view * vv, bool & need_redraw);
+    uint32_t unpressed (view * vv);
+    uint32_t pressed (point p, view * vv);
 };
 
 extern touch_state touch;
