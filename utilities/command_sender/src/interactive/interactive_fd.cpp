@@ -32,18 +32,14 @@ void sigint_handler (int signal)
     if (signal != SIGINT)
         return;
     run = 0;
-    tcsetattr(STDIN_FILENO, TCSANOW, &term_config);
-    std::cout << "\033[?25h";
-    std::cout.flush();
 }
 
-void cl_term_and_exit ()
+void cl_term ()
 {
     std::cout << "\033[0;0H\n";
     tcsetattr(STDIN_FILENO, TCSANOW, &term_config);
     std::cout << "\033[?25h";
     std::cout.flush();
-    std::exit(0);
 }
 
 struct escape_buffer
@@ -98,7 +94,10 @@ struct escape_buffer
                 for (size_t k = 0; k != j; ++k)
                     cur.pop_front();
                 if (std::string_view(int_commands[i]) == "q") 
-                    cl_term_and_exit();
+                {
+                    cl_term();
+                    std::exit(0);
+                }
                 if (to_write.empty())
                     mod_fd(EPOLLIN | EPOLLOUT);
                 to_write.push_back(i);
@@ -218,10 +217,12 @@ void interactive (std::string const & path)
         {
             escaped.process();
         }
+        cl_term();
     }
     catch (...)
     {
-        cl_term_and_exit();
+        cl_term();
+        throw;
     }
 }
 
