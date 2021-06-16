@@ -12,8 +12,6 @@
 #include <type_traits>
 #include <termios.h>
 #include <unistd.h>
-#include <sys/socket.h>
-#include <sys/un.h>
 #include <sys/ioctl.h>
 #include <sys/epoll.h>
 #include <sys/types.h>
@@ -166,8 +164,6 @@ struct escape_buffer
     {
         if (epoll != -1)
             close(epoll);
-        if (fd != -1)
-            close(fd);
     }
     
     int fd;
@@ -178,24 +174,9 @@ struct escape_buffer
     state_t state;
 };
 
-void interactive (std::string const & path)
+void interactive (int fd)
 {
-    char const * sock_name = "/home/wa51/code/code_microcontrollers/player/utilities/multiplex_server/qwe.socket";
-    int fd = socket(AF_UNIX, SOCK_STREAM, 0);
-    if (fd == -1) 
-        throw std::runtime_error("can't create socket");
-    
-    struct sockaddr_un addr;
-    memset(&addr, 0, sizeof(struct sockaddr_un));
-    addr.sun_family = AF_UNIX;
-    strncpy(addr.sun_path, sock_name, sizeof(addr.sun_path) - 1);
-
-    int ret = connect(fd, reinterpret_cast <sockaddr *> (&addr), sizeof(addr));
-    if (ret == -1) 
-        throw std::runtime_error("can't connect");
-    
     escape_buffer escaped(fd);
-
 
     //terminal
     //termios term_config;

@@ -73,19 +73,6 @@ int main (int argc, char ** argv)
                 std::vector <std::pair <int, uint32_t> > events = epoll_wrap.wait();
                 for (std::pair <int, uint32_t> const & event : events)
                 {
-                    static const uint32_t err_mask = EPOLLRDHUP | EPOLLERR | EPOLLHUP;
-                    if (event.second & err_mask)
-                    {
-                        epoll_wrap.unreg(event.first);
-                        if (event.first == conn_sock.file_descriptor())
-                            throw std::runtime_error("server socket error");
-                        else if (event.first == stm32.file_descriptor())
-                            exit = 1;
-                        else
-                            clients.unreg(event.first);
-                        continue;
-                    }
-                    
                     if (event.first == conn_sock.file_descriptor())
                     {
                         if (event.second & EPOLLIN)
@@ -104,6 +91,21 @@ int main (int argc, char ** argv)
                             stm32.append(clients.read(event.first));
                         else if (event.second & EPOLLOUT)
                             clients.write(event.first);
+                    }
+                }
+
+                for (std::pair <int, uint32_t> const & event : events)
+                {
+                    static const uint32_t err_mask = EPOLLRDHUP | EPOLLERR | EPOLLHUP;
+                    if (event.second & err_mask)
+                    {
+                        epoll_wrap.unreg(event.first);
+                        if (event.first == conn_sock.file_descriptor())
+                            throw std::runtime_error("server socket error");
+                        else if (event.first == stm32.file_descriptor())
+                            exit = 1;
+                        else
+                            clients.unreg(event.first);
                     }
                 }
             }

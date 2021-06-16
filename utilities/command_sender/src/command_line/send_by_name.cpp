@@ -2,13 +2,13 @@
 #include "check_string.h"
 #include "usb_commands.h"
 #include "string_command.h"
-#include <fstream>
+#include <unistd.h>
 #include <string>
 #include <limits>
 #include <type_traits>
 #include <iostream>
 
-bool send (std::ofstream & f, std::string const & command)
+bool send (int fd, std::string const & command)
 {
     size_t best_v = std::numeric_limits <size_t> :: max();
     unsigned char best_i = 0;
@@ -29,7 +29,7 @@ bool send (std::ofstream & f, std::string const & command)
         {
             std::cout << command << " -> " << str_commands[best_i] << '\n';
         }
-        f.put(best_i);
+        write(fd, &best_i, 1);
         return 1;
     }
     return 0;

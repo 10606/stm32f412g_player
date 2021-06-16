@@ -3,7 +3,7 @@
 
 #include <fstream>
 
-void interactive (std::string const & path);
+void interactive (int fd);
 
 #endif
 

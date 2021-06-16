@@ -4,7 +4,7 @@
 #include <fstream>
 #include <string>
 
-bool send (std::ofstream & f, std::string const & command);
+bool send (int fd, std::string const & command);
 
 #endif
 
