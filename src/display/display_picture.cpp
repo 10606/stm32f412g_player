@@ -23,9 +23,8 @@ void display_picture
     uint32_t p_size = (y_size + parts - 1) / parts;
     uint32_t p_old_size = 0;
     
-    huffman_header tree;
-    memcpy(&tree, addr, sizeof(tree));
-    uint8_t const * picture = static_cast <uint8_t const *> (addr) + sizeof(tree);
+    huffman_unp_header tree(static_cast <huffman_header const *> (addr));
+    uint8_t const * picture = static_cast <uint8_t const *> (addr) + sizeof(huffman_header);
     
     uint8_t state = inner_cnt - 1;
     
@@ -76,7 +75,7 @@ void display_picture
         uint8_t value = picture[ptr];
         for (size_t j = 0; j != 4; ++j)
         {
-            huffman_header::state const & vertex = tree.vertex[state][value % 4];
+            huffman_unp_header::state const & vertex = tree.vertex[state][value % 4];
             line.symbol[in_line_ptr] = vertex.value;
             in_line_ptr += vertex.is_term;
             state = vertex.next;
@@ -91,7 +90,7 @@ void display_picture
     uint8_t value = picture[ptr];
     for (size_t j = 0; j != (tree.sz % 4); ++j)
     {
-        huffman_header::state const & vertex = tree.vertex[state][value % 4];
+        huffman_unp_header::state const & vertex = tree.vertex[state][value % 4];
         line.symbol[in_line_ptr] = vertex.value;
         in_line_ptr += vertex.is_term;
         state = vertex.next;
