@@ -91,7 +91,17 @@
   */
 
 /** CDC Interface callback. */
+#ifdef __cplusplus
+extern "C" 
+{
+#endif
 extern USBD_CDC_ItfTypeDef USBD_Interface_fops_FS;
+extern int8_t CDC_Init_FS(void);
+extern int8_t CDC_DeInit_FS(void);
+#ifdef __cplusplus
+}
+#endif
+
 
 /* USER CODE BEGIN EXPORTED_VARIABLES */
 

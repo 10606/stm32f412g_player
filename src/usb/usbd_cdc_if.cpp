@@ -31,11 +31,11 @@ extern "C"
 {
 extern USBD_HandleTypeDef hUsbDeviceFS;
 
-static int8_t CDC_Init_FS(void);
-static int8_t CDC_DeInit_FS(void);
-static int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length);
-static int8_t CDC_Receive_FS(uint8_t* pbuf, uint32_t *Len);
-static int8_t CDC_TransmitCplt_FS(uint8_t *pbuf, uint32_t *Len, uint8_t epnum);
+int8_t CDC_Init_FS(void);
+int8_t CDC_DeInit_FS(void);
+int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length);
+int8_t CDC_Receive_FS(uint8_t* pbuf, uint32_t *Len);
+int8_t CDC_TransmitCplt_FS(uint8_t *pbuf, uint32_t *Len, uint8_t epnum);
 
 
 USBD_CDC_ItfTypeDef USBD_Interface_fops_FS =
@@ -46,21 +46,20 @@ USBD_CDC_ItfTypeDef USBD_Interface_fops_FS =
   CDC_Receive_FS,
   CDC_TransmitCplt_FS
 };
-}
 
-static int8_t CDC_Init_FS(void)
+int8_t CDC_Init_FS(void)
 {
   USBD_CDC_SetTxBuffer(&hUsbDeviceFS, UserTxBufferFS, 0);
   USBD_CDC_SetRxBuffer(&hUsbDeviceFS, UserRxBufferFS);
   return (USBD_OK);
 }
 
-static int8_t CDC_DeInit_FS(void)
+int8_t CDC_DeInit_FS(void)
 {
   return (USBD_OK);
 }
 
-static int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length)
+int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length)
 {
   static uint8_t tempbuf[7];
   switch(cmd)
@@ -124,16 +123,17 @@ static int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length)
 
   return (USBD_OK);
 }
+}
 
 int8_t CDC_Receive_FS (uint8_t * Buf, uint32_t * Len)
 {
     usb_process_v.receive_callback(Buf, *Len);
-    USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &Buf[0]);
+    USBD_CDC_SetRxBuffer(&hUsbDeviceFS, Buf);
     USBD_CDC_ReceivePacket(&hUsbDeviceFS);
     return (USBD_OK);
 }
 /*
-static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
+int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
 {
   USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &Buf[0]);
   USBD_CDC_ReceivePacket(&hUsbDeviceFS);
@@ -155,7 +155,7 @@ uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len)
   return result;
 }
 
-static int8_t CDC_TransmitCplt_FS(uint8_t *Buf, uint32_t *Len, uint8_t epnum)
+int8_t CDC_TransmitCplt_FS(uint8_t *Buf, uint32_t *Len, uint8_t epnum)
 {
   uint8_t result = USBD_OK;
   UNUSED(Buf);
