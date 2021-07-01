@@ -47,7 +47,6 @@
 
 #include "stm32f4xx_hal_gpio.h"
 #include "usb_device.h"
-#include "usbd_cdc_if.h"
 #include "lcd_display.h"
 
 uint32_t const joy_center_pin           = GPIO_PIN_0;

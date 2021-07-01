@@ -12,9 +12,15 @@ struct usb_process_t
     
     void clear ();
 
+private:
+    uint32_t calc_need_rd (uint8_t first_byte);
+    
     volatile uint8_t buffer[4];
     volatile uint32_t start;
     volatile uint32_t end;
+    volatile uint32_t end_buf;
+    volatile uint32_t need_skip;
+    volatile uint32_t need_rd;
 };
 
 extern usb_process_t usb_process_v;

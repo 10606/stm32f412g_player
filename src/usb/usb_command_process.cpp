@@ -1,14 +1,11 @@
 #include "usb_command_process.h"
 
-#include "lcd_display.h" // TODO remove
-
 #include "view.h"
 #include <type_traits>
 #include <stdint.h>
 
 uint32_t usb_process_t::usb_process (view * vv)
 {
-    uint32_t n = std::extent <decltype(buffer)> ::value;
     static uint32_t (view::* process_view_do[16]) () =
     {
         &view::do_nothing,
@@ -32,12 +29,6 @@ uint32_t usb_process_t::usb_process (view * vv)
     for (; start != end;)
     {
         [[maybe_unused]] uint32_t ret = 0;
-        if (((start + 1) % n == end) && // "^E^@^@^@" control sequences
-            (buffer[start] == 0x5e))
-        {
-            break;
-        }
-        
         uint8_t command = buffer[start];
         if (command < 16)
             ret = (vv->*process_view_do[command])();
@@ -49,19 +40,50 @@ uint32_t usb_process_t::usb_process (view * vv)
 void usb_process_t::receive_callback (uint8_t * buf, uint32_t len)
 {
     uint32_t n = std::extent <decltype(buffer)> ::value;
-    uint32_t tmp = (end + 1) % n;
-    for (uint32_t i = 0; (tmp != start) && (i != len); i++)
+    uint32_t tmp = (end_buf + 1) % n;
+    uint32_t i = 0;
+    for (i = 0; (tmp != start) && (i != len); i++)
     {
-        buffer[end] = buf[i];
-        end = tmp;
+        if (need_rd + need_skip == 0)
+            // skip control sequences
+            ((buf[i] == 0x5e)? need_skip : need_rd) = calc_need_rd(buf[i]);
+        
+        if (need_skip != 0)
+        {
+            need_skip--;
+            continue;
+        }
+        
+        buffer[end_buf] = buf[i];
+        end_buf = tmp;
+        need_rd--;
         tmp = (tmp + 1) % n;
         
-        if (((start + 1) % n != end) && // "^E^@^@^@" control sequences
-            (buffer[start] == 0x5e))
-        {
-            start = (start + 2) % n;
-        }
+        if (need_rd == 0)
+            end = end_buf;
     }
+    
+    if (i != len)
+    {
+        end_buf = end;
+        need_skip = need_rd;
+    }
+    
+    for (; i != len; ++i)
+    {
+        if (need_skip != 0)
+            need_skip--;
+        else
+            need_skip = calc_need_rd(buf[i]);
+    }
+}
+
+uint32_t usb_process_t::calc_need_rd (uint8_t first_byte)
+{
+    // ^E^@^@^@ control sequences
+    if (first_byte == 0x5e)
+        return 2;
+    return 1;
 }
 
 usb_process_t::usb_process_t ()
@@ -73,6 +95,9 @@ void usb_process_t::clear ()
 {
     start = 0;
     end = 0;
+    end_buf = 0;
+    need_skip = 0;
+    need_rd = 0;
 }
 
 usb_process_t usb_process_v;
