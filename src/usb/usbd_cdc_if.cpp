@@ -132,14 +132,6 @@ int8_t CDC_Receive_FS (uint8_t * Buf, uint32_t * Len)
     USBD_CDC_ReceivePacket(&hUsbDeviceFS);
     return (USBD_OK);
 }
-/*
-int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
-{
-  USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &Buf[0]);
-  USBD_CDC_ReceivePacket(&hUsbDeviceFS);
-  return (USBD_OK);
-}
-*/
 
 uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len)
 {
@@ -148,8 +140,6 @@ uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len)
   if (hcdc->TxState != 0){
     return USBD_BUSY;
   }
-  //memcpy(UserTxBufferFS, Buf, Len);
-  //USBD_CDC_SetTxBuffer(&hUsbDeviceFS, UserTxBufferFS, Len);
   USBD_CDC_SetTxBuffer(&hUsbDeviceFS, Buf, Len);
   result = USBD_CDC_TransmitPacket(&hUsbDeviceFS);
   return result;

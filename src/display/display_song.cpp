@@ -59,7 +59,7 @@ void song_volume
     char p_state = ' ';
     switch (actl.pause_status)
     {
-    case 0:
+    case 0: [[likely]]
         break;
     case 1:
         p_state = 7;
@@ -75,6 +75,7 @@ void song_volume
     memset(s_state, ' ', sizeof(s_state));
     snprintf(s_volume, sizeof(s_volume), " %3u%%", actl.volume);
     snprintf(s_state, sizeof(s_state), "  %c%c%c", (actl.repeat_mode? 'r' : ' '), p_state, c_state);
+    
     if (to_screen)
     {
         // adapvite background color 

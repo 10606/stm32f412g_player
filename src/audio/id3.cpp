@@ -171,9 +171,13 @@ void get_length (file_descriptor * _fd, mp3_info * info)
 
     static uint32_t bitrate_index[] = 
     { //MPEG-1 layer 3 bitrate
-        //      100     010     110     001     101     011     111
         1,      32,     40,     48,     56,     64,     80,     96,
         112,    128,    160,    192,    224,    256,    320,    1
+    };
+    
+    static float frequency_index[] =
+    { //MPEG-1 layer 3 frequency
+        44100, 48000, 32000, 44100
     };
 
     uint32_t id3_size = id3_v1_size(&fd) + id3_v2_size(&fd);
@@ -201,7 +205,8 @@ void get_length (file_descriptor * _fd, mp3_info * info)
         else
         {
             info->length = (float)vbr_length * (float)1152 /*sample per frame*/ * 1000 /
-                (float)44100 /*freq*/;
+                frequency_index[((uint32_t)mp3_h.value[2] >> 2) & 0b11/*16..17 -> freq*/];
+                //(float)44100 /*freq*/;
         }
     }
 }

@@ -78,8 +78,6 @@ bool touch_state::is_moved (point p) const
 
 direction_t touch_state::get_direction (point p) const
 {
-    //if (!is_moved(ots, x, y))
-    //    return direction_t::non;
     point diff = {p.x - old.x, p.y - old.y}; 
     if (abs(diff.x) * e::direction_likelyhood.x <= 
         abs(diff.y) * e::direction_likelyhood.y)

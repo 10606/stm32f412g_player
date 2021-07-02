@@ -4,7 +4,8 @@
 #include "FAT.h"
 #include <stdint.h>
 
-typedef struct
+
+struct id3_v1_header
 {
     char header[3]; //TAG
     char title[30];
@@ -13,22 +14,21 @@ typedef struct
     char year[4];
     char comment[30];
     char genre;
-} id3_v1_header;
+};
 
 
-typedef struct 
+struct id3_v2_header
 {
     char marker[3]; //ID3
     char version;
     char sub_version;
     char flags;
     char length[4]; //pidoracy
-} id3_v2_header;
+};
 
 
-typedef struct 
+struct mp3_header
 {
-    unsigned char value[4];
     /*
     uint32_t
         marker : 11, //0b11111111111 (AND with 0xffe0)
@@ -48,30 +48,33 @@ typedef struct
         original : 1,
         emphasis : 2;
     */
-} mp3_header;
+    unsigned char value[4];
+};
 
 
-typedef struct 
+struct xing_header
 {
     char header[4];
     char _[4];
     unsigned char length[4];
-} xing_header;
+};
 
-typedef struct 
+
+struct vbri_header
 {
     char header[4];
     char _[6];
     uint16_t length_l; 
     uint16_t length_h; 
-} vbri_header;
+};
 
 
-typedef struct
+struct mp3_info
 {
     uint32_t offset;
     float length;
-} mp3_info;
+};
+
 
 void get_length (file_descriptor * fd, mp3_info * info);
 
