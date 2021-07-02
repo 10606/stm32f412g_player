@@ -9,6 +9,7 @@ const char * const int_command_select = "\n";
 const char * const int_command_forward = "\033[C";
 
 const char * const int_command_play_pause = " ";
+const char * const int_command_end_pause = "p";
 const char * const int_command_repeat = "L";
 
 const char * const int_command_volume_up = "\033[24~";
@@ -19,6 +20,8 @@ const char * const int_command_seek_backward = "b";
 
 const char * const int_command_next_song = ">";
 const char * const int_command_prev_song = "<";
+
+const char * const int_command_send_info = "R";
 
 const char * const int_commands[] =
 {
@@ -44,9 +47,11 @@ const char * const int_commands[] =
     int_command_next_song,  //0x0c
     int_command_prev_song,  //0x0d
 
-    "R",  //0x0e - command_send_info
+    int_command_send_info,  //0x0e
     
-    "q" //0x0f - quit
+    int_command_end_pause,  //0x0f
+    
+    "q" //0x10 - quit
 };
 
 #endif

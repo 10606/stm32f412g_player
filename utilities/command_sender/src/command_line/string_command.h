@@ -9,6 +9,7 @@ const char * const str_command_forward = "forward";
 const char * const str_command_select = "select";
 
 const char * const str_command_play_pause = "play_pause";
+const char * const str_command_end_pause = "end_pause";
 const char * const str_command_repeat = "repeat";
 
 const char * const str_command_volume_up = "volume_up";
@@ -19,6 +20,8 @@ const char * const str_command_seek_backward = "seek_backward";
 
 const char * const str_command_next_song = "next_song";
 const char * const str_command_prev_song = "prev_song";
+
+const char * const str_command_send_info = "send_info";
 
 const char * const str_commands[] =
 {
@@ -42,7 +45,11 @@ const char * const str_commands[] =
     str_command_seek_backward, //0x0b
 
     str_command_next_song,  //0x0c
-    str_command_prev_song   //0x0d
+    str_command_prev_song,  //0x0d
+    
+    str_command_send_info,  //0x0e
+    
+    str_command_end_pause   //0x0f
 };
 
 #endif

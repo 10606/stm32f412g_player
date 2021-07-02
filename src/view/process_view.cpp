@@ -178,6 +178,22 @@ uint32_t view::play_pause ()
     return 0;
 }
 
+uint32_t view::to_end_and_pause ()
+{
+    switch (audio_ctl->pause_status)
+    {
+    case 0:
+        audio_ctl->pause_status = 2;
+        break;
+    case 1:
+        break;
+    case 2:
+        audio_ctl->pause_status = 0;
+        break;
+    };
+    audio_ctl->need_redraw = 1;
+    return 0;
+}
 
 uint32_t view::process_left ()
 {

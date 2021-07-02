@@ -56,21 +56,34 @@ void song_volume
         break;
     }
     
+    char p_state = ' ';
+    switch (actl.pause_status)
+    {
+    case 0:
+        break;
+    case 1:
+        p_state = 7;
+        break;
+    case 2:
+        p_state = 6;
+        break;
+    }
+    
     char s_volume[sz::volume];
     char s_state[sz::volume];
     memset(s_volume, ' ', sizeof(s_volume));
     memset(s_state, ' ', sizeof(s_state));
     snprintf(s_volume, sizeof(s_volume), " %3u%%", actl.volume);
-    snprintf(s_state, sizeof(s_state), "  %c %c", (actl.repeat_mode? 'r' : ' '), c_state);
+    snprintf(s_state, sizeof(s_state), "  %c%c%c", (actl.repeat_mode? 'r' : ' '), p_state, c_state);
     if (to_screen)
     {
         // adapvite background color 
         display_string_c(208, display::offsets::list - 2, 
                          s_volume + 1, &font_12, 
-                         picture_info.color, /*picture[calc_offset(200, 6)],*/ lcd_color_blue);
+                         picture_info.color, lcd_color_blue);
         display_string_c(208, display::offsets::list - 2+ display::offsets::in_line, 
                          s_state + 1, &font_12, 
-                         picture_info.color, /*picture[calc_offset(200, 2 * display::offsets::in_line)],*/ lcd_color_blue);
+                         picture_info.color, lcd_color_blue);
         audio_ctl.audio_process();
     }
     HAL_Delay(1);

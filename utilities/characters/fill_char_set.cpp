@@ -61,7 +61,8 @@ void fill_char_set (std::array <uint32_t, 256> & char_set) noexcept
         0x2026, // …
         0x23bb, // ⎻
         0x23bc, // ⎼
-        // 60 free symbols
+        0x2500, // ─
+        // 59 free symbols
     };
     for (uint32_t i = 0; i != 64; ++i)
         char_set[i + 192] = tail[i];

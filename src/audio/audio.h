@@ -26,7 +26,7 @@ struct audio_ctl_t
 
     uint32_t audio_freq;
     uint8_t volume;
-    bool pause_status;
+    uint8_t pause_status; // 0 - audio run, 1 - pause, 2 - play to end and pause 
     bool repeat_mode;
     bool seeked;
     buffer_state_t state;

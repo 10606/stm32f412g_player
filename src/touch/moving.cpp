@@ -14,7 +14,12 @@ struct offsets
 uint32_t touch_processing::touch_region (view * vv)
 {
     if (start.y < static_cast <int32_t> (display::offsets::list))
-        return vv->play_pause();
+    {
+        if (start.x < 120)
+            return vv->play_pause();
+        else
+            return vv->to_end_and_pause();
+    }
     else
         return vv->process_right();
 }

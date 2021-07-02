@@ -17,7 +17,7 @@ audio_ctl_t  audio_ctl;
 audio_ctl_t::audio_ctl_t () :
     audio_freq(44100),
     volume(70),
-    pause_status(0), // 0 when audio is running, 1 when Pause is on 
+    pause_status(0),
     repeat_mode(0),
     seeked(0),
     state(buffer_offset_none)
@@ -131,6 +131,13 @@ uint32_t audio_ctl_t::new_song_or_repeat ()
     {
         reuse_mad();
     }
+    
+    if (pause_status == 2)
+    {
+        pause_status = 1;
+        BSP_AUDIO_OUT_Pause();
+    }
+    
     // play song again
     if (repeat_mode)
     {

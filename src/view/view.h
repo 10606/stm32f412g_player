@@ -33,6 +33,7 @@ struct view
     uint32_t process_center    ();
 
     uint32_t play_pause        ();
+    uint32_t to_end_and_pause  ();
     uint32_t toggle_repeat     ();
     uint32_t inc_volume        ();
     uint32_t dec_volume        ();

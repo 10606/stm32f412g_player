@@ -23,14 +23,14 @@ uint32_t usb_process_t::usb_process (view * vv)
         &view::next_song,
         &view::prev_song,
         &view::send_info,
-        &view::do_nothing
+        &view::to_end_and_pause
     };
     
     for (; start != end;)
     {
         [[maybe_unused]] uint32_t ret = 0;
         uint8_t command = buffer[start];
-        if (command < 16)
+        if (command < std::extent <decltype(process_view_do)> ::value)
             ret = (vv->*process_view_do[command])();
         start = (start + 1) % std::extent <decltype(buffer)> ::value;
     }

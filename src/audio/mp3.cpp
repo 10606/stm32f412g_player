@@ -126,7 +126,7 @@ uint32_t get_pcm_sound (file_descriptor * _file, uint8_t * pbuf, uint32_t NbrOfD
         return NbrOfData;
     }
 
-    if (audio_ctl.pause_status)
+    if (audio_ctl.pause_status == 1)
         return 0;
     
     uint32_t total_read = 0;
