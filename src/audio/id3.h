@@ -76,7 +76,7 @@ struct mp3_info
 };
 
 
-void get_length (file_descriptor * fd, mp3_info * info);
+void get_length (file_descriptor const * fd, mp3_info * info);
 
 
 #endif

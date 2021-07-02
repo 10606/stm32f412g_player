@@ -81,12 +81,16 @@ uint32_t get_mp3_header (file_descriptor * fd, mp3_header * mp3_h, uint32_t id3_
     mp3_h->value[0] = 0;
     mp3_h->value[1] = 0;
     
-    while  ((mp3_h->value[0] != 0xff) || 
-            ((mp3_h->value[1] & 0xe0) != 0xe0))
+    while ((mp3_h->value[0] != 0xff) || 
+          ((mp3_h->value[1] &  0xe0) != 0xe0))
     {
         mp3_h->value[0] = mp3_h->value[1];
-        if ((ret = fd->read(mp3_h->value + 1, 1, &rb)))
-            return 0xffffffff;
+        do
+        {
+            if ((ret = fd->read(mp3_h->value + 1, 1, &rb)))
+                return 0xffffffff;
+        } 
+        while (rb == 0);
     }
     uint32_t total_read = 2;
     while (total_read < sizeof(mp3_header))
@@ -105,7 +109,7 @@ uint32_t get_xing_length (file_descriptor * fd, mp3_header * mp3_h, uint32_t mp3
     uint32_t offset = 
         mp3_header_pos + 
         4 + 
-        (((mp3_h->value[3] >> 6)/*channel_mode*/ == 3)? 17 : 32);
+        (((mp3_h->value[3] >> 6)/*24..25 -> channel_mode*/ == 3)? 17 : 32);
     uint32_t ret;
 
     if ((ret = fd->seek(offset)))
@@ -165,7 +169,7 @@ uint32_t get_vbri_length (file_descriptor * fd, mp3_header * mp3_h, uint32_t mp3
 }
 
 
-void get_length (file_descriptor * _fd, mp3_info * info)
+void get_length (file_descriptor const * _fd, mp3_info * info)
 {
     file_descriptor fd(*_fd, 0);
 
@@ -199,14 +203,12 @@ void get_length (file_descriptor * _fd, mp3_info * info)
         if (vbr_length == 0)
         {
             info->length = (float)(fd.size - id3_size) /
-                (float)bitrate_index[(uint32_t)mp3_h.value[2] >> 4/*8..15 -> bitrate*/] * (float)8;
-            //info->length = 10000;
+                (float)bitrate_index[(uint32_t)mp3_h.value[2] >> 4/*16..19 -> bitrate*/] * (float)8;
         }
         else
         {
             info->length = (float)vbr_length * (float)1152 /*sample per frame*/ * 1000 /
-                frequency_index[((uint32_t)mp3_h.value[2] >> 2) & 0b11/*16..17 -> freq*/];
-                //(float)44100 /*freq*/;
+                frequency_index[((uint32_t)mp3_h.value[2] >> 2) & 0b11/*20..21 -> freq*/];
         }
     }
 }
