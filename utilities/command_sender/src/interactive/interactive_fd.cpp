@@ -27,17 +27,15 @@ volatile bool run = 1;
 
 void sigint_handler (int signal)
 {
-    if (signal != SIGINT)
-        return;
     run = 0;
 }
 
 void cl_term ()
 {
-    std::cout << "\033[0;0H\n";
-    tcsetattr(STDIN_FILENO, TCSANOW, &term_config);
     std::cout << "\033[?25h";
+    std::cout << "\033[1;1H\n";
     std::cout.flush();
+    tcsetattr(STDIN_FILENO, TCSANOW, &term_config);
 }
 
 struct escape_buffer
@@ -179,16 +177,16 @@ void interactive (int fd)
     escape_buffer escaped(fd);
 
     //terminal
-    //termios term_config;
     tcgetattr(STDIN_FILENO, &term_config);
     termios new_term_config = term_config;
     new_term_config.c_lflag &= ~(ICANON | ECHO);
     tcsetattr(STDIN_FILENO, TCSANOW, &new_term_config);
 
     signal(SIGINT, sigint_handler);
+    signal(SIGPIPE, sigint_handler);
 
-    std::cout << "\033[3J";
-    std::cout << "\033\143";
+    std::cout << "\033[2J";
+    std::cout << "\033[1;1H\n";
     std::cout << "\033[?25l";
     std::cout.flush();
     
