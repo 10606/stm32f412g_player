@@ -34,7 +34,7 @@ com_wrapper_t::com_wrapper_t (char const * _file_name, int _epoll_fd) :
 com_wrapper_t::~com_wrapper_t ()
 {
     delete [] buffer;
-    epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd, NULL);
+    epoll_del(epoll_fd, fd);
     close(fd);
 }
 

@@ -28,7 +28,7 @@ void epoll_wraper::reg (int fd, uint32_t flag)
 
 void epoll_wraper::unreg (int fd)
 {
-    int ret = epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd, NULL);
+    int ret = epoll_del(epoll_fd, fd);
     if (ret == -1)
         throw std::runtime_error("can't del from epoll");
 }
@@ -38,7 +38,12 @@ std::vector <std::pair <int, uint32_t> > epoll_wraper::wait ()
     epoll_event events[100];
     int ret = epoll_wait(epoll_fd, events, std::extent <decltype(events)> :: value, -1);
     if (ret == -1)
-        throw std::runtime_error("error while epoll_wait");
+    {
+        if (errno != EINTR)
+            throw std::runtime_error("error while epoll_wait");
+        else
+            return {};
+    }
     std::vector <std::pair <int, uint32_t> > ans;
     ans.reserve(ret);
     for (int i = 0; i != ret; ++i)

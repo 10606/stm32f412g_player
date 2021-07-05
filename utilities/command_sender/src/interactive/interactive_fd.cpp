@@ -30,6 +30,14 @@ void sigint_handler (int signal)
     run = 0;
 }
 
+void set_sig_handler (int sig_num, void (* handler) (int))
+{
+    struct sigaction act = {handler, 0, 0, 0, 0};
+    int ret = sigaction(sig_num, &act, NULL);
+    if (ret)
+        std::runtime_error("can't set signal handler");
+}
+
 void cl_term ()
 {
     std::cout << "\033[?25h";
@@ -117,7 +125,13 @@ struct escape_buffer
         epoll_event event[2];
         int cnt = epoll_wait(epoll, event, sizeof(event), -1); 
         if (cnt == -1)
-            throw std::runtime_error("can't epoll wait");
+        {
+            if (errno != EINTR)
+                throw std::runtime_error("can't epoll wait");
+            else
+                return;
+        }
+        
         for (int i = 0; i != cnt; ++i)
         {
             if (event[i].data.fd == fd)
@@ -174,6 +188,9 @@ struct escape_buffer
 
 void interactive (int fd)
 {
+    set_sig_handler(SIGINT, sigint_handler);
+    set_sig_handler(SIGPIPE, sigint_handler);
+    
     escape_buffer escaped(fd);
 
     //terminal
@@ -181,9 +198,6 @@ void interactive (int fd)
     termios new_term_config = term_config;
     new_term_config.c_lflag &= ~(ICANON | ECHO);
     tcsetattr(STDIN_FILENO, TCSANOW, &new_term_config);
-
-    signal(SIGINT, sigint_handler);
-    signal(SIGPIPE, sigint_handler);
 
     std::cout << "\033[2J";
     std::cout << "\033[1;1H\n";

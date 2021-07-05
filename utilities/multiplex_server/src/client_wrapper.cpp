@@ -23,7 +23,7 @@ clients_wrapper_t::~clients_wrapper_t ()
 {
     for (auto const & i : pointers)
     {
-        epoll_ctl(epoll_fd, EPOLL_CTL_DEL, i.first, NULL);
+        epoll_del(epoll_fd, i.first);
         close(i.first);
     }
     delete [] buffer;
@@ -78,7 +78,7 @@ void clients_wrapper_t::unreg (int fd)
     less_size.erase({it->second, it->first});
     not_registred.erase(it->first);
     pointers.erase(it);
-    epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd, NULL);
+    epoll_del(epoll_fd, fd);
     close(fd);
     shrink_to_fit();
 }

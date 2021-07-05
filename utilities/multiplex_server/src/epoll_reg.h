@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 int epoll_reg (int epoll_fd, int fd, uint32_t flag);
+int epoll_del (int epoll_fd, int fd);
 
 #endif
 

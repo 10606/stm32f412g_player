@@ -53,7 +53,7 @@ unix_server_sock_t::unix_server_sock_t (char const * sock_name, bool socket_acti
 
 unix_server_sock_t::~unix_server_sock_t ()
 {
-    epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd, NULL);
+    epoll_del(epoll_fd, fd);
     close(fd);
 }
 

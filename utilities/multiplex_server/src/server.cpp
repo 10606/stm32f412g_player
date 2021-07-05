@@ -18,12 +18,17 @@ void usr1_handler (int)
     abrt = 1;
 }
 
+void set_sig_handler (int sig_num, void (* handler) (int))
+{
+    struct sigaction act = {handler, 0, 0, 0, 0};
+    int ret = sigaction(sig_num, &act, NULL);
+    if (ret)
+        std::runtime_error("can't set signal handler");
+}
+
 void accept_and_exit (int sock_fd)
 {
-    struct sigaction act = {usr1_handler, 0, 0, 0, 0};
-    int ret = sigaction(SIGUSR1, &act, NULL);
-    if (ret)
-        std::runtime_error("can't set signal handler for USR1");
+    set_sig_handler(SIGUSR1, usr1_handler);
     
     pid_t child_pid = fork();
     if (child_pid == -1)
@@ -56,6 +61,8 @@ int main (int argc, char ** argv)
     char const * stm32_name = "/dev/serial/by-id/usb-STMicroelectronics_player_stm32f412g_313FB9553136-if00";
  
     bool socket_activation = (argc > 1) && (strcmp(argv[1], "--socket_activation") == 0);
+ 
+    set_sig_handler(SIGPIPE, SIG_IGN);
     
     try
     {
@@ -123,7 +130,7 @@ int main (int argc, char ** argv)
             // parent return from accept and exit
             try
             {
-                accept_and_exit (conn_sock.file_descriptor());
+                accept_and_exit(conn_sock.file_descriptor());
             }
             catch (std::exception const & e)
             {
