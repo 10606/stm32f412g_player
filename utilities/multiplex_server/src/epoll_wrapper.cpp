@@ -36,15 +36,15 @@ void epoll_wraper::unreg (int fd)
 std::vector <std::pair <int, uint32_t> > epoll_wraper::wait ()
 {
     epoll_event events[100];
+    std::vector <std::pair <int, uint32_t> > ans;
     int ret = epoll_wait(epoll_fd, events, std::extent <decltype(events)> :: value, -1);
     if (ret == -1)
     {
         if (errno != EINTR)
             throw std::runtime_error("error while epoll_wait");
         else
-            return {};
+            return ans;
     }
-    std::vector <std::pair <int, uint32_t> > ans;
     ans.reserve(ret);
     for (int i = 0; i != ret; ++i)
     {

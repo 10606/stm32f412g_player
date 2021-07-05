@@ -120,7 +120,12 @@ void clients_wrapper_t::write (int fd)
     size_t offset = it->second - add_offset;
     ssize_t wb = ::write(fd, buffer + offset, size - offset);
     if (wb < 0)
-        throw std::runtime_error("error write");
+    {
+        if (errno != EINTR)
+            throw std::runtime_error("error write");
+        else
+            wb = 0;
+    }
     less_size.erase({it->second, it->first});
     it->second += wb;
     less_size.insert({it->second, it->first});
@@ -141,7 +146,12 @@ std::string clients_wrapper_t::read (int fd)
     char buff [64];
     ssize_t rb = ::read(fd, buff, sizeof(buff));
     if (rb < 0)
-        throw std::runtime_error("error read");
+    {
+        if (errno != EINTR)
+            throw std::runtime_error("error read");
+        else
+            return std::string();
+    }
     return std::string(buff, rb);
 }
 

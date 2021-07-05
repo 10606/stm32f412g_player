@@ -57,3 +57,20 @@ unix_server_sock_t::~unix_server_sock_t ()
     close(fd);
 }
 
+int unix_server_sock_t::accept ()
+{
+    while (1)
+    {
+        int ret = ::accept(fd, NULL, NULL);
+        if (ret == -1)
+        {
+            if (errno != EINTR)
+                throw std::runtime_error("error on accept");
+        }
+        else
+        {
+            return ret;
+        }
+    }
+}
+

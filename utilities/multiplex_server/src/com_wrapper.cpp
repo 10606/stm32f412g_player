@@ -64,7 +64,12 @@ void com_wrapper_t::write ()
 {
     ssize_t wb = ::write(fd, buffer + pos, size - pos);
     if (wb < 0)
-        throw std::runtime_error("can't write");
+    {
+        if (errno != EINTR)
+            throw std::runtime_error("can't write");
+        else
+            wb = 0;
+    }
     pos += wb;
     if (pos == size)
         epoll_reg(epoll_fd, fd, EPOLLIN);
@@ -85,7 +90,12 @@ std::string com_wrapper_t::read ()
     char buff [512];
     ssize_t rb = ::read(fd, buff, sizeof(buff));
     if (rb == -1)
-        throw std::runtime_error("can't read");
+    {
+        if (errno != EINTR)
+            throw std::runtime_error("can't read");
+        else
+            return std::string();
+    }
     return std::string(buff, rb);
 }
 

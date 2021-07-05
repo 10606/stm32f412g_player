@@ -141,7 +141,12 @@ struct escape_buffer
                     char buffer[1024];
                     ssize_t ret = read(fd, buffer, sizeof(buffer));
                     if (ret == -1)
-                        throw std::runtime_error("can't read");
+                    {
+                        if (errno != EINTR)
+                            throw std::runtime_error("can't read");
+                        else
+                            ret = 0;
+                    }
                     readed.insert(readed.end(), buffer, buffer + ret);
                     extract(readed, state);
                 }
@@ -149,7 +154,12 @@ struct escape_buffer
                 {
                     ssize_t ret = write(fd, to_write.c_str(), to_write.size());
                     if (ret == -1)
-                        throw std::runtime_error("can't write");
+                    {
+                        if (errno != EINTR)
+                            throw std::runtime_error("can't write");
+                        else
+                            ret = 0;
+                    }
                     if (to_write.size() == static_cast <size_t> (ret))
                     {
                         mod_fd(EPOLLIN);
@@ -162,8 +172,9 @@ struct escape_buffer
             if ((event[i].events & EPOLLIN) && event[i].data.fd == STDIN_FILENO)
             {
                 char ch;
-                read(STDIN_FILENO, &ch, 1);
-                put(ch);
+                ssize_t ret = read(STDIN_FILENO, &ch, 1);
+                if (ret == 1)
+                    put(ch);
             }
             if ((event[i].events & EPOLLHUP) || (event[i].events & EPOLLRDHUP))
             {
