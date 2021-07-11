@@ -47,7 +47,7 @@ struct huffman_unp_header
         
         uint8_t next;
         uint8_t value;
-        bool is_term;
+        uint16_t is_term;
     };
     
     uint32_t sz; // by 2 bits

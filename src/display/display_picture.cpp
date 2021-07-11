@@ -41,9 +41,9 @@ void display_picture
         uint8_t symbol[2 * 240];
         uint16_t pixel[240];
     } line;
-    uint32_t in_line_ptr = 0;
+    uint16_t in_line_ptr = 0;
     uint32_t line_cnt = 0;
-    uint32_t x_size_in_bytes = 2 * x_size;
+    uint16_t x_size_in_bytes = 2 * x_size;
     
     auto write_region = [&] () -> bool
     {
