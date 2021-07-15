@@ -76,7 +76,7 @@
 
 /* USER CODE BEGIN EXPORTED_MACRO */
 
-#define max_rx_size 256
+#define max_rx_size 1024
 #define call_rx_size 1
 
 /* USER CODE END EXPORTED_MACRO */
@@ -116,7 +116,7 @@ extern int8_t CDC_DeInit_FS(void);
   * @{
   */
 
-uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len);
+uint8_t CDC_Transmit_FS(volatile uint8_t* Buf, uint16_t Len);
 
 /* USER CODE BEGIN EXPORTED_FUNCTIONS */
 /* USER CODE END EXPORTED_FUNCTIONS */

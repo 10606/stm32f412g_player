@@ -24,7 +24,7 @@ void cur_song (playlist const & pl)
     display_string(10, display::offsets::song_name + display::offsets::in_song_name, cur_song_name, &font_16, &yb);
     audio_ctl.audio_process();
     
-    send_cur_song(cur_group_name, cur_song_name);
+    sender.send_cur_song(cur_group_name, cur_song_name);
 }
 
 void song_hint ()
@@ -88,7 +88,8 @@ void song_volume
         audio_ctl.audio_process();
     }
     HAL_Delay(1);
-    send_volume(s_volume, s_state);
+    sender.send_volume(s_volume, s_state);
+    sender.flush();
 }
 
 void song 

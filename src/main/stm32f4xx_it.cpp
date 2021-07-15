@@ -46,7 +46,7 @@ extern "C"
 {
 extern I2S_HandleTypeDef haudio_i2s;
 extern SD_HandleTypeDef uSdHandle;
-extern PCD_HandleTypeDef hpcd_USB_OTG_FS;
+extern volatile PCD_HandleTypeDef hpcd_USB_OTG_FS;
 }
 
 

@@ -26,11 +26,12 @@ uint32_t view::init (filename_t * path, uint32_t len)
 
 void view::display ()
 {
-    send_state(state);
+    sender.send_state(state);
     display::cur_song(pl);
     display::cur_playlist(plv, pl, state, old_state);
     display::cur_pl_list(pll, playing_playlist, state, old_state);
     display::song(*audio_ctl, state_song_view, state, old_state);
+    sender.flush();
     old_state = state;
 }
 

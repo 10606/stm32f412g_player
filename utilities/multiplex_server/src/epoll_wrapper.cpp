@@ -33,11 +33,11 @@ void epoll_wraper::unreg (int fd)
         throw std::runtime_error("can't del from epoll");
 }
 
-std::vector <std::pair <int, uint32_t> > epoll_wraper::wait ()
+std::vector <std::pair <int, uint32_t> > epoll_wraper::wait (int timeout)
 {
     epoll_event events[100];
     std::vector <std::pair <int, uint32_t> > ans;
-    int ret = epoll_wait(epoll_fd, events, std::extent <decltype(events)> :: value, -1);
+    int ret = epoll_wait(epoll_fd, events, std::extent <decltype(events)> :: value, timeout);
     if (ret == -1)
     {
         if (errno != EINTR)

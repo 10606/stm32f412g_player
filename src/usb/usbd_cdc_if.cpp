@@ -24,18 +24,18 @@
 
 #define APP_RX_DATA_SIZE  2048
 #define APP_TX_DATA_SIZE  2048
-uint8_t UserRxBufferFS[APP_RX_DATA_SIZE];
-uint8_t UserTxBufferFS[APP_TX_DATA_SIZE];
+volatile uint8_t UserRxBufferFS[APP_RX_DATA_SIZE];
+volatile uint8_t UserTxBufferFS[APP_TX_DATA_SIZE];
 
 extern "C"
 {
-extern USBD_HandleTypeDef hUsbDeviceFS;
+extern volatile USBD_HandleTypeDef hUsbDeviceFS;
 
 int8_t CDC_Init_FS(void);
 int8_t CDC_DeInit_FS(void);
 int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length);
-int8_t CDC_Receive_FS(uint8_t* pbuf, uint32_t *Len);
-int8_t CDC_TransmitCplt_FS(uint8_t *pbuf, uint32_t *Len, uint8_t epnum);
+int8_t CDC_Receive_FS(volatile uint8_t* pbuf, volatile uint32_t *Len);
+int8_t CDC_TransmitCplt_FS(volatile uint8_t *pbuf, volatile uint32_t *Len, uint8_t epnum);
 
 
 USBD_CDC_ItfTypeDef USBD_Interface_fops_FS =
@@ -49,9 +49,10 @@ USBD_CDC_ItfTypeDef USBD_Interface_fops_FS =
 
 int8_t CDC_Init_FS(void)
 {
-  USBD_CDC_SetTxBuffer(&hUsbDeviceFS, UserTxBufferFS, 0);
-  USBD_CDC_SetRxBuffer(&hUsbDeviceFS, UserRxBufferFS);
-  return (USBD_OK);
+    USBD_CDC_SetTxBuffer(&hUsbDeviceFS, UserTxBufferFS, 1);
+    USBD_CDC_SetRxBuffer(&hUsbDeviceFS, UserRxBufferFS);
+    USBD_CDC_ReceivePacket(&hUsbDeviceFS);
+    return (USBD_OK);
 }
 
 int8_t CDC_DeInit_FS(void)
@@ -102,11 +103,11 @@ int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length)
   /* 6      | bDataBits  |   1   | Number Data bits (5, 6, 7, 8 or 16).          */
   /*******************************************************************************/
     case CDC_SET_LINE_CODING:
-        memcpy(tempbuf, pbuf, std::min(sizeof(tempbuf), static_cast <size_t> (length)) / sizeof(tempbuf[0]));
+        memcpy(tempbuf, pbuf, std::min(sizeof(tempbuf), static_cast <size_t> (length)));
     break;
 
     case CDC_GET_LINE_CODING:
-        memcpy(pbuf, tempbuf, std::min(sizeof(tempbuf), static_cast <size_t> (length)) / sizeof(tempbuf[0]));
+        memcpy(pbuf, tempbuf, std::min(sizeof(tempbuf), static_cast <size_t> (length)));
     break;
 
     case CDC_SET_CONTROL_LINE_STATE:
@@ -125,27 +126,29 @@ int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length)
 }
 }
 
-int8_t CDC_Receive_FS (uint8_t * Buf, uint32_t * Len)
+int8_t CDC_Receive_FS (volatile uint8_t * Buf, volatile uint32_t * Len)
 {
     usb_process_v.receive_callback(Buf, *Len);
-    USBD_CDC_SetRxBuffer(&hUsbDeviceFS, Buf);
+    USBD_CDC_SetRxBuffer(&hUsbDeviceFS, UserRxBufferFS);
     USBD_CDC_ReceivePacket(&hUsbDeviceFS);
     return (USBD_OK);
 }
 
-uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len)
+uint8_t CDC_Transmit_FS(volatile uint8_t* Buf, uint16_t Len)
 {
-  uint8_t result = USBD_OK;
-  USBD_CDC_HandleTypeDef *hcdc = (USBD_CDC_HandleTypeDef*)hUsbDeviceFS.pClassData;
-  if (hcdc->TxState != 0){
-    return USBD_BUSY;
-  }
-  USBD_CDC_SetTxBuffer(&hUsbDeviceFS, Buf, Len);
-  result = USBD_CDC_TransmitPacket(&hUsbDeviceFS);
-  return result;
+    uint8_t result = USBD_OK;
+    USBD_CDC_HandleTypeDef *hcdc = (USBD_CDC_HandleTypeDef*)hUsbDeviceFS.pClassData;
+    if (hcdc->TxState != 0)
+    {
+        return USBD_BUSY;
+    }
+    memcpy((uint8_t *)UserTxBufferFS, (uint8_t *)Buf, Len);
+    USBD_CDC_SetTxBuffer(&hUsbDeviceFS, UserTxBufferFS, Len);
+    result = USBD_CDC_TransmitPacket(&hUsbDeviceFS);
+    return result;
 }
 
-int8_t CDC_TransmitCplt_FS(uint8_t *Buf, uint32_t *Len, uint8_t epnum)
+int8_t CDC_TransmitCplt_FS(volatile uint8_t *Buf, volatile uint32_t *Len, uint8_t epnum)
 {
   uint8_t result = USBD_OK;
   UNUSED(Buf);

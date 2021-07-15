@@ -43,7 +43,7 @@ void cur_pl_list
             pos_playing = i; 
         
         audio_ctl.audio_process();
-        send_pl_list(print.playlist_name[i], print.selected[i], i);
+        sender.send_pl_list(print.playlist_name[i], print.selected[i], i);
     }
     old_pos_playing = pos_playing;
 }

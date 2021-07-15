@@ -40,7 +40,7 @@ void cur_playlist
             pos_playing = i; 
         
         audio_ctl.audio_process();
-        send_displayed_song(print.group_name[i], print.song_name[i], print.selected[i], i);
+        sender.send_displayed_song(print.group_name[i], print.song_name[i], print.selected[i], i);
     }
     old_pos_playing = pos_playing;
 }

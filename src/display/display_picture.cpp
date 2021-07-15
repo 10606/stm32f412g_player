@@ -113,7 +113,7 @@ void start_image ()
         240, 240, 
         0
     );
-    send_empty();
+    sender.send_empty();
 }
 
 void song_image ()

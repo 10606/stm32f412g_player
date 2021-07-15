@@ -1,6 +1,8 @@
 #include "usb_command_process.h"
 
 #include "view.h"
+#include "lcd_display.h"
+#include <algorithm>
 #include <type_traits>
 #include <stdint.h>
 
@@ -34,10 +36,11 @@ uint32_t usb_process_t::usb_process (view * vv)
             ret = (vv->*process_view_do[command])();
         start = (start + 1) % std::extent <decltype(buffer)> ::value;
     }
+    
     return 0;
 }
 
-void usb_process_t::receive_callback (uint8_t * buf, uint32_t len)
+void usb_process_t::receive_callback (volatile uint8_t * buf, uint32_t len)
 {
     uint32_t n = std::extent <decltype(buffer)> ::value;
     uint32_t tmp = (end_buf + 1) % n;
@@ -45,8 +48,7 @@ void usb_process_t::receive_callback (uint8_t * buf, uint32_t len)
     for (i = 0; (tmp != start) && (i != len); i++)
     {
         if (need_rd + need_skip == 0)
-            // skip control sequences
-            ((buf[i] == 0x5e)? need_skip : need_rd) = calc_need_rd(buf[i]);
+            need_rd = calc_need_rd(buf[i]);
         
         if (need_skip != 0)
         {
@@ -74,15 +76,12 @@ void usb_process_t::receive_callback (uint8_t * buf, uint32_t len)
         if (need_skip != 0)
             need_skip--;
         else
-            need_skip = calc_need_rd(buf[i]);
+            need_skip = calc_need_rd(buf[i]) - 1;
     }
 }
 
 uint32_t usb_process_t::calc_need_rd (uint8_t first_byte)
 {
-    // ^E^@^@^@ control sequences
-    if (first_byte == 0x5e)
-        return 2;
     return 1;
 }
 

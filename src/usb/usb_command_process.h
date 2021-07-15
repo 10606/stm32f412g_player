@@ -8,14 +8,14 @@ struct usb_process_t
 {
     usb_process_t ();
     uint32_t usb_process (view * vv);
-    void receive_callback (uint8_t * buf, uint32_t len); 
+    void receive_callback (volatile uint8_t * buf, uint32_t len); 
     
     void clear ();
 
 private:
     uint32_t calc_need_rd (uint8_t first_byte);
     
-    volatile uint8_t buffer[4];
+    volatile uint8_t buffer[20];
     volatile uint32_t start;
     volatile uint32_t end;
     volatile uint32_t end_buf;

@@ -12,47 +12,12 @@
 #include "com_wrapper.h"
 #include "client_wrapper.h"
 
-volatile bool abrt = 0;
-void usr1_handler (int)
-{
-    abrt = 1;
-}
-
 void set_sig_handler (int sig_num, void (* handler) (int))
 {
     struct sigaction act = {handler, 0, 0, 0, 0};
     int ret = sigaction(sig_num, &act, NULL);
     if (ret)
         std::runtime_error("can't set signal handler");
-}
-
-void accept_and_exit (int sock_fd)
-{
-    set_sig_handler(SIGUSR1, usr1_handler);
-    
-    pid_t child_pid = fork();
-    if (child_pid == -1)
-        std::runtime_error("can't fork");
-    
-    if (child_pid == 0) // child
-    {
-        sleep(5);
-        int parent_pid = getppid();
-        kill(parent_pid, SIGUSR1);
-    }
-    else // parent
-    {
-        while (!abrt)
-        {
-            int fd = accept(sock_fd, NULL, NULL);
-            if (fd != -1)
-                close(fd);
-        }
-        int wstatus;
-        pid_t w = waitpid(child_pid, &wstatus, 0);
-        if (w == -1)
-            std::runtime_error("error in waitpid");
-    }
 }
 
 int main (int argc, char ** argv)
@@ -125,12 +90,26 @@ int main (int argc, char ** argv)
             //      client wait on connect
             //      systemd will restart me
             //      (((
-            
-            // child will send signal (after 5 sec)
-            // parent return from accept and exit
             try
             {
-                accept_and_exit(conn_sock.file_descriptor());
+                bool flag = 1;
+                
+                while (flag)
+                {
+                    flag = 0;
+                    std::vector <std::pair <int, uint32_t> > events = epoll_wrap.wait(1000);
+                    for (std::pair <int, uint32_t> const & event : events)
+                    {
+                        if ((event.first == conn_sock.file_descriptor()) &&
+                            (event.second & EPOLLIN))
+                        {
+                            flag = 1;
+                            int fd = conn_sock.accept();
+                            if (fd != -1)
+                                close(fd);
+                        }
+                    }
+                }
             }
             catch (std::exception const & e)
             {
