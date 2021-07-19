@@ -8,6 +8,7 @@
 #include "view.h"
 #include "mp3.h"
 #include "usb_command_process.h"
+#include "usb_send.h"
 
 void main_player ()
 { 
@@ -24,6 +25,8 @@ void main_player ()
         if ((ret = usb_process_v.usb_process(&viewer())))
             ; 
         if ((ret = touch.touch_check(&viewer())))
+            ;
+        if ((ret = sender.flush()))
             ;
         
         if (audio_ctl.need_redraw)

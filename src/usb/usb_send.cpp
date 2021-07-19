@@ -10,7 +10,8 @@ uint8_t sender_t::flush ()
     if (pos == 0)
         return 0;
     uint8_t ret = CDC_Transmit_FS(buffer, pos);
-    pos = 0;
+    if (ret == 0)
+        pos = 0;
     return ret;
 }
 
@@ -152,7 +153,8 @@ uint8_t sender_t::add_to_buff (uint8_t * value, uint32_t size)
         if (2 * pos >= std::extent_v <decltype(buffer)>)
         {
             ret = CDC_Transmit_FS(buffer, pos);
-            pos = 0;
+            if (ret == 0)
+                pos = 0;
         }
         return ret;
     }
