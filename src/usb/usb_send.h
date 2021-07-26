@@ -52,7 +52,7 @@ struct sender_t
 private:
     uint8_t add_to_buff (uint8_t * value, uint32_t size);
     
-    uint8_t buffer[512];
+    uint8_t buffer[2048];
     uint32_t pos;
 };
 

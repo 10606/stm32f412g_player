@@ -28,7 +28,7 @@ make_files = \
 # debug build?
 DEBUG = 0
 # optimization
-OPT = -Wall -O2 -flto
+OPT = -Wall -Os -flto
 
 
 #######################################
@@ -141,7 +141,7 @@ LDSCRIPT = STM32F412ZGTx_FLASH.ld
 LIBS = -lc -lm -lnosys -lstdc++
 LIBDIR = 
 #LDFLAGS = $(MCU) -specs=nano.specs -specs=nosys.specs $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections
-LDFLAGS = $(MCU) -specs=nano.specs -specs=nosys.specs -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections -flto -fno-exceptions -O2 -fno-rtti
+LDFLAGS = $(MCU) -specs=nano.specs -specs=nosys.specs -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections -flto -fno-exceptions -Os -fno-rtti
 
 # default action: build all
 all: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).hex $(BUILD_DIR)/$(TARGET).bin
