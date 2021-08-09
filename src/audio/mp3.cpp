@@ -32,33 +32,25 @@ void reuse_mad ()
     init_mad();
 }
 
-static uint32_t get_data (file_descriptor * _file, uint8_t * buffer, uint32_t size)
-{
-    uint32_t total_read = 0;
-    uint32_t ret;
-    uint32_t tried = 2;
-    while ((ret = _file->read(buffer, size, &total_read)) && (tried))
-    {
-        if (ret == err::eof_file)
-        {
-            return 0;
-        }
-        --tried;
-        display::error("err read");
-    }
-    return total_read;
-}
-
 static uint32_t get_all_data (file_descriptor * _file, uint8_t * buffer, uint32_t size)
 {
     uint32_t total_read = 0;
     while (total_read != size)
     {
-        uint32_t cnt_read = get_data(_file, buffer + total_read, size - total_read);
-        if (cnt_read == 0)
+        uint32_t tried = 10;
+        uint32_t cnt_read;
+        uint32_t ret = 0;
+        
+        do
         {
-            return total_read;
+            uint32_t ret = _file->read(buffer + total_read, size - total_read, &cnt_read);
+            if (ret == err::eof_file) [[unlikely]]
+                return total_read;
+            else if (ret != 0) [[unlikely]]
+                display::error("error read");
         }
+        while ((ret != 0) && (--tried != 0));
+        
         total_read += cnt_read;
     }
     return total_read;
@@ -135,10 +127,8 @@ uint32_t get_pcm_sound (file_descriptor * _file, uint8_t * pbuf, uint32_t NbrOfD
     while (frames < NbrOfData)
     {
         uint32_t amount_safe_from_buffer = 0;
-        if ((mad_data.stream.next_frame != NULL) && (mad_data.stream.error == MAD_ERROR_NONE))
-            amount_safe_from_buffer = mad_data.stream.bufend - mad_data.stream.next_frame;
-        else if (mad_data.stream.error != MAD_ERROR_BUFLEN)
-            amount_safe_from_buffer = 0; //maybe mp3_input_buffer_size - mp3_frame_size;
+        if ((mad_data.stream.error != MAD_ERROR_BUFLEN) && (mad_data.stream.error != MAD_ERROR_NONE))
+            amount_safe_from_buffer = 0;
         else if (mad_data.stream.next_frame != NULL)
             amount_safe_from_buffer = mad_data.stream.bufend - mad_data.stream.next_frame;
         else if ((mad_data.stream.bufend - mad_data.stream.buffer) < (long)mp3_input_buffer_size)
@@ -164,8 +154,9 @@ uint32_t get_pcm_sound (file_descriptor * _file, uint8_t * pbuf, uint32_t NbrOfD
 
         if (rb + amount_safe_from_buffer < mp3_input_buffer_size)
         {
-            memset(mp3_input_buffer.buffer + amount_safe_from_buffer + rb, 0, MAD_BUFFER_GUARD);
-            amount_safe_from_buffer += MAD_BUFFER_GUARD;
+            uint32_t tail_size = std::min((uint32_t)MAD_BUFFER_GUARD, mp3_input_buffer_size - rb - amount_safe_from_buffer);
+            memset(mp3_input_buffer.buffer + amount_safe_from_buffer + rb, 0, tail_size);
+            amount_safe_from_buffer += tail_size;
         }
 
         mad_stream_buffer(&mad_data.stream, mp3_input_buffer.buffer, rb + amount_safe_from_buffer);

@@ -132,10 +132,12 @@ void TIM2_IRQHandler (void)
     joystick_state.on_timer();
     touch.on_timer();
 
+    /*
     if (HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_2) == GPIO_PIN_RESET)
         HAL_GPIO_WritePin(GPIOE, GPIO_PIN_2, GPIO_PIN_SET);
     else
         HAL_GPIO_WritePin(GPIOE, GPIO_PIN_2, GPIO_PIN_RESET);
+    */
     TIM2->SR &= ~TIM_SR_UIF;
 }
 

@@ -29,7 +29,7 @@ struct audio_ctl_t
     uint8_t pause_status; // 0 - audio run, 1 - pause, 2 - play to end and pause 
     bool repeat_mode;
     bool seeked;
-    buffer_state_t state;
+    volatile buffer_state_t state;
     mp3_info info;
     file_descriptor audio_file;
     uint8_t buff[audio_buffer_size];
