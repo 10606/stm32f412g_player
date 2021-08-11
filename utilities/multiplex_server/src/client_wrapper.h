@@ -28,6 +28,9 @@ private:
     void shrink_to_fit ();
     
     static size_t const delta_capacity = 1024;
+    static size_t const max_capacity = 4 * 1024 * 1024;
+    static size_t const max_clients = 1000;
+    
     int epoll_fd; // not owned
     char * buffer;
     size_t size;

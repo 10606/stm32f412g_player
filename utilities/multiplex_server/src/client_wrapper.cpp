@@ -4,6 +4,7 @@
 #include "usb_commands.h"
 #include <sys/epoll.h>
 #include <stdexcept>
+#include <limits>
 #include <unistd.h>
 #include <string.h>
 
@@ -57,6 +58,13 @@ void clients_wrapper_t::reg (int fd)
 {
     if (fd == -1)
         throw std::runtime_error("bad fd");
+    
+    if (pointers.size() >= max_clients)
+    {
+        close(fd);
+        return;
+    }
+    
     pointers.insert({fd, last_full_struct + add_offset});
     less_size.insert({last_full_struct + add_offset, fd});
     if (last_full_struct != size)
@@ -98,10 +106,33 @@ void clients_wrapper_t::realloc (size_t start_index, size_t needed)
     buffer = new_buffer;
  
     add_offset += start_index;
+    if (add_offset > std::numeric_limits <decltype(add_offset)> :: max() / 2)
+    {
+        std::set <std::pair <size_t, int> > new_less_size;
+        for (auto const & v : less_size)
+            new_less_size.insert({v.first - add_offset, v.second});
+        less_size.swap(new_less_size);
+        
+        for (auto & v : pointers)
+            v.second -= add_offset;
+        add_offset = 0;
+    }
 }
 
 void clients_wrapper_t::shrink_to_fit ()
 {
+    if (capacity > max_capacity)
+    {
+        while (!less_size.empty())
+        {
+            std::set <std::pair <size_t, int> > :: iterator it = less_size.begin();
+            if (it->first - add_offset + max_capacity / 2 < size)
+                unreg(it->second);
+            else
+                break;
+        }
+    }
+    
     size_t min_ptr = last_full_struct;
     if (!less_size.empty())
         min_ptr = std::min(min_ptr, less_size.begin()->first - add_offset);
