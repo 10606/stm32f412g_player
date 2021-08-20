@@ -2,6 +2,7 @@
 #include "epoll_wrapper.h"
 #include "recver_data.h"
 #include "sender_data.h"
+#include "interactive.h"
 
 #include <openssl/rsa.h> 
 #include <openssl/pem.h> 
@@ -277,7 +278,7 @@ int main ()
         client_socket_t conn_sock(0x7f000001, 110, epoll_wrap.fd(), std::move(pass));
         
         bool exit = 0;
-        while (!exit)
+        while (!exit && !conn_sock.ready())
         {
             std::vector <std::pair <int, uint32_t> > events = epoll_wrap.wait();
             for (std::pair <int, uint32_t> const & event : events)
@@ -308,6 +309,11 @@ int main ()
                 }
             }
         }
+        
+        if (exit)
+            return 1;
+        
+        interactive(conn_sock.reset_file_descriptor());
     }
     catch (std::exception const & e)
     {

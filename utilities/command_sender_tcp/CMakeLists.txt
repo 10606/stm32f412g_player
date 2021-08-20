@@ -12,14 +12,27 @@ set(compile_flags
     -g -Wall -ftemplate-depth=10000 -std=c++20"
 )
 
+
+set(root_code_path
+    ../../../../../
+)
+set(player_path
+    ${root_code_path}/stm32/stm32cubemx/f412g_player/src/
+)
+
 set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${compile_flags}")
 
 message("CMAKE_CXX_FLAGS" ${CMAKE_CXX_FLAGS})
 
 include_directories(
+    ${player_path}/main
+    ${player_path}/view
+    ${player_path}/usb
     ../multiplex_server/src
     ../command_sender/src
     ../packet_len_data
+    ../command_sender/src/interactive
+    ../characters/
 )
 
 add_executable(command_sender_tcp 
@@ -28,6 +41,12 @@ add_executable(command_sender_tcp
     ../packet_len_data/sender_data.cpp
     ../multiplex_server/src/epoll_reg.cpp
     ../multiplex_server/src/epoll_wrapper.cpp
+    ../command_sender/src/interactive/char_reconvert.cpp
+    ../command_sender/src/interactive/interactive_fd.cpp
+    ../command_sender/src/interactive/term_colors.cpp
+    ../command_sender/src/interactive/term_display.cpp
+    ../characters/fill_char_set.cpp
+    ../characters/char_conversion.cpp
 )
 
 target_link_libraries(command_sender_tcp
