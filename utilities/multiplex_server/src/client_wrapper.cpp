@@ -82,7 +82,7 @@ void clients_wrapper_t::unreg (int fd)
 {
     std::map <int, size_t> :: iterator it = pointers.find(fd);
     if (it == pointers.end())
-        throw std::runtime_error("unknown fd");
+        throw std::runtime_error("unreg unknown fd");
     less_size.erase({it->second, it->first});
     not_registred.erase(it->first);
     pointers.erase(it);
@@ -147,12 +147,12 @@ void clients_wrapper_t::write (int fd)
 {
     std::map <int, size_t> :: iterator it = pointers.find(fd);
     if (it == pointers.end())
-        throw std::runtime_error("unknown fd");
+        throw std::runtime_error("write unknown fd");
     size_t offset = it->second - add_offset;
     ssize_t wb = ::write(fd, buffer + offset, size - offset);
     if (wb < 0)
     {
-        if (errno != EINTR)
+        if ((errno != EINTR) && (errno != EPIPE))
             throw std::runtime_error("error write");
         else
             wb = 0;
@@ -172,13 +172,13 @@ std::string clients_wrapper_t::read (int fd)
 {
     std::map <int, size_t> :: iterator it = pointers.find(fd);
     if (it == pointers.end())
-        throw std::runtime_error("unknown fd");
+        throw std::runtime_error("read for unknown fd");
     
     char buff [64];
     ssize_t rb = ::read(fd, buff, sizeof(buff));
     if (rb < 0)
     {
-        if (errno != EINTR)
+        if ((errno != EINTR) && (errno != EPIPE))
             throw std::runtime_error("error read");
         else
             return std::string();
@@ -208,4 +208,9 @@ void clients_wrapper_t::append (std::string_view value)
     shrink_to_fit();
 }
 
+bool clients_wrapper_t::have (int fd) const noexcept
+{
+    std::map <int, size_t> :: const_iterator it = pointers.find(fd);
+    return (it != pointers.end());
+}
 

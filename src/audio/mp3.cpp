@@ -106,7 +106,7 @@ uint32_t fill_buffer
             buff[cur_sample * 4 + 3] = ((sample >> 8) & 0xff);
         }
     }
-    return pcm->length * 4;
+    return samples * 4;
 }
 
 
@@ -178,11 +178,12 @@ uint32_t get_pcm_sound (file_descriptor * _file, uint8_t * pbuf, uint32_t NbrOfD
                 else
                 {
                     reuse_mad();
+                    audio_ctl.seeked = 1;
                     goto break_for;
                 }
             }
             mad_synth_frame(&mad_data.synth, &mad_data.frame);
-            frames += fill_buffer(&mad_data.frame.header, &mad_data.synth.pcm, pbuf + frames, audio_ctl_t::audio_buffer_size - frames);
+            frames += fill_buffer(&mad_data.frame.header, &mad_data.synth.pcm, pbuf + frames, NbrOfData - frames);
         }
         
         if (rb == 0)

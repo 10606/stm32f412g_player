@@ -27,6 +27,7 @@ include_directories(
     ${player_path}/main
     ${player_path}/view
     ${player_path}/usb
+    ../packet_len_data
 )
 
 add_executable(multiplex_server
@@ -36,9 +37,13 @@ add_executable(multiplex_server
     src/epoll_reg.cpp
     src/epoll_wrapper.cpp
     src/unix_server_sock.cpp
+    src/check_password.cpp
+    src/tcp_server_sock.cpp
+    ../packet_len_data/sender_data.cpp
 )
 
 target_link_libraries(multiplex_server
     systemd
+    crypto
 )
 

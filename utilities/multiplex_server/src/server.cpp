@@ -1,12 +1,17 @@
 #include <unistd.h>
 #include <sys/epoll.h>
+#include <arpa/inet.h>
 #include <sys/un.h>
 #include <sys/wait.h>
 #include <signal.h>
+
 #include <iostream>
 #include <string_view>
 #include <vector>
 #include <stdexcept>
+
+#include "check_password.h"
+#include "tcp_server_sock.h"
 #include "epoll_wrapper.h"
 #include "unix_server_sock.h"
 #include "com_wrapper.h"
@@ -33,11 +38,13 @@ int main (int argc, char ** argv)
     {
         epoll_wraper epoll_wrap;
         unix_server_sock_t conn_sock(sock_name, socket_activation, epoll_wrap.fd());
+        tcp_server_sock_t tcp_server_sock(INADDR_ANY, 110, epoll_wrap.fd());
             
         try
         {
             clients_wrapper_t clients(epoll_wrap.fd());
             com_wrapper_t stm32(stm32_name, epoll_wrap.fd());
+            authentificator_t auth(epoll_wrap.fd());
 
             bool exit = 0;
             while (!exit)
@@ -50,18 +57,35 @@ int main (int argc, char ** argv)
                         if (event.second & EPOLLIN)
                             clients.reg(conn_sock.accept());
                     }
+                    else if (event.first == tcp_server_sock.file_descriptor())
+                    {
+                        try
+                        {
+                            if (event.second & EPOLLIN)
+                                auth.add(tcp_server_sock.accept());
+                        }
+                        catch (...)
+                        {}
+                    }
                     else if (event.first == stm32.file_descriptor())
                     {
                         if (event.second & EPOLLIN)
                             clients.append(stm32.read());
-                        else if (event.second & EPOLLOUT)
+                        if (event.second & EPOLLOUT)
                             stm32.write();
                     }
-                    else // client's socket
+                    else if (auth.have(event.first))
+                    {
+                        if (event.second & EPOLLIN)
+                            auth.read(event.first);
+                        if (event.second & EPOLLOUT)
+                            auth.write(event.first);
+                    }
+                    else if (clients.have(event.first))
                     {
                         if (event.second & EPOLLIN)
                             stm32.append(clients.read(event.first));
-                        else if (event.second & EPOLLOUT)
+                        if (event.second & EPOLLOUT)
                             clients.write(event.first);
                     }
                 }
@@ -71,13 +95,42 @@ int main (int argc, char ** argv)
                     static const uint32_t err_mask = EPOLLRDHUP | EPOLLERR | EPOLLHUP;
                     if (event.second & err_mask)
                     {
-                        epoll_wrap.unreg(event.first);
+                        try
+                        {
+                            epoll_wrap.unreg(event.first);
+                        }
+                        catch (...)
+                        {}
+                        
                         if (event.first == conn_sock.file_descriptor())
                             throw std::runtime_error("server socket error");
+                        else if (event.first == tcp_server_sock.file_descriptor())
+                            ;
                         else if (event.first == stm32.file_descriptor())
                             exit = 1;
-                        else
+                        else if (auth.have(event.first))
+                            auth.remove(event.first);
+                        else if (clients.have(event.first))
                             clients.unreg(event.first);
+                    }
+                }
+
+                std::vector <int> acc = auth.check();
+                for (int fd : acc)
+                {
+                    try
+                    {
+                        clients.reg(fd);
+                    }
+                    catch (...)
+                    {
+                        try
+                        {
+                            epoll_wrap.unreg(fd);
+                        }
+                        catch (...)
+                        {}
+                        close(fd);
                     }
                 }
             }

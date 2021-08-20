@@ -22,6 +22,7 @@ struct clients_wrapper_t
     void write (int fd);
     std::string read (int fd);
     void append (std::string_view value);
+    bool have (int fd) const noexcept;
     
 private:
     void realloc (size_t start_index, size_t needed);
