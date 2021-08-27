@@ -51,7 +51,8 @@ struct escape_buffer
     escape_buffer (int _fd) :
         fd(_fd),
         epoll(epoll_create(3)),
-        cur(),
+        cmd_from_stdin(),
+        info_from_stm(),
         to_write(1, 0x0e),
         state()
     {
@@ -88,15 +89,15 @@ struct escape_buffer
         for (unsigned char i = 1; i != std::extent <decltype(int_commands)>::value; ++i)
         {
             size_t j = 0;
-            for (; j != std::min(cur.size(), std::strlen(int_commands[i])); ++j)
+            for (; j != std::min(cmd_from_stdin.size(), std::strlen(int_commands[i])); ++j)
             {
-                if (int_commands[i][j] != cur[j])
+                if (int_commands[i][j] != cmd_from_stdin[j])
                     break;
             }
             if (j == std::strlen(int_commands[i]))
             {
                 for (size_t k = 0; k != j; ++k)
-                    cur.pop_front();
+                    cmd_from_stdin.pop_front();
                 if (std::string_view(int_commands[i]) == "q") 
                 {
                     cl_term();
@@ -106,17 +107,17 @@ struct escape_buffer
                     mod_fd(EPOLLIN | EPOLLOUT);
                 to_write.push_back(i);
             }
-            if (j == cur.size())
+            if (j == cmd_from_stdin.size())
                 has_continue = 1;
         }
         
         if (!has_continue)
-            cur.pop_front();
+            cmd_from_stdin.pop_front();
     }
     
     void put (char c)
     {
-        cur.push_back(c);
+        cmd_from_stdin.push_back(c);
         is_in_expected();
     }
 
@@ -147,15 +148,15 @@ struct escape_buffer
                         else
                             ret = 0;
                     }
-                    readed.insert(readed.end(), buffer, buffer + ret);
-                    extract(readed, state);
+                    info_from_stm.insert(info_from_stm.end(), buffer, buffer + ret);
+                    extract(info_from_stm, state);
                 }
                 if (event[i].events & EPOLLOUT)
                 {
                     ssize_t ret = write(fd, to_write.c_str(), to_write.size());
                     if (ret == -1)
                     {
-                        if (errno != EINTR)
+                        if ((errno != EINTR) && (errno != EPIPE))
                             throw std::runtime_error("can't write");
                         else
                             ret = 0;
@@ -166,7 +167,9 @@ struct escape_buffer
                         to_write.clear();
                     }
                     else
-                        to_write = to_write.substr(ret);
+                    {
+                        to_write.erase(to_write.begin(), to_write.begin() + ret);
+                    }
                 }
             }
             if ((event[i].events & EPOLLIN) && event[i].data.fd == STDIN_FILENO)
@@ -191,9 +194,9 @@ struct escape_buffer
     
     int fd;
     int epoll;
-    std::deque <char> cur;
+    std::deque <char> cmd_from_stdin;
+    std::deque <char> info_from_stm;
     std::string to_write;
-    std::deque <char> readed;
     state_t state;
 };
 

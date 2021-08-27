@@ -20,7 +20,7 @@ set(player_path
     ${root_code_path}/stm32/stm32cubemx/f412g_player/src/
 )
 
-set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${compile_flags}")
+set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${release_flags}")
 
 message("CMAKE_CXX_FLAGS" ${CMAKE_CXX_FLAGS})
 

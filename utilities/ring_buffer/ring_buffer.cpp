@@ -1,0 +1,86 @@
+#include "ring_buffer.h"
+
+#include <stdexcept>
+#include <memory.h>
+#include <limits>
+
+#include "unistd.h"
+#include "errno.h"
+
+size_t ring_buffer::add (std::string_view value)
+{
+    size_t ans = 0;
+    if (capacity - size_v < value.size())
+        realloc(value.size());
+    
+    size_t end = begin_v + size_v;
+    if (end >= capacity)
+        end -= capacity;
+    size_t tail = capacity - end;
+    if (value.size() > tail)
+    {
+        memcpy(data + end, value.data(), tail);
+        memcpy(data, value.data() + tail, value.size() + - tail);
+    }
+    else
+    {
+        memcpy(data + end, value.data(), value.size());
+    }
+    size_v += value.size();
+    
+    if ((offset_in_history + size_v >= std::numeric_limits <size_t> :: max() / 2) ||
+        (offset_in_history + size_v < offset_in_history))
+    {
+        ans = offset_in_history;
+        offset_in_history = 0;
+    }
+    
+    return ans;
+}
+
+size_t ring_buffer::write (int fd, size_t pos)
+{
+    pos -= offset_in_history;
+    
+    size_t count = size_v - pos;
+    pos += begin_v;
+    if (pos >= capacity)
+        pos -= capacity;
+    
+    if (pos + count > capacity)
+        count = capacity - pos;
+    
+    ssize_t ret = ::write(fd, data + pos, count);
+    if (ret == -1)
+    {
+        if ((errno != EINTR) && (errno != EPIPE))
+            throw std::runtime_error("error write");
+        else
+            ret = 0;
+    }
+
+    return ret;
+}
+
+void ring_buffer::realloc (size_t size_diff)
+{
+    size_t new_capacity = size_v + size_diff + size_inc_value;
+    char * new_data = new char [new_capacity]; 
+
+    size_t head = capacity - begin_v;
+    if (size_v > head)
+    {
+        memmove(new_data, data + begin_v, head);
+        memmove(new_data + head, data, size_v - head);
+    }
+    else
+    {
+        memmove(new_data, data + begin_v, size_v);
+    }
+    
+    begin_v = 0;
+    capacity = new_capacity;
+    delete [] data;
+    data = new_data;
+}
+

@@ -7,6 +7,8 @@
 #include <string>
 #include <string_view>
 
+#include "ring_buffer.h"
+
 struct clients_wrapper_t
 {
     clients_wrapper_t (int _epoll_fd);
@@ -22,10 +24,15 @@ struct clients_wrapper_t
     void write (int fd);
     std::string read (int fd);
     void append (std::string_view value);
-    bool have (int fd) const noexcept;
+    void remove_too_big ();
     
+    bool have (int fd) const noexcept
+    {
+        std::map <int, size_t> :: const_iterator it = pointers.find(fd);
+        return (it != pointers.end());
+    }
+
 private:
-    void realloc (size_t start_index, size_t needed);
     void shrink_to_fit ();
     
     static size_t const delta_capacity = 1024;
@@ -33,13 +40,10 @@ private:
     static size_t const max_clients = 1000;
     
     int epoll_fd; // not owned
-    char * buffer;
-    size_t size;
-    size_t capacity;
-    size_t last_full_struct;
+    ring_buffer data;
+    size_t last_full_struct_ptr;
     
     std::map <int, size_t> pointers; // fd -> offset
-    size_t add_offset; // offset buffer in history
     std::set <std::pair <size_t, int> > less_size; // <offset, fd>
     std::set <int> not_registred; // not registred fd on write in epoll
 };

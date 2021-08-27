@@ -38,7 +38,7 @@ int main (int argc, char ** argv)
     {
         epoll_wraper epoll_wrap;
         unix_server_sock_t conn_sock(sock_name, socket_activation, epoll_wrap.fd());
-        tcp_server_sock_t tcp_server_sock(INADDR_ANY, 110, epoll_wrap.fd());
+        tcp_server_sock_t tcp_server_sock(INADDR_ANY, 750, epoll_wrap.fd());
             
         try
         {
@@ -49,6 +49,7 @@ int main (int argc, char ** argv)
             bool exit = 0;
             while (!exit)
             {
+                clients.remove_too_big();
                 std::vector <std::pair <int, uint32_t> > events = epoll_wrap.wait();
                 for (std::pair <int, uint32_t> const & event : events)
                 {

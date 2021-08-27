@@ -10,10 +10,8 @@
 
 com_wrapper_t::com_wrapper_t (char const * _file_name, int _epoll_fd) :
     fd(-1),
-    buffer(nullptr),
+    data(),
     pos(0),
-    size(0),
-    capacity(0),
     epoll_fd(_epoll_fd)
 {
     fd = open(_file_name, O_RDWR | O_NOCTTY);
@@ -33,56 +31,26 @@ com_wrapper_t::com_wrapper_t (char const * _file_name, int _epoll_fd) :
 
 com_wrapper_t::~com_wrapper_t ()
 {
-    delete [] buffer;
     epoll_del(epoll_fd, fd);
     close(fd);
 }
 
-void com_wrapper_t::realloc (size_t needed)
-{
-    size_t new_size = size - pos + delta_capacity + needed;
-    char * new_buffer = new char [new_size];
-    if (buffer)
-    {
-        memmove(new_buffer, buffer + pos, size - pos);
-        delete [] buffer;
-    }
-    buffer = new_buffer;
-    capacity = new_size;
-    size -= pos;
-    pos = 0;
-}
-
-void com_wrapper_t::shrink_to_fit ()
-{
-    if (pos < delta_capacity)
-        return;
-    realloc(0);
-}
-
 void com_wrapper_t::write ()
 {
-    ssize_t wb = ::write(fd, buffer + pos, size - pos);
-    if (wb < 0)
-    {
-        if (errno != EINTR)
-            throw std::runtime_error("can't write");
-        else
-            wb = 0;
-    }
+    size_t wb = data.write(fd, pos);
+    data.erase(wb);
     pos += wb;
-    if (pos == size)
+    if (pos == data.end())
         epoll_reg(epoll_fd, fd, EPOLLIN);
 }
 
 void com_wrapper_t::append (std::string_view value)
 {
-    if (size + value.size() > capacity)
-        realloc(value.size());
-    size_t old_size = size;
-    size += value.copy(buffer + size, value.size());
-    if (pos == old_size)
+    size_t old_end = data.end();
+    size_t diff = data.add(value);
+    if (pos == old_end)
         epoll_reg(epoll_fd, fd, EPOLLIN | EPOLLOUT);
+    pos -= diff;
 }
 
 std::string com_wrapper_t::read ()
@@ -91,7 +59,7 @@ std::string com_wrapper_t::read ()
     ssize_t rb = ::read(fd, buff, sizeof(buff));
     if (rb == -1)
     {
-        if (errno != EINTR)
+        if ((errno != EINTR) && (errno != EPIPE))
             throw std::runtime_error("can't read");
         else
             return std::string();

@@ -89,12 +89,12 @@ done:
 
 struct client_socket_t
 {
-    client_socket_t (uint32_t _addr, uint16_t _port, int _epoll_fd, std::string && _pass) :
+    client_socket_t (in_addr_t _addr, uint16_t _port, int _epoll_fd) :
         status(not_connected),
         fd(-1),
         epoll_fd(_epoll_fd),
         rsa_key(),
-        pass(std::move(_pass)),
+        pass_pos(0),
         encrypted_pass(),
         sender_password()
     {
@@ -177,6 +177,7 @@ private:
         not_connected,
         in_connect,
         get_rsa_key,
+        read_password,
         send_password,
         connected
     };
@@ -189,7 +190,9 @@ private:
 
     recver_data_len rsa_key;
     
-    std::string pass;
+    char pass_buff[1024];
+    size_t pass_pos;
+    
     std::string encrypted_pass;
     sender_data_len sender_password;
 };
@@ -223,23 +226,43 @@ void client_socket_t::read ()
         rsa_key.read();
         if (rsa_key.ready())
         {
+            status = read_password;
+            if (epoll_reg(epoll_fd, STDIN_FILENO, EPOLLIN))
+                throw std::runtime_error("cant' add to epoll");
+            if (epoll_del(epoll_fd, fd))
+                throw std::runtime_error("cant' del from epoll");
+        }
+        return;
+    }
+    if (status == read_password)
+    {
+        ssize_t rb = ::read(STDIN_FILENO, pass_buff + pass_pos, 1);
+        if (rb == -1)
+        {
+            if (errno != EINTR)
+                throw std::runtime_error("read password");
+            rb = 0;
+        }
+        if (rb == 0)
+            return;
+        if (pass_buff[pass_pos] == '\n')
+        {
             status = send_password;
-            encrypted_pass = enc_pass(pass, rsa_key.get());
+            encrypted_pass = enc_pass(std::string_view(pass_buff, pass_pos), rsa_key.get());
             rsa_key.set(-1); // free memory
             sender_password.set(fd, std::move(encrypted_pass));
             if (epoll_reg(epoll_fd, fd, EPOLLOUT))
                 throw std::runtime_error("cant' add to epoll");
+            if (epoll_del(epoll_fd, STDIN_FILENO))
+                throw std::runtime_error("cant' del from epoll");
         }
+        else if (pass_pos + rb == sizeof(pass_buff))
+            throw std::runtime_error("too long pass");
+        pass_pos += rb;
         return;
     }
     if (status == connected)
     {
-        char buff[1024];
-        ssize_t rb = ::read(fd, buff, sizeof(buff));
-        if (rb != -1)
-        {
-            std::cout << std::string(buff, rb) << '\n';
-        }
         return;
     }
 }
@@ -268,14 +291,22 @@ void client_socket_t::connect ()
 }
 
 
-int main ()
+int main (int argc, char const * const * argv)
 {
-    std::string pass("00000000");
-
     try
     {
         epoll_wraper epoll_wrap;
-        client_socket_t conn_sock(0x7f000001, 110, epoll_wrap.fd(), std::move(pass));
+        
+        in_addr addr{0x7f000001}; // 127.0.0.1
+        if (argc > 1)
+        {
+            if (inet_aton(argv[1], &addr) == 0)
+            {
+                std::cout << "wrong address\n";
+                return 1;
+            }
+        }
+        client_socket_t conn_sock(addr.s_addr, 750, epoll_wrap.fd());
         
         bool exit = 0;
         while (!exit && !conn_sock.ready())
@@ -283,7 +314,8 @@ int main ()
             std::vector <std::pair <int, uint32_t> > events = epoll_wrap.wait();
             for (std::pair <int, uint32_t> const & event : events)
             {
-                if (event.first == conn_sock.file_descriptor())
+                if ((event.first == conn_sock.file_descriptor()) ||
+                    (event.first == STDIN_FILENO))
                 {
                     if (event.second & EPOLLIN)
                         conn_sock.read();
@@ -311,7 +343,7 @@ int main ()
         }
         
         if (exit)
-            return 1;
+            return 2;
         
         interactive(conn_sock.reset_file_descriptor());
     }

@@ -5,6 +5,8 @@
 #include <string>
 #include <string_view>
 
+#include "ring_buffer.h"
+
 struct com_wrapper_t
 {
     com_wrapper_t (char const * _file_name, int _epoll_fd);
@@ -25,15 +27,9 @@ struct com_wrapper_t
     }
     
 private:
-    void realloc (size_t needed);
-    void shrink_to_fit ();
-    
     int fd;
-    static size_t const delta_capacity = 128;
-    char * buffer;
+    ring_buffer data;
     size_t pos;
-    size_t size;
-    size_t capacity;
     int epoll_fd; // not owned
 };
 

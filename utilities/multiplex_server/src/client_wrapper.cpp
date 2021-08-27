@@ -10,12 +10,9 @@
 
 clients_wrapper_t::clients_wrapper_t (int _epoll_fd) :
     epoll_fd(_epoll_fd),
-    buffer(nullptr),
-    size(0),
-    capacity(0),
-    last_full_struct(0),
+    data(),
+    last_full_struct_ptr(0),
     pointers(),
-    add_offset(0),
     less_size(),
     not_registred()
 {}
@@ -27,7 +24,6 @@ clients_wrapper_t::~clients_wrapper_t ()
         epoll_del(epoll_fd, i.first);
         close(i.first);
     }
-    delete [] buffer;
 }
 
 size_t inc_struct_ptr (char c) noexcept
@@ -65,9 +61,9 @@ void clients_wrapper_t::reg (int fd)
         return;
     }
     
-    pointers.insert({fd, last_full_struct + add_offset});
-    less_size.insert({last_full_struct + add_offset, fd});
-    if (last_full_struct != size)
+    pointers.insert({fd, last_full_struct_ptr});
+    less_size.insert({last_full_struct_ptr, fd});
+    if (last_full_struct_ptr != data.end())
     {
         epoll_reg(epoll_fd, fd, (EPOLLIN | EPOLLOUT));
     }
@@ -91,56 +87,29 @@ void clients_wrapper_t::unreg (int fd)
     shrink_to_fit();
 }
 
-void clients_wrapper_t::realloc (size_t start_index, size_t needed)
+void clients_wrapper_t::remove_too_big ()
 {
-    size_t new_size = size - start_index + delta_capacity + needed;
-    char * new_buffer = new char [new_size];
-    capacity = new_size;
-    size -= start_index;
-    last_full_struct -= start_index;
-    if (buffer)
-    {
-        memmove(new_buffer, buffer + start_index, size);
-        delete [] buffer;
-    }
-    buffer = new_buffer;
- 
-    add_offset += start_index;
-    if (add_offset > std::numeric_limits <decltype(add_offset)> :: max() / 2)
-    {
-        std::set <std::pair <size_t, int> > new_less_size;
-        for (auto const & v : less_size)
-            new_less_size.insert({v.first - add_offset, v.second});
-        less_size.swap(new_less_size);
-        
-        for (auto & v : pointers)
-            v.second -= add_offset;
-        add_offset = 0;
-    }
-}
-
-void clients_wrapper_t::shrink_to_fit ()
-{
-    if (capacity > max_capacity)
+    if (data.size() > max_capacity)
     {
         while (!less_size.empty())
         {
             std::set <std::pair <size_t, int> > :: iterator it = less_size.begin();
-            if (it->first - add_offset + max_capacity / 2 < size)
+            if (it->first + max_capacity / 2 < data.end())
                 unreg(it->second);
             else
                 break;
         }
     }
-    
-    size_t min_ptr = last_full_struct;
+    shrink_to_fit();
+}
+
+void clients_wrapper_t::shrink_to_fit ()
+{
+    size_t min_ptr = last_full_struct_ptr;
     if (!less_size.empty())
-        min_ptr = std::min(min_ptr, less_size.begin()->first - add_offset);
+        min_ptr = std::min(min_ptr, less_size.begin()->first);
         
-    if (min_ptr < delta_capacity)
-        return; // useless
-    
-    realloc(min_ptr, 0);
+    data.erase(min_ptr - data.begin());
 }
 
 void clients_wrapper_t::write (int fd)
@@ -148,19 +117,11 @@ void clients_wrapper_t::write (int fd)
     std::map <int, size_t> :: iterator it = pointers.find(fd);
     if (it == pointers.end())
         throw std::runtime_error("write unknown fd");
-    size_t offset = it->second - add_offset;
-    ssize_t wb = ::write(fd, buffer + offset, size - offset);
-    if (wb < 0)
-    {
-        if ((errno != EINTR) && (errno != EPIPE))
-            throw std::runtime_error("error write");
-        else
-            wb = 0;
-    }
+    size_t wb = data.write(fd, it->second);
     less_size.erase({it->second, it->first});
     it->second += wb;
     less_size.insert({it->second, it->first});
-    if (it->second - add_offset == size)
+    if (it->second == data.end())
     {
         epoll_reg(epoll_fd, fd, EPOLLIN);
         not_registred.insert(it->first);
@@ -188,29 +149,30 @@ std::string clients_wrapper_t::read (int fd)
 
 void clients_wrapper_t::append (std::string_view value)
 {
-    if (size + value.size() > capacity)
-        realloc(0, value.size());
-    size += value.copy(buffer + size, capacity - size);
-    
-    size_t new_last_full_struct = last_full_struct;
-    while (new_last_full_struct < size)
+    size_t diff = data.add(value);
+    if (diff != 0)
     {
-        last_full_struct = new_last_full_struct;
-        new_last_full_struct += inc_struct_ptr(buffer[last_full_struct]);
+        std::set <std::pair <size_t, int> > new_less_size;
+        for (auto const & v : less_size)
+            new_less_size.insert({v.first - diff, v.second});
+        less_size.swap(new_less_size);
+        
+        for (auto & v : pointers)
+            v.second -= diff;
+        last_full_struct_ptr -= diff;
     }
-    if (new_last_full_struct == size)
-        last_full_struct = size;
+    
+    size_t new_last_full_struct = last_full_struct_ptr;
+    while (new_last_full_struct < data.end())
+    {
+        last_full_struct_ptr = new_last_full_struct;
+        new_last_full_struct += inc_struct_ptr(data[last_full_struct_ptr]);
+    }
+    if (new_last_full_struct == data.end())
+        last_full_struct_ptr = data.end();
     
     for (int const & i : not_registred)
         epoll_reg(epoll_fd, i, EPOLLIN | EPOLLOUT);
     not_registred.clear();
-
-    shrink_to_fit();
-}
-
-bool clients_wrapper_t::have (int fd) const noexcept
-{
-    std::map <int, size_t> :: const_iterator it = pointers.find(fd);
-    return (it != pointers.end());
 }
 

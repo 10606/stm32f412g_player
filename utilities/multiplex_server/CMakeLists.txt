@@ -28,6 +28,7 @@ include_directories(
     ${player_path}/view
     ${player_path}/usb
     ../packet_len_data
+    ../ring_buffer
 )
 
 add_executable(multiplex_server
@@ -40,6 +41,7 @@ add_executable(multiplex_server
     src/check_password.cpp
     src/tcp_server_sock.cpp
     ../packet_len_data/sender_data.cpp
+    ../ring_buffer/ring_buffer.cpp
 )
 
 target_link_libraries(multiplex_server
