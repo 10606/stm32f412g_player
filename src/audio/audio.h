@@ -13,6 +13,13 @@ enum buffer_state_t
     buffer_offset_full,     
 };
 
+enum class pause_status_t
+{
+    play,
+    pause,
+    soft_pause
+};
+
 struct audio_ctl_t 
 {
     audio_ctl_t ();
@@ -26,7 +33,7 @@ struct audio_ctl_t
 
     uint32_t audio_freq;
     uint8_t volume;
-    uint8_t pause_status; // 0 - audio run, 1 - pause, 2 - play to end and pause 
+    pause_status_t pause_status; // 0 - audio run, 1 - pause, 2 - play to end and pause 
     bool repeat_mode;
     bool seeked;
     volatile buffer_state_t state;

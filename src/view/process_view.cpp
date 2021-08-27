@@ -21,7 +21,7 @@ uint32_t view::change_volume (int8_t value)
     else
         audio_ctl->volume += value;
     BSP_AUDIO_OUT_SetVolume(audio_ctl->volume);
-    if (audio_ctl->pause_status == 1)
+    if (audio_ctl->pause_status == pause_status_t::pause)
         BSP_AUDIO_OUT_Pause();
     display::song_volume(*audio_ctl, state_song_view, (state == state_t::song));
     return 0;
@@ -164,15 +164,15 @@ uint32_t view::process_down ()
 
 uint32_t view::play_pause ()
 {
-    if (audio_ctl->pause_status == 1)
+    if (audio_ctl->pause_status == pause_status_t::pause)
     {
         BSP_AUDIO_OUT_Resume();
-        audio_ctl->pause_status = 0;
+        audio_ctl->pause_status = pause_status_t::play;
     }
     else
     {
         BSP_AUDIO_OUT_Pause();
-        audio_ctl->pause_status = 1;
+        audio_ctl->pause_status = pause_status_t::pause;
     }
     audio_ctl->need_redraw = 1;
     return 0;
@@ -182,13 +182,13 @@ uint32_t view::to_end_and_pause ()
 {
     switch (audio_ctl->pause_status)
     {
-    case 0:
-        audio_ctl->pause_status = 2;
+    case pause_status_t::play:
+        audio_ctl->pause_status = pause_status_t::soft_pause;
         break;
-    case 1:
+    case pause_status_t::pause:
         break;
-    case 2:
-        audio_ctl->pause_status = 0;
+    case pause_status_t::soft_pause:
+        audio_ctl->pause_status = pause_status_t::play;
         break;
     };
     audio_ctl->need_redraw = 1;

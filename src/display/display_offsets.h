@@ -14,6 +14,7 @@ struct offsets
     static const uint32_t song_name = 7;
     static const uint32_t in_song_name = 20;
     static const uint32_t time = 49;
+    static const uint32_t status = time;
     static const uint32_t x_padding = 4;
 
     static const uint32_t picture = 65;

@@ -17,7 +17,7 @@ audio_ctl_t  audio_ctl;
 audio_ctl_t::audio_ctl_t () :
     audio_freq(44100),
     volume(70),
-    pause_status(0),
+    pause_status(pause_status_t::play),
     repeat_mode(0),
     seeked(0),
     state(buffer_offset_none)
@@ -114,13 +114,17 @@ void audio_ctl_t::display_time () const
     (
         str, 
         str_time_size, 
-        " %4u:%02u.%03u / %u:%02u.%03u ", 
+        " %4u:%02u.%03u / %u:%02u.%03u    %c %c ", 
         cur_time.min,
         cur_time.sec,
         cur_time.ms,
+        
         total_time.min,
         total_time.sec,
-        total_time.ms
+        total_time.ms,
+        
+        display::print_r_state(repeat_mode),
+        display::print_p_state(pause_status)
     );
     display_string_center_c(0, display::offsets::time, str, &font_12, lcd_color_blue, lcd_color_white);
 }
@@ -132,9 +136,9 @@ uint32_t audio_ctl_t::new_song_or_repeat ()
         reuse_mad();
     }
     
-    if (pause_status == 2)
+    if (pause_status == pause_status_t::soft_pause)
     {
-        pause_status = 1;
+        pause_status = pause_status_t::pause;
         BSP_AUDIO_OUT_Pause();
     }
     
