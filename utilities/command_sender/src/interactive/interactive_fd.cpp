@@ -65,6 +65,11 @@ struct escape_buffer
         epoll.reg(fd, EPOLLIN | EPOLLOUT);
     }
     
+    escape_buffer (escape_buffer &&) = delete;
+    escape_buffer (escape_buffer const &) = delete;
+    escape_buffer & operator = (escape_buffer &&) = delete;
+    escape_buffer & operator = (escape_buffer const &) = delete;
+    
     void is_in_expected ()
     {
         bool has_continue = 0;

@@ -153,6 +153,11 @@ struct client_socket_t
         }
     }
     
+    client_socket_t (client_socket_t &&) = delete;
+    client_socket_t (client_socket_t const &) = delete;
+    client_socket_t & operator = (client_socket_t &&) = delete;
+    client_socket_t & operator = (client_socket_t const &) = delete;
+    
     int file_descriptor () const noexcept
     {
         return fd;

@@ -4,6 +4,7 @@
 #include <string_view>
 #include <stdint.h>
 #include <stddef.h>
+#include <algorithm>
 
 struct recver_data_len
 {
@@ -18,6 +19,29 @@ struct recver_data_len
     ~recver_data_len ()
     {
         delete [] value;
+    }
+    
+    void swap (recver_data_len & rhs) noexcept
+    {
+        std::swap(init, rhs.init);
+        std::swap(len, rhs.len);
+        std::swap(value, rhs.value);
+        std::swap(recv_ptr, rhs.recv_ptr);
+        std::swap(fd, rhs.fd);
+    }
+    
+    recver_data_len (recver_data_len const &) = delete;
+    recver_data_len (recver_data_len && rhs) noexcept :
+        recver_data_len()
+    {
+        swap(rhs);
+    }
+    
+    recver_data_len & operator = (recver_data_len const &) = delete;
+    recver_data_len & operator = (recver_data_len && rhs) noexcept
+    {
+        swap(rhs);
+        return *this;
     }
 
     void set (int _fd)

@@ -15,6 +15,29 @@ struct sender_data_len
         fd(-1)
     {}
     
+    void swap (sender_data_len & rhs) noexcept
+    {
+        std::swap(init, rhs.init);
+        std::swap(len, rhs.len);
+        std::swap(value, rhs.value);
+        std::swap(send_ptr, rhs.send_ptr);
+        std::swap(fd, rhs.fd);
+    }
+    
+    sender_data_len (sender_data_len const &) = delete;
+    sender_data_len (sender_data_len && rhs) noexcept :
+        sender_data_len()
+    {
+        swap(rhs);
+    }
+    
+    sender_data_len & operator = (sender_data_len const &) = delete;
+    sender_data_len & operator =(sender_data_len && rhs) noexcept
+    {
+        swap(rhs);
+        return *this;
+    }
+    
     void set (int _fd, std::string && _value)
     {
         value = std::move(_value);

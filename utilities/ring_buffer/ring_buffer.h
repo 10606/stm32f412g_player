@@ -21,7 +21,7 @@ struct ring_buffer
         delete [] data;
     }
     
-    void swap (ring_buffer && rhs)
+    void swap (ring_buffer & rhs) noexcept
     {
         std::swap(data, rhs.data);
         std::swap(capacity, rhs.capacity);
@@ -31,16 +31,16 @@ struct ring_buffer
     }
     
     ring_buffer (ring_buffer const &) = delete;
-    ring_buffer (ring_buffer && rhs) :
+    ring_buffer (ring_buffer && rhs) noexcept :
         ring_buffer()
     {
-        swap(std::move(rhs));
+        swap(rhs);
     }
     
     ring_buffer & operator = (ring_buffer const &) = delete;
-    ring_buffer & operator = (ring_buffer && rhs)
+    ring_buffer & operator = (ring_buffer && rhs) noexcept
     {
-        swap(std::move(rhs));
+        swap(rhs);
         return *this;
     }
     
