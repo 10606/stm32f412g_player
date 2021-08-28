@@ -2,6 +2,8 @@
 #include "interactive_command.h"
 #include "usb_commands.h"
 #include "term_display.h"
+#include "epoll_wrapper.h"
+#include "epoll_reg.h"
 
 #include <string_view>
 #include <vector>
@@ -50,7 +52,7 @@ struct escape_buffer
 {
     escape_buffer (int _fd) :
         fd(_fd),
-        epoll(epoll_create(3)),
+        epoll(),
         cmd_from_stdin(),
         info_from_stm(),
         to_write(1, 0x0e),
@@ -58,53 +60,33 @@ struct escape_buffer
     {
         if (fd == -1)
             throw std::runtime_error("fd = -1");
-        if (epoll == -1)
-            throw std::runtime_error("cant't create epoll");
         
-        epoll_data_t stdin_data;
-        stdin_data.fd = STDIN_FILENO;
-        epoll_event stdin_event{EPOLLIN | EPOLLERR | EPOLLHUP, stdin_data};
-        if (epoll_ctl(epoll, EPOLL_CTL_ADD, STDIN_FILENO, &stdin_event))
-            throw std::runtime_error("can't add stdin to epoll");
-
-        epoll_data_t fd_data;
-        fd_data.fd = fd;
-        epoll_event fd_event{EPOLLIN | EPOLLOUT | EPOLLERR | EPOLLHUP, fd_data};
-        if (epoll_ctl(epoll, EPOLL_CTL_ADD, fd, &fd_event))
-            throw std::runtime_error("can't add fd to epoll");
+        epoll.reg(STDIN_FILENO, EPOLLIN);
+        epoll.reg(fd, EPOLLIN | EPOLLOUT);
     }
     
-    void mod_fd (uint32_t flag)
-    {
-        epoll_data_t fd_data;
-        fd_data.fd = fd;
-        epoll_event fd_event{flag | EPOLLERR | EPOLLHUP, fd_data};
-        if (epoll_ctl(epoll, EPOLL_CTL_MOD, fd, &fd_event))
-            throw std::runtime_error("can't mod fd in epoll");
-    }
-
     void is_in_expected ()
     {
         bool has_continue = 0;
-        for (unsigned char i = 1; i != std::extent <decltype(int_commands)>::value; ++i)
+        for (unsigned char i = 1; i != int_commands.size(); ++i)
         {
             size_t j = 0;
-            for (; j != std::min(cmd_from_stdin.size(), std::strlen(int_commands[i])); ++j)
+            for (; j != std::min(cmd_from_stdin.size(), int_commands[i].size()); ++j)
             {
                 if (int_commands[i][j] != cmd_from_stdin[j])
                     break;
             }
-            if (j == std::strlen(int_commands[i]))
+            if (j == int_commands[i].size())
             {
                 for (size_t k = 0; k != j; ++k)
                     cmd_from_stdin.pop_front();
-                if (std::string_view(int_commands[i]) == "q") 
+                if (int_commands[i] == "q") 
                 {
                     cl_term();
                     std::exit(0);
                 }
                 if (to_write.empty())
-                    mod_fd(EPOLLIN | EPOLLOUT);
+                    epoll.reg(fd, EPOLLIN | EPOLLOUT);
                 to_write.push_back(i);
             }
             if (j == cmd_from_stdin.size())
@@ -123,21 +105,11 @@ struct escape_buffer
 
     void process ()
     {
-        epoll_event event[2];
-        int cnt = epoll_wait(epoll, event, sizeof(event), -1); 
-        if (cnt == -1)
+        for (std::pair <int, uint32_t> event : epoll.wait())
         {
-            if (errno != EINTR)
-                throw std::runtime_error("can't epoll wait");
-            else
-                return;
-        }
-        
-        for (int i = 0; i != cnt; ++i)
-        {
-            if (event[i].data.fd == fd)
+            if (event.first == fd)
             {
-                if (event[i].events & EPOLLIN)
+                if (event.second & EPOLLIN)
                 {
                     char buffer[1024];
                     ssize_t ret = read(fd, buffer, sizeof(buffer));
@@ -151,7 +123,7 @@ struct escape_buffer
                     info_from_stm.insert(info_from_stm.end(), buffer, buffer + ret);
                     extract(info_from_stm, state);
                 }
-                if (event[i].events & EPOLLOUT)
+                if (event.second & EPOLLOUT)
                 {
                     ssize_t ret = write(fd, to_write.c_str(), to_write.size());
                     if (ret == -1)
@@ -163,7 +135,7 @@ struct escape_buffer
                     }
                     if (to_write.size() == static_cast <size_t> (ret))
                     {
-                        mod_fd(EPOLLIN);
+                        epoll.reg(fd, EPOLLIN);
                         to_write.clear();
                     }
                     else
@@ -172,28 +144,22 @@ struct escape_buffer
                     }
                 }
             }
-            if ((event[i].events & EPOLLIN) && event[i].data.fd == STDIN_FILENO)
+            if ((event.second & EPOLLIN) && event.first == STDIN_FILENO)
             {
                 char ch;
                 ssize_t ret = read(STDIN_FILENO, &ch, 1);
                 if (ret == 1)
                     put(ch);
             }
-            if ((event[i].events & EPOLLHUP) || (event[i].events & EPOLLRDHUP))
+            if ((event.second & EPOLLHUP) || (event.second & EPOLLRDHUP))
             {
                 throw std::runtime_error("closed");
             }
         }
     }
 
-    ~escape_buffer ()
-    {
-        if (epoll != -1)
-            close(epoll);
-    }
-    
     int fd;
-    int epoll;
+    epoll_wraper epoll;
     std::deque <char> cmd_from_stdin;
     std::deque <char> info_from_stm;
     std::string to_write;

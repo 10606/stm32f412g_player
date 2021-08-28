@@ -111,6 +111,19 @@ struct authentificator_t
         clients(),
         pointers()
     {}
+    
+    ~authentificator_t ()
+    {
+        for (std::map <int, it_t> :: iterator it = pointers.begin(); it != pointers.end(); ++it)
+        {
+            try
+            {
+                remove (it);
+            }
+            catch (...)
+            {}
+        }
+    }
 
     void add (int fd);
     void remove (int fd);

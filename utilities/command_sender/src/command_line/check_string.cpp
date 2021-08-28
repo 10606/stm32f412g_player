@@ -1,10 +1,10 @@
 #include "check_string.h"
 
-#include <string>
+#include <string_view>
 #include <vector>
 #include <limits>
 
-size_t diff_string (std::string const & a, std::string const & b)
+size_t diff_string (std::string_view const a, std::string_view const b)
 {
     static size_t const cost_add = 1;
     static size_t const cost_replace = 3;

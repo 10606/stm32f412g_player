@@ -22,6 +22,8 @@ struct tcp_server_sock_t
         return fd;
     }
     
+    void close () noexcept;
+    
 private:
     int fd;
     int epoll_fd;

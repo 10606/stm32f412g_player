@@ -25,21 +25,25 @@ tcp_server_sock_t::tcp_server_sock_t (uint32_t _addr, uint16_t _port, int _epoll
     sockaddr_in addr = {AF_INET, htons(_port), {htonl(_addr)}};
     if (bind(fd, reinterpret_cast <sockaddr *> (&addr), sizeof(addr)) == -1)
     {
-        close(fd);
+        ::close(fd);
         perror("bind");
         fd = -1;
     }
     
     if (listen(fd, 10) == -1)
     {
-        close(fd);
+        ::close(fd);
         perror("listen");
         fd = -1;
     }
     
-    if (epoll_reg(epoll_fd, fd, EPOLLIN) == -1)
+    try
     {
-        close(fd);
+        epoll_reg(epoll_fd, fd, EPOLLIN);
+    }
+    catch (...)
+    {
+        ::close(fd);
         perror("epoll reg");
         fd = -1;
     }
@@ -47,10 +51,21 @@ tcp_server_sock_t::tcp_server_sock_t (uint32_t _addr, uint16_t _port, int _epoll
 
 tcp_server_sock_t::~tcp_server_sock_t ()
 {
+    close();
+}
+
+void tcp_server_sock_t::close () noexcept
+{
     if (fd != -1)
     {
-        epoll_del(epoll_fd, fd);
-        close(fd);
+        try
+        {
+            epoll_del(epoll_fd, fd);
+        }
+        catch (...)
+        {}
+        ::close(fd);
+        fd = -1;
     }
 }
 

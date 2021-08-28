@@ -21,16 +21,12 @@ epoll_wraper::~epoll_wraper ()
 
 void epoll_wraper::reg (int fd, uint32_t flag)
 {
-    int ret = epoll_reg(epoll_fd, fd, flag);
-    if (ret == -1)
-        throw std::runtime_error("can't reg in epoll");
+    epoll_reg(epoll_fd, fd, flag);
 }
 
 void epoll_wraper::unreg (int fd)
 {
-    int ret = epoll_del(epoll_fd, fd);
-    if (ret == -1)
-        throw std::runtime_error("can't del from epoll");
+    epoll_del(epoll_fd, fd);
 }
 
 std::vector <std::pair <int, uint32_t> > epoll_wraper::wait (int timeout)

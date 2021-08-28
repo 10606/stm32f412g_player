@@ -158,6 +158,7 @@ void extract (std::deque <char> & data, state_t & state)
                     set_color(is_my_state, pl_list_data->cmd, 0, pl_list_data->selected);
                     std::string line_0(pl_list_data->name, sizeof(pl_list_info_t::name));
                     std::cout << char_reconvert(line_0);
+                    
                     set_cursor(base::pl_list[1] + base_pos);
                     set_color(is_my_state, pl_list_data->cmd, 1, pl_list_data->selected);
                     if (!is_spaces(line_0))

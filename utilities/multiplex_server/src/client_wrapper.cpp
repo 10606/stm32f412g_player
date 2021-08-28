@@ -21,7 +21,12 @@ clients_wrapper_t::~clients_wrapper_t ()
 {
     for (auto const & i : pointers)
     {
-        epoll_del(epoll_fd, i.first);
+        try
+        {
+            epoll_del(epoll_fd, i.first);
+        }
+        catch (...)
+        {}
         close(i.first);
     }
 }
@@ -139,7 +144,7 @@ std::string clients_wrapper_t::read (int fd)
     ssize_t rb = ::read(fd, buff, sizeof(buff));
     if (rb < 0)
     {
-        if ((errno != EINTR) && (errno != EPIPE))
+        if (errno != EINTR)
             throw std::runtime_error("error read");
         else
             return std::string();
@@ -171,8 +176,21 @@ void clients_wrapper_t::append (std::string_view value)
     if (new_last_full_struct == data.end())
         last_full_struct_ptr = data.end();
     
+    bool err = 0;
     for (int const & i : not_registred)
-        epoll_reg(epoll_fd, i, EPOLLIN | EPOLLOUT);
+    {
+        try
+        {
+            epoll_reg(epoll_fd, i, EPOLLIN | EPOLLOUT);
+        }
+        catch (...) 
+        {
+            err = 1;
+        }
+    }
     not_registred.clear();
+    
+    if (err)
+        throw std::runtime_error("error register in epoll");
 }
 

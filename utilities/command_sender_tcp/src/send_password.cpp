@@ -112,10 +112,14 @@ struct client_socket_t
         {
             if (errno == EINPROGRESS)
             {
-                if (epoll_reg(epoll_fd, fd, EPOLLOUT))
+                try
+                {
+                    epoll_reg(epoll_fd, fd, EPOLLOUT);
+                }
+                catch (...)
                 {
                     close(fd);
-                    throw std::runtime_error("can't add to epoll");
+                    throw;
                 }
                 return;
             }
@@ -137,8 +141,7 @@ struct client_socket_t
 
         status = get_rsa_key;
         rsa_key.set(fd);
-        if (epoll_reg(epoll_fd, fd, EPOLLIN))
-            throw std::runtime_error("cant' add to epoll");
+        epoll_reg(epoll_fd, fd, EPOLLIN);
     }
     
     ~client_socket_t ()
@@ -210,8 +213,7 @@ void client_socket_t::write ()
         sender_password.write();
         if (sender_password.ready())
         {
-            if (epoll_reg(epoll_fd, fd, EPOLLIN))
-                throw std::runtime_error("cant' add to epoll");
+            epoll_reg(epoll_fd, fd, EPOLLIN);
             status = connected;
             sender_password.set(-1, std::string()); // free memory
         }
@@ -227,10 +229,8 @@ void client_socket_t::read ()
         if (rsa_key.ready())
         {
             status = read_password;
-            if (epoll_reg(epoll_fd, STDIN_FILENO, EPOLLIN))
-                throw std::runtime_error("cant' add to epoll");
-            if (epoll_del(epoll_fd, fd))
-                throw std::runtime_error("cant' del from epoll");
+            epoll_reg(epoll_fd, STDIN_FILENO, EPOLLIN);
+            epoll_del(epoll_fd, fd);
         }
         return;
     }
@@ -251,10 +251,8 @@ void client_socket_t::read ()
             encrypted_pass = enc_pass(std::string_view(pass_buff, pass_pos), rsa_key.get());
             rsa_key.set(-1); // free memory
             sender_password.set(fd, std::move(encrypted_pass));
-            if (epoll_reg(epoll_fd, fd, EPOLLOUT))
-                throw std::runtime_error("cant' add to epoll");
-            if (epoll_del(epoll_fd, STDIN_FILENO))
-                throw std::runtime_error("cant' del from epoll");
+            epoll_reg(epoll_fd, fd, EPOLLOUT);
+            epoll_del(epoll_fd, STDIN_FILENO);
         }
         else if (pass_pos + rb == sizeof(pass_buff))
             throw std::runtime_error("too long pass");
@@ -286,8 +284,7 @@ void client_socket_t::connect ()
     
     status = get_rsa_key;
     rsa_key.set(fd);
-    if (epoll_reg(epoll_fd, fd, EPOLLIN))
-        throw std::runtime_error("cant' add to epoll");
+    epoll_reg(epoll_fd, fd, EPOLLIN);
 }
 
 

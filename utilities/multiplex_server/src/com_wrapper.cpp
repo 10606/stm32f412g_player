@@ -25,13 +25,17 @@ com_wrapper_t::com_wrapper_t (char const * _file_name, int _epoll_fd) :
     cfmakeraw(&new_cdc_config);
     tcsetattr(fd, TCSANOW, &new_cdc_config);
 
-    if (epoll_reg(epoll_fd, fd, EPOLLIN) == -1)
-        throw std::runtime_error("can't reg in epoll");
+    epoll_reg(epoll_fd, fd, EPOLLIN);
 }
 
 com_wrapper_t::~com_wrapper_t ()
 {
-    epoll_del(epoll_fd, fd);
+    try
+    {
+        epoll_del(epoll_fd, fd);
+    }
+    catch (...)
+    {}
     close(fd);
 }
 
@@ -59,7 +63,7 @@ std::string com_wrapper_t::read ()
     ssize_t rb = ::read(fd, buff, sizeof(buff));
     if (rb == -1)
     {
-        if ((errno != EINTR) && (errno != EPIPE))
+        if (errno != EINTR)
             throw std::runtime_error("can't read");
         else
             return std::string();

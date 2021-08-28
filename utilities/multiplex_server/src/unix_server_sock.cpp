@@ -43,11 +43,15 @@ unix_server_sock_t::unix_server_sock_t (char const * sock_name, bool socket_acti
         fd = SD_LISTEN_FDS_START + 0;
     }
     
-    if (epoll_reg(epoll_fd, fd, EPOLLIN) == -1)
+    try
+    {
+        epoll_reg(epoll_fd, fd, EPOLLIN);
+    }
+    catch (...)
     {
         unlink(sock_name);
         close(fd);
-        throw std::runtime_error("can't add to epoll");
+        throw;
     }
 }
 

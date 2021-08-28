@@ -31,6 +31,7 @@ include_directories(
     src/command_line/
     src/interactive/
     ../characters/
+    ../multiplex_server/src/
 )
 
 add_executable(player_send_command
@@ -43,6 +44,8 @@ add_executable(player_send_command
     src/interactive/char_reconvert.cpp
     ../characters/fill_char_set.cpp
     ../characters/char_conversion.cpp
+    ../multiplex_server/src/epoll_reg.cpp
+    ../multiplex_server/src/epoll_wrapper.cpp
 )
 
 target_link_libraries(player_send_command

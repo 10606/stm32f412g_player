@@ -103,10 +103,7 @@ pass_checker::pass_checker (int _fd, int _epoll_fd) :
     if (rsa.is_init())
     {
         sender.set(fd, std::string(rsa.pub_key, rsa.pub_len));
-        if (epoll_reg(epoll_fd, fd, EPOLLOUT) == -1)
-        {
-            throw std::runtime_error("can't register in epoll");
-        }
+        epoll_reg(epoll_fd, fd, EPOLLOUT);
     }
     else
     {
@@ -116,7 +113,12 @@ pass_checker::pass_checker (int _fd, int _epoll_fd) :
 
 pass_checker::~pass_checker ()
 {
-    epoll_del(epoll_fd, fd);
+    try
+    {
+        epoll_del(epoll_fd, fd);
+    }
+    catch (...)
+    {}
 }
 
 void pass_checker::write ()
@@ -137,7 +139,7 @@ void pass_checker::read ()
         ssize_t rb = ::read(fd, pass_size.bytes + recv_ptr, total_size - recv_ptr);
         if (rb == -1)
         {
-            if ((errno != EINTR) && (errno != EPIPE))
+            if (errno != EINTR)
                 throw std::runtime_error("cant' read");
             else
                 rb = 0;
@@ -168,7 +170,7 @@ void pass_checker::read ()
         ssize_t rb = ::read(fd, enc_pass_buf.get() + cur_recv_ptr, pass_size.value - cur_recv_ptr);
         if (rb == -1)
         {
-            if ((errno != EINTR) && (errno != EPIPE))
+            if (errno != EINTR)
                 throw std::runtime_error("cant' read");
             else
                 rb = 0;

@@ -3,8 +3,8 @@
 
 #include <stdint.h>
 
-int epoll_reg (int epoll_fd, int fd, uint32_t flag);
-int epoll_del (int epoll_fd, int fd);
+void epoll_reg (int epoll_fd, int fd, uint32_t flag);
+void epoll_del (int epoll_fd, int fd);
 
 #endif
 

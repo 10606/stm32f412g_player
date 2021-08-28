@@ -1,6 +1,9 @@
 #ifndef INTERACTIVE_COMMAND_H
 #define INTERACTIVE_COMMAND_H
 
+#include <array>
+#include <string_view>
+
 const char * const int_command_up = "\033[A";
 const char * const int_command_down = "\033[B";
 
@@ -23,7 +26,9 @@ const char * const int_command_prev_song = "<";
 
 const char * const int_command_send_info = "R";
 
-const char * const int_commands[] =
+const char * const quit = "q";
+
+std::array <std::string_view, 17> const int_commands =
 {
     "",                     //0x00
 
@@ -51,7 +56,7 @@ const char * const int_commands[] =
     
     int_command_end_pause,  //0x0f
     
-    "q" //0x10 - quit
+    quit                    //0x10
 };
 
 #endif

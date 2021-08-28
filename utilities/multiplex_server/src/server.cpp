@@ -96,17 +96,10 @@ int main (int argc, char ** argv)
                     static const uint32_t err_mask = EPOLLRDHUP | EPOLLERR | EPOLLHUP;
                     if (event.second & err_mask)
                     {
-                        try
-                        {
-                            epoll_wrap.unreg(event.first);
-                        }
-                        catch (...)
-                        {}
-                        
                         if (event.first == conn_sock.file_descriptor())
                             throw std::runtime_error("server socket error");
                         else if (event.first == tcp_server_sock.file_descriptor())
-                            ;
+                            tcp_server_sock.close();
                         else if (event.first == stm32.file_descriptor())
                             exit = 1;
                         else if (auth.have(event.first))

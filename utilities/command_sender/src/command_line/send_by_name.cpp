@@ -13,7 +13,7 @@ bool send (int fd, std::string const & command)
     size_t best_v = std::numeric_limits <size_t> :: max();
     unsigned char best_i = 0;
     
-    for (unsigned char i = 0; i != std::extent <decltype(str_commands)>::value; ++i)
+    for (unsigned char i = 0; i != str_commands.size(); ++i)
     {
         size_t tmp = diff_string(command, str_commands[i]);
         if (best_v > tmp)

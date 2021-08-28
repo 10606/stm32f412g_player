@@ -1,6 +1,9 @@
 #ifndef STRING_COMMAND_H
 #define STRING_COMMAND_H
 
+#include <array>
+#include <string_view>
+
 const char * const str_command_up = "up";
 const char * const str_command_down = "down";
 
@@ -23,7 +26,7 @@ const char * const str_command_prev_song = "prev_song";
 
 const char * const str_command_send_info = "send_info";
 
-const char * const str_commands[] =
+std::array <std::string_view, 16> const str_commands =
 {
     "do_nothing",           //0x00
 
