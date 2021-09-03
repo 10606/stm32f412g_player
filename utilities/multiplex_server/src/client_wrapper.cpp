@@ -10,7 +10,7 @@
 
 clients_wrapper_t::clients_wrapper_t (int _epoll_fd) :
     epoll_fd(_epoll_fd),
-    data(),
+    data(2048),
     last_full_struct_ptr(0),
     pointers(),
     less_size(),

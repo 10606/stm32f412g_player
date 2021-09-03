@@ -8,12 +8,13 @@
 
 struct ring_buffer
 {
-    ring_buffer () :
+    ring_buffer (size_t _size_inc_value = 1024) :
         data(nullptr),
         capacity(0),
         begin_v(0),
         size_v(0),
-        offset_in_history(0)
+        offset_in_history(0),
+        size_inc_value(_size_inc_value)
     {}
     
     ~ring_buffer ()
@@ -28,11 +29,12 @@ struct ring_buffer
         std::swap(begin_v, rhs.begin_v);
         std::swap(size_v, rhs.size_v);
         std::swap(offset_in_history, rhs.offset_in_history);
+        std::swap(size_inc_value, rhs.size_inc_value);
     }
     
     ring_buffer (ring_buffer const &) = delete;
     ring_buffer (ring_buffer && rhs) noexcept :
-        ring_buffer()
+        ring_buffer(rhs.size_inc_value)
     {
         swap(rhs);
     }
@@ -57,7 +59,7 @@ struct ring_buffer
         size_v -= count;
         offset_in_history += count;
         
-        if (size_v + size_fit_value < capacity)
+        if (size_v + 2 * size_inc_value < capacity)
             realloc(0);
     }
     
@@ -91,9 +93,6 @@ struct ring_buffer
     
 
 private:
-    static const size_t size_inc_value = 1 * 1024;
-    static const size_t size_fit_value = 2 * size_inc_value;
-    
     void realloc (size_t size_diff);
 
     char * data;
@@ -101,6 +100,7 @@ private:
     size_t begin_v;
     size_t size_v;
     size_t offset_in_history;
+    size_t size_inc_value;
 };
 
 #endif

@@ -10,7 +10,7 @@
 
 com_wrapper_t::com_wrapper_t (char const * _file_name, int _epoll_fd) :
     fd(-1),
-    data(),
+    data(16),
     pos(0),
     epoll_fd(_epoll_fd)
 {
