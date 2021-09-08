@@ -6,11 +6,12 @@
 #include <stdexcept>
 #include <sys/un.h>
 #include <systemd/sd-daemon.h>
-#include "epoll_reg.h"
 
-unix_server_sock_t::unix_server_sock_t (char const * sock_name, bool socket_activation, int _epoll_fd) :
+#include "epoll_wrapper.h"
+
+unix_server_sock_t::unix_server_sock_t (char const * sock_name, bool socket_activation, epoll_wraper & _epoll) :
     fd(-1),
-    epoll_fd(_epoll_fd)
+    epoll(_epoll)
 {
     if (!socket_activation)
     {
@@ -45,7 +46,7 @@ unix_server_sock_t::unix_server_sock_t (char const * sock_name, bool socket_acti
     
     try
     {
-        epoll_reg(epoll_fd, fd, EPOLLIN);
+        epoll.reg(fd, EPOLLIN);
     }
     catch (...)
     {
@@ -57,7 +58,7 @@ unix_server_sock_t::unix_server_sock_t (char const * sock_name, bool socket_acti
 
 unix_server_sock_t::~unix_server_sock_t ()
 {
-    epoll_del(epoll_fd, fd);
+    epoll.unreg(fd);
     close(fd);
 }
 

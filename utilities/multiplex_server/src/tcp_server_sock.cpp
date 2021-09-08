@@ -1,6 +1,6 @@
 #include "tcp_server_sock.h"
 
-#include "epoll_reg.h"
+#include "epoll_wrapper.h"
 
 #include <unistd.h>
 #include <errno.h>
@@ -8,13 +8,14 @@
 #include <sys/epoll.h>
 #include <arpa/inet.h>
 
+#include <iostream>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdexcept>
 
-tcp_server_sock_t::tcp_server_sock_t (uint32_t _addr, uint16_t _port, int _epoll_fd) :
+tcp_server_sock_t::tcp_server_sock_t (uint32_t _addr, uint16_t _port, epoll_wraper & _epoll) :
     fd(-1),
-    epoll_fd(_epoll_fd)
+    epoll(_epoll)
 {
     fd = socket(AF_INET, SOCK_STREAM, 0);
     
@@ -39,12 +40,12 @@ tcp_server_sock_t::tcp_server_sock_t (uint32_t _addr, uint16_t _port, int _epoll
     
     try
     {
-        epoll_reg(epoll_fd, fd, EPOLLIN);
+        epoll.reg(fd, EPOLLIN);
     }
-    catch (...)
+    catch (std::exception & e)
     {
         ::close(fd);
-        perror("epoll reg");
+        std::cerr << e.what() << '\n';
         fd = -1;
     }
 }
@@ -60,7 +61,7 @@ void tcp_server_sock_t::close () noexcept
     {
         try
         {
-            epoll_del(epoll_fd, fd);
+            epoll.unreg(fd);
         }
         catch (...)
         {}

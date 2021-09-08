@@ -3,7 +3,6 @@
 #include "usb_commands.h"
 #include "term_display.h"
 #include "epoll_wrapper.h"
-#include "epoll_reg.h"
 
 #include <string_view>
 #include <vector>

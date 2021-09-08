@@ -4,6 +4,9 @@
 #include <vector>
 #include <stdint.h>
 
+void epoll_reg (int epoll_fd, int fd, uint32_t flag);
+void epoll_del (int epoll_fd, int fd);
+
 struct epoll_wraper
 {
     epoll_wraper ();

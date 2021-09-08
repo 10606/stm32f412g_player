@@ -8,10 +8,11 @@
 #include <string_view>
 
 #include "ring_buffer.h"
+#include "epoll_wrapper.h"
 
 struct clients_wrapper_t
 {
-    clients_wrapper_t (int _epoll_fd);
+    clients_wrapper_t (epoll_wraper & _epoll);
     ~clients_wrapper_t ();
     
     clients_wrapper_t (clients_wrapper_t const &) = delete;
@@ -39,7 +40,7 @@ private:
     static size_t const max_capacity = 4 * 1024 * 1024;
     static size_t const max_clients = 1000;
     
-    int epoll_fd; // not owned
+    epoll_wraper & epoll;
     ring_buffer data;
     size_t last_full_struct_ptr;
     

@@ -1,15 +1,15 @@
 #include "client_wrapper.h"
 
-#include "epoll_reg.h"
 #include "usb_commands.h"
-#include <sys/epoll.h>
+#include "epoll_wrapper.h"
+
 #include <stdexcept>
 #include <limits>
 #include <unistd.h>
 #include <string.h>
 
-clients_wrapper_t::clients_wrapper_t (int _epoll_fd) :
-    epoll_fd(_epoll_fd),
+clients_wrapper_t::clients_wrapper_t (epoll_wraper & _epoll) :
+    epoll(_epoll),
     data(2048),
     last_full_struct_ptr(0),
     pointers(),
@@ -23,7 +23,7 @@ clients_wrapper_t::~clients_wrapper_t ()
     {
         try
         {
-            epoll_del(epoll_fd, i.first);
+            epoll.unreg(i.first);
         }
         catch (...)
         {}
@@ -70,12 +70,12 @@ void clients_wrapper_t::reg (int fd)
     less_size.insert({last_full_struct_ptr, fd});
     if (last_full_struct_ptr != data.end())
     {
-        epoll_reg(epoll_fd, fd, (EPOLLIN | EPOLLOUT));
+        epoll.reg(fd, (EPOLLIN | EPOLLOUT));
     }
     else
     {
         not_registred.insert(fd);
-        epoll_reg(epoll_fd, fd, EPOLLIN);
+        epoll.reg(fd, EPOLLIN);
     }
 }
 
@@ -87,7 +87,7 @@ void clients_wrapper_t::unreg (int fd)
     less_size.erase({it->second, it->first});
     not_registred.erase(it->first);
     pointers.erase(it);
-    epoll_del(epoll_fd, fd);
+    epoll.unreg(fd);
     close(fd);
     shrink_to_fit();
 }
@@ -128,7 +128,7 @@ void clients_wrapper_t::write (int fd)
     less_size.insert({it->second, it->first});
     if (it->second == data.end())
     {
-        epoll_reg(epoll_fd, fd, EPOLLIN);
+        epoll.reg(fd, EPOLLIN);
         not_registred.insert(it->first);
     }
     shrink_to_fit();
@@ -181,7 +181,7 @@ void clients_wrapper_t::append (std::string_view value)
     {
         try
         {
-            epoll_reg(epoll_fd, i, EPOLLIN | EPOLLOUT);
+            epoll.reg(i, EPOLLIN | EPOLLOUT);
         }
         catch (...) 
         {

@@ -12,7 +12,7 @@
 #include <vector>
 #include <list>
 
-#include "epoll_reg.h"
+#include "epoll_wrapper.h"
 #include "sender_data.h"
 
 struct RSA_wrap
@@ -50,7 +50,7 @@ private:
 
 struct pass_checker
 {
-    pass_checker (int _fd, int _epoll_fd);
+    pass_checker (int _fd, epoll_wraper & _epoll);
     ~pass_checker ();
     
     pass_checker (pass_checker const &) = delete;
@@ -80,7 +80,7 @@ private:
     void check_pass ();
     
     int fd;
-    int epoll_fd;
+    epoll_wraper & epoll;
     bool ready;
     bool acc;
     size_t send_ptr;
@@ -106,8 +106,8 @@ private:
 
 struct authentificator_t
 {
-    authentificator_t (int _epoll_fd) :
-        epoll_fd(_epoll_fd),
+    authentificator_t (epoll_wraper & _epoll) :
+        epoll(_epoll),
         clients(),
         pointers()
     {}
@@ -145,11 +145,11 @@ private:
         int fd = it->second->first.file_descriptor();
         clients.erase(it->second);
         pointers.erase(it);
-        epoll_del(epoll_fd, fd);
+        epoll.unreg(fd);
         close(fd);
     }
     
-    int epoll_fd;
+    epoll_wraper & epoll;
     std::list <std::pair <pass_checker, time_point> > clients;
     std::map <int, it_t> pointers;
     

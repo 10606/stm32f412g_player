@@ -35,7 +35,6 @@ add_executable(multiplex_server
     src/server.cpp
     src/client_wrapper.cpp
     src/com_wrapper.cpp
-    src/epoll_reg.cpp
     src/epoll_wrapper.cpp
     src/unix_server_sock.cpp
     src/check_password.cpp

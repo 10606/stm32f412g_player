@@ -5,9 +5,11 @@
 #include <stdexcept>
 #include <sys/socket.h>
 
+#include "epoll_wrapper.h"
+
 struct unix_server_sock_t
 {
-    unix_server_sock_t (char const * sock_name, bool socket_activation, int _epoll_fd);
+    unix_server_sock_t (char const * sock_name, bool socket_activation, epoll_wraper & _epoll);
     ~unix_server_sock_t ();
     
     unix_server_sock_t (unix_server_sock_t const &) = delete;
@@ -24,7 +26,7 @@ struct unix_server_sock_t
     
 private:
     int fd;
-    int epoll_fd;
+    epoll_wraper & epoll;
 };
 
 #endif

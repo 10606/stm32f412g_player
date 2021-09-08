@@ -6,13 +6,13 @@
 #include <termios.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include "epoll_reg.h"
+#include "epoll_wrapper.h"
 
-com_wrapper_t::com_wrapper_t (char const * _file_name, int _epoll_fd) :
+com_wrapper_t::com_wrapper_t (char const * _file_name, epoll_wraper & _epoll) :
     fd(-1),
     data(16),
     pos(0),
-    epoll_fd(_epoll_fd)
+    epoll(_epoll)
 {
     fd = open(_file_name, O_RDWR | O_NOCTTY);
     if (fd == -1)
@@ -25,14 +25,14 @@ com_wrapper_t::com_wrapper_t (char const * _file_name, int _epoll_fd) :
     cfmakeraw(&new_cdc_config);
     tcsetattr(fd, TCSANOW, &new_cdc_config);
 
-    epoll_reg(epoll_fd, fd, EPOLLIN);
+    epoll.reg(fd, EPOLLIN);
 }
 
 com_wrapper_t::~com_wrapper_t ()
 {
     try
     {
-        epoll_del(epoll_fd, fd);
+        epoll.unreg(fd);
     }
     catch (...)
     {}
@@ -45,7 +45,7 @@ void com_wrapper_t::write ()
     data.erase(wb);
     pos += wb;
     if (pos == data.end())
-        epoll_reg(epoll_fd, fd, EPOLLIN);
+        epoll.reg(fd, EPOLLIN);
 }
 
 void com_wrapper_t::append (std::string_view value)
@@ -53,7 +53,7 @@ void com_wrapper_t::append (std::string_view value)
     size_t old_end = data.end();
     size_t diff = data.add(value);
     if (pos == old_end)
-        epoll_reg(epoll_fd, fd, EPOLLIN | EPOLLOUT);
+        epoll.reg(fd, EPOLLIN | EPOLLOUT);
     pos -= diff;
 }
 

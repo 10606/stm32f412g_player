@@ -1,4 +1,3 @@
-#include "epoll_reg.h"
 #include "epoll_wrapper.h"
 #include "recver_data.h"
 #include "sender_data.h"
@@ -89,10 +88,10 @@ done:
 
 struct client_socket_t
 {
-    client_socket_t (in_addr_t _addr, uint16_t _port, int _epoll_fd) :
+    client_socket_t (in_addr_t _addr, uint16_t _port, epoll_wraper & _epoll) :
         status(not_connected),
         fd(-1),
-        epoll_fd(_epoll_fd),
+        epoll(_epoll),
         rsa_key(),
         pass_pos(0),
         encrypted_pass(),
@@ -114,7 +113,7 @@ struct client_socket_t
             {
                 try
                 {
-                    epoll_reg(epoll_fd, fd, EPOLLOUT);
+                    epoll.reg(fd, EPOLLOUT);
                 }
                 catch (...)
                 {
@@ -141,14 +140,14 @@ struct client_socket_t
 
         status = get_rsa_key;
         rsa_key.set(fd);
-        epoll_reg(epoll_fd, fd, EPOLLIN);
+        epoll.reg(fd, EPOLLIN);
     }
     
     ~client_socket_t ()
     {
         if (fd != -1)
         {
-            epoll_del(epoll_fd, fd);
+            epoll.unreg(fd);
             close(fd);
         }
     }
@@ -166,7 +165,7 @@ struct client_socket_t
     int reset_file_descriptor () noexcept
     {
         int _fd = fd;
-        epoll_del(epoll_fd, fd);
+        epoll.unreg(fd);
         fd = -1;
         return _fd;
     }
@@ -194,7 +193,7 @@ private:
     
     status_t status;
     int fd;
-    int epoll_fd;
+    epoll_wraper & epoll;
 
     recver_data_len rsa_key;
     
@@ -218,7 +217,7 @@ void client_socket_t::write ()
         sender_password.write();
         if (sender_password.ready())
         {
-            epoll_reg(epoll_fd, fd, EPOLLIN);
+            epoll.reg(fd, EPOLLIN);
             status = connected;
             sender_password.set(-1, std::string()); // free memory
         }
@@ -234,8 +233,8 @@ void client_socket_t::read ()
         if (rsa_key.ready())
         {
             status = read_password;
-            epoll_reg(epoll_fd, STDIN_FILENO, EPOLLIN);
-            epoll_del(epoll_fd, fd);
+            epoll.reg(STDIN_FILENO, EPOLLIN);
+            epoll.unreg(fd);
         }
         return;
     }
@@ -256,8 +255,8 @@ void client_socket_t::read ()
             encrypted_pass = enc_pass(std::string_view(pass_buff, pass_pos), rsa_key.get());
             rsa_key.set(-1); // free memory
             sender_password.set(fd, std::move(encrypted_pass));
-            epoll_reg(epoll_fd, fd, EPOLLOUT);
-            epoll_del(epoll_fd, STDIN_FILENO);
+            epoll.reg(fd, EPOLLOUT);
+            epoll.unreg(STDIN_FILENO);
         }
         else if (pass_pos + rb == sizeof(pass_buff))
             throw std::runtime_error("too long pass");
@@ -289,7 +288,7 @@ void client_socket_t::connect ()
     
     status = get_rsa_key;
     rsa_key.set(fd);
-    epoll_reg(epoll_fd, fd, EPOLLIN);
+    epoll.reg(fd, EPOLLIN);
 }
 
 
@@ -308,7 +307,7 @@ int main (int argc, char const * const * argv)
                 return 1;
             }
         }
-        client_socket_t conn_sock(addr.s_addr, 750, epoll_wrap.fd());
+        client_socket_t conn_sock(addr.s_addr, 750, epoll_wrap);
         
         bool exit = 0;
         while (!exit && !conn_sock.ready())

@@ -4,10 +4,12 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "epoll_wrapper.h"
+
 struct tcp_server_sock_t
 {
     // INADDR_ANY, 110
-    tcp_server_sock_t (uint32_t _addr, uint16_t _port, int _epoll_fd);
+    tcp_server_sock_t (uint32_t _addr, uint16_t _port, epoll_wraper & _epoll);
     ~tcp_server_sock_t ();
     
     tcp_server_sock_t (tcp_server_sock_t const &) = delete;
@@ -26,7 +28,7 @@ struct tcp_server_sock_t
     
 private:
     int fd;
-    int epoll_fd;
+    epoll_wraper & epoll;
 };
 
 #endif

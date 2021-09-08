@@ -1,6 +1,6 @@
 #include "check_password.h"
 
-#include "epoll_reg.h"
+#include "epoll_wrapper.h"
 
 #include <openssl/rsa.h>
 #include <openssl/sha.h>
@@ -88,9 +88,9 @@ int RSA_wrap::decrypt (char const * encrypted, size_t len, char * decrypted) con
 }
 
 
-pass_checker::pass_checker (int _fd, int _epoll_fd) :
+pass_checker::pass_checker (int _fd, epoll_wraper & _epoll) :
     fd(_fd),
-    epoll_fd(_epoll_fd),
+    epoll(_epoll),
     ready(0),
     acc(0),
     send_ptr(0),
@@ -103,7 +103,7 @@ pass_checker::pass_checker (int _fd, int _epoll_fd) :
     if (rsa.is_init())
     {
         sender.set(fd, std::string(rsa.pub_key, rsa.pub_len));
-        epoll_reg(epoll_fd, fd, EPOLLOUT);
+        epoll.reg(fd, EPOLLOUT);
     }
     else
     {
@@ -115,7 +115,7 @@ pass_checker::~pass_checker ()
 {
     try
     {
-        epoll_del(epoll_fd, fd);
+        epoll.unreg(fd);
     }
     catch (...)
     {}
@@ -125,7 +125,7 @@ void pass_checker::write ()
 {
     sender.write();
     if (sender.ready())
-        epoll_reg(epoll_fd, fd, EPOLLIN);
+        epoll.reg(fd, EPOLLIN);
 }
 
 void pass_checker::read ()
@@ -183,7 +183,7 @@ void pass_checker::read ()
 
 void pass_checker::check_pass ()
 {
-    epoll_reg(epoll_fd, fd, 0);
+    epoll.reg(fd, 0);
     int dec_len = rsa.decrypt(enc_pass_buf.get(), pass_size.value, dec_pass_buf.get());
     if (dec_len < 0)
         goto set_ready;
@@ -223,7 +223,7 @@ void authentificator_t::add (int fd)
     try
     {
         clients.emplace_front(std::piecewise_construct, 
-                              std::make_tuple(fd, epoll_fd), 
+                              std::make_tuple(fd, std::ref(epoll)), 
                               std::make_tuple(to));
         
         try 
@@ -272,7 +272,7 @@ std::vector <int> authentificator_t::check ()
             else
             {
                 clients.erase(it);
-                epoll_del(epoll_fd, fd);
+                epoll.unreg(fd);
                 close(fd);
             }
         }
@@ -280,7 +280,7 @@ std::vector <int> authentificator_t::check ()
         {
             pointers.erase(fd);
             clients.erase(it);
-            epoll_del(epoll_fd, fd);
+            epoll.unreg(fd);
             close(fd);
         }
         

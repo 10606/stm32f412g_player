@@ -6,10 +6,11 @@
 #include <string_view>
 
 #include "ring_buffer.h"
+#include "epoll_wrapper.h"
 
 struct com_wrapper_t
 {
-    com_wrapper_t (char const * _file_name, int _epoll_fd);
+    com_wrapper_t (char const * _file_name, epoll_wraper & _epoll);
     ~com_wrapper_t ();
     
     com_wrapper_t (com_wrapper_t const &) = delete;
@@ -30,7 +31,7 @@ private:
     int fd;
     ring_buffer data;
     size_t pos;
-    int epoll_fd; // not owned
+    epoll_wraper & epoll;
 };
 
 #endif

@@ -37,14 +37,14 @@ int main (int argc, char ** argv)
     try
     {
         epoll_wraper epoll_wrap;
-        unix_server_sock_t conn_sock(sock_name, socket_activation, epoll_wrap.fd());
-        tcp_server_sock_t tcp_server_sock(INADDR_ANY, 750, epoll_wrap.fd());
+        unix_server_sock_t conn_sock(sock_name, socket_activation, epoll_wrap);
+        tcp_server_sock_t tcp_server_sock(INADDR_ANY, 750, epoll_wrap);
             
         try
         {
-            clients_wrapper_t clients(epoll_wrap.fd());
-            com_wrapper_t stm32(stm32_name, epoll_wrap.fd());
-            authentificator_t auth(epoll_wrap.fd());
+            clients_wrapper_t clients(epoll_wrap);
+            com_wrapper_t stm32(stm32_name, epoll_wrap);
+            authentificator_t auth(epoll_wrap);
 
             bool exit = 0;
             while (!exit)
