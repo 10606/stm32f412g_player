@@ -53,10 +53,10 @@ void epoll_wraper::unreg (int fd)
     epoll_del(epoll_fd, fd);
 }
 
-std::vector <std::pair <int, uint32_t> > epoll_wraper::wait (int timeout)
+std::vector <epoll_wraper::e_event> epoll_wraper::wait (int timeout)
 {
     epoll_event events[100];
-    std::vector <std::pair <int, uint32_t> > ans;
+    std::vector <e_event> ans;
     int ret = epoll_wait(epoll_fd, events, std::extent <decltype(events)> :: value, timeout);
     if (ret == -1)
     {

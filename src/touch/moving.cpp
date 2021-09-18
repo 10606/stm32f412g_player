@@ -2,6 +2,7 @@
 
 #include "view.h"
 #include "display_offsets.h"
+#include "direction_t.h"
 
 struct offsets
 {
@@ -30,7 +31,7 @@ uint32_t touch_processing::move_left_right
     int32_t offset, 
     char speed, 
     view * vv, 
-    uint8_t direction // 0 left, 1 - right
+    directions::lr::type direction
 )
 {
     static uint32_t (view::* process_view_do[2]) () =
@@ -49,18 +50,18 @@ uint32_t touch_processing::move_left_right
     direction_mask = 1 << direction;
     uint32_t ret = (vv->*process_view_do[direction])();
     ans = speed? offsets::add_speed : offsets::add;
-    ans = direction? ans : -ans;
+    ans = direction == directions::lr::right? ans : -ans;
     return ret;
 }
 
 uint32_t touch_processing::move_left (int32_t & ans, int32_t offset, char speed, view * vv)
 {
-    return move_left_right(ans, offset, speed, vv, 0);
+    return move_left_right(ans, offset, speed, vv, directions::lr::left);
 }
 
 uint32_t touch_processing::move_right (int32_t & ans, int32_t offset, char speed, view * vv)
 {
-    return move_left_right(ans, offset, speed, vv, 1);
+    return move_left_right(ans, offset, speed, vv, directions::lr::right);
 }
 
 uint32_t touch_processing::move_up_down
@@ -69,7 +70,7 @@ uint32_t touch_processing::move_up_down
     int32_t offset, 
     char speed, 
     view * vv, 
-    uint8_t direction // 0 - down, 1 - up 
+    directions::du::type direction
 )
 {
     if ((!speed && offset < offsets::limit) ||
@@ -79,28 +80,31 @@ uint32_t touch_processing::move_up_down
         return 0;
     }
     direction_mask = 0;
-    // reverse direction on pl_list and playlist
-    uint8_t process_view_direction = (vv->state == state_t::song)? direction : 1 - direction;
+    
+    // reverse (down -> prev, up -> next) direction on pl_list and playlist
+    directions::du::type cmp = ((vv->state == state_t::song)? directions::du::down : directions::du::up);
+    directions::np::type process_view_direction = (direction == cmp? directions::np::next : directions::np::prev);
+    
     uint32_t ret = vv->process_next_prev(process_view_direction);
     ans = speed? offsets::add_speed : offsets::add;
-    ans = direction? -ans : ans;
+    ans = direction == directions::du::up? -ans : ans;
     return ret;
 }
 
 uint32_t touch_processing::move_up (int32_t & ans, int32_t offset, char speed, view * vv)
 {
-    return move_up_down(ans, offset, speed, vv, 1);
+    return move_up_down(ans, offset, speed, vv, directions::du::up);
 }
 
 uint32_t touch_processing::move_down (int32_t & ans, int32_t offset, char speed, view * vv)
 {
-    return move_up_down(ans, offset, speed, vv, 0);
+    return move_up_down(ans, offset, speed, vv, directions::du::down);
 }
 
 uint32_t touch_processing::do_move 
 (
     int32_t & ans,
-    direction_t direction,
+    direction_n::type direction,
     int32_t offset, 
     char speed, 
     view * vv
@@ -116,16 +120,16 @@ uint32_t touch_processing::do_move
 
     switch (direction)
     {
-    case direction_t::left:
+    case direction_n::left:
         do_move_impl = &touch_processing::move_left;
         break;
-    case direction_t::right:
+    case direction_n::right:
         do_move_impl = &touch_processing::move_right;
         break;
-    case direction_t::up:
+    case direction_n::up:
         do_move_impl = &touch_processing::move_up;
         break;
-    case direction_t::down:
+    case direction_n::down:
         do_move_impl = &touch_processing::move_down;
         break;
     default:

@@ -105,8 +105,18 @@ void write_header (std::ostream & out, std::string const & name, uint32_t cnt)
     out.write(reinterpret_cast <char *> (&header), sizeof(playlist_header));
 }
 
+struct song_t
+{
+    song_t (song_header _header, std::unique_ptr <filename_t []> && _file_name) :
+        header(std::move(_header)),
+        file_name(std::move(_file_name))
+    {}
 
-using songs_t = std::vector <std::pair <song_header, std::unique_ptr <filename_t []> > >;
+    song_header header;
+    std::unique_ptr <filename_t []> file_name;
+};
+
+using songs_t = std::vector <song_t>;
 
 void write_songs
 (
@@ -119,15 +129,15 @@ void write_songs
     uint32_t offset = 0;
     for (auto & song : songs)
     {
-        song.first.path_offset = 
+        song.header.path_offset = 
             sizeof(playlist_header) + 
             songs.size() * sizeof(song_header) +
             offset * sizeof(filename_t);
-        offset += song.first.path_len;
-        out.write(reinterpret_cast <char const *> (&song.first), sizeof(song_header));
+        offset += song.header.path_len;
+        out.write(reinterpret_cast <char const *> (&song.header), sizeof(song_header));
     }
     for (size_t i = 0; i != songs.size(); ++i)
-        out.write(reinterpret_cast <char const *> (songs[i].second.get()), songs[i].first.path_len * sizeof(filename_t));
+        out.write(reinterpret_cast <char const *> (songs[i].file_name.get()), songs[i].header.path_len * sizeof(filename_t));
 }
 
 

@@ -76,32 +76,32 @@ bool touch_state::is_moved (point p) const
             (abs(old.y - p.y) >= e::offset.y);
 }
 
-direction_t touch_state::get_direction (point p) const
+direction_n::type touch_state::get_direction (point p) const
 {
     point diff = {p.x - old.x, p.y - old.y}; 
     if (abs(diff.x) * e::direction_likelyhood.x <= 
         abs(diff.y) * e::direction_likelyhood.y)
     {
         if (diff.y == 0)
-            return direction_t::non;
+            return direction_n::none;
         if (diff.y < 0)
-            return direction_t::up;
+            return direction_n::up;
         else
-            return direction_t::down;
+            return direction_n::down;
     }
 
     if (abs(diff.y) * e::direction_likelyhood.x <= 
         abs(diff.x) * e::direction_likelyhood.y)
     {
         if (diff.x == 0)
-            return direction_t::non;
+            return direction_n::none;
         if (diff.x < 0)
-            return direction_t::left;
+            return direction_n::left;
         else
-            return direction_t::right;
+            return direction_n::right;
     }
 
-    return direction_t::non;
+    return direction_n::none;
 }
 
 
@@ -120,7 +120,7 @@ uint32_t touch_state::unpressed (view * vv)
         dolg.y = 0;
     bool flag = 1;
  
-    direction_t direction = get_direction({old.x + dolg.x, old.y  + dolg.y});
+    direction_n::type direction = get_direction({old.x + dolg.x, old.y  + dolg.y});
     
     for (uint32_t cnt = 0; cnt < e::max_speed_cnt && flag; ++cnt)
     {
@@ -130,14 +130,14 @@ uint32_t touch_state::unpressed (view * vv)
         int32_t * dolg_v;
         switch (direction)
         {
-        case direction_t::non:
+        case direction_n::none:
             continue;
-        case direction_t::up:
-        case direction_t::down:
+        case direction_n::up:
+        case direction_n::down:
             dolg_v = &dolg.y;
             break;
-        case direction_t::left:
-        case direction_t::right:
+        case direction_n::left:
+        case direction_n::right:
             dolg_v = &dolg.x;
             break;
         }
@@ -165,28 +165,28 @@ uint32_t touch_state::pressed (point p, view * vv)
     {
         int32_t offset;
         uint32_t ret = 0;
-        direction_t direction = get_direction(p);
+        direction_n::type direction = get_direction(p);
         
         if (is_moved(p))
             moved = 1;
         else
-            direction = direction_t::non;
+            direction = direction_n::none;
 
         switch (direction)
         {
-        case direction_t::non:
+        case direction_n::none:
             dolg.x = p.x - old.x;
             dolg.y = p.y - old.y;
             return 0;
-        case direction_t::up:
-        case direction_t::down:
+        case direction_n::up:
+        case direction_n::down:
             ret = state.do_move(offset, direction, abs(p.y - old.y), 0, vv);
             old.x = p.x;
             old.y += nearest_to_zero(offset, p.y - old.y);
             dolg = {0, offset};
             break;
-        case direction_t::left:
-        case direction_t::right:
+        case direction_n::left:
+        case direction_n::right:
             ret = state.do_move(offset, direction, abs(p.x - old.x), 0, vv);
             old.x += nearest_to_zero(offset, p.x - old.x);
             old.y = p.y;

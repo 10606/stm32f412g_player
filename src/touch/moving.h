@@ -4,14 +4,7 @@
 #include <stdint.h>
 #include "view.h"
 
-enum class direction_t
-{
-    non   = 0,
-    left  = 1,
-    right = 2,
-    up    = 3,
-    down  = 4
-};
+namespace direction_n = directions::nlrud;
 
 struct point
 {
@@ -29,7 +22,7 @@ struct touch_processing
     uint32_t do_move 
     (
         int32_t & ans,
-        direction_t direction,
+        direction_n::type direction,
         int32_t offset, 
         char speed, 
         view * vv
@@ -45,7 +38,7 @@ private:
         int32_t offset, 
         char speed, 
         view * vv,
-        uint8_t direction // 0 left, 1 - right
+        directions::lr::type direction
     );
     
     uint32_t move_up_down
@@ -54,7 +47,7 @@ private:
         int32_t offset, 
         char speed, 
         view * vv, 
-        uint8_t direction // 0 - down, 1 - up 
+        directions::du::type direction
     );
 };
 

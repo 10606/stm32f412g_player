@@ -222,8 +222,7 @@ void authentificator_t::add (int fd)
         
     try
     {
-        clients.emplace_front(std::piecewise_construct, 
-                              std::make_tuple(fd, std::ref(epoll)), 
+        clients.emplace_front(std::make_tuple(fd, std::ref(epoll)), 
                               std::make_tuple(to));
         
         try 
@@ -260,11 +259,11 @@ std::vector <int> authentificator_t::check ()
         it_t next = it;
         next++;
         
-        int fd = it->first.file_descriptor();
-        if (it->first.is_ready())
+        int fd = it->checker.file_descriptor();
+        if (it->checker.is_ready())
         {
             pointers.erase(fd);
-            if (it->first.is_acc())
+            if (it->checker.is_acc())
             {
                 clients.erase(it);
                 ans.push_back(fd);
@@ -276,7 +275,7 @@ std::vector <int> authentificator_t::check ()
                 close(fd);
             }
         }
-        else if (it->second < now)
+        else if (it->time < now)
         {
             pointers.erase(fd);
             clients.erase(it);
@@ -297,7 +296,7 @@ void authentificator_t::read (int fd)
         return;
     try
     {
-        it->second->first.read();
+        it->second->checker.read();
     }
     catch (...)
     {
@@ -313,7 +312,7 @@ void authentificator_t::write (int fd)
     
     try
     {
-        it->second->first.write();
+        it->second->checker.write();
     }
     catch (...)
     {

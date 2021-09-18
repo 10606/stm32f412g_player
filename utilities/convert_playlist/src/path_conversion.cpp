@@ -74,24 +74,31 @@ std::vector <std::string> const bad_in_name =
 };
 
 
+struct remove_index
+{
+    size_t pos;
+    size_t index_in_bad;
+    
+    friend std::strong_ordering operator <=> (remove_index const & lhs, remove_index const & rhs) = default;
+};
+
 std::string remove_bad (std::string const & value, std::vector <std::string> const & bad)
 {
     if (bad.empty())
         return value;
 
     std::string answer;
-    std::set <std::pair <size_t, size_t> > to_remove; // pos, index
+    std::set <remove_index> to_remove;
     for (size_t i = 0; i != bad.size(); ++i)
         to_remove.insert({value.find(bad[i]), i});
     
     for (size_t i = 0; i < value.size(); )
     {
-        std::set <std::pair <size_t, size_t> > ::iterator it = to_remove.begin();
+        std::set <remove_index> ::iterator it = to_remove.begin();
         size_t new_i = i;
-        while (it->first <= i)
+        while (it->pos <= i)
         {
-            size_t pos = it->first;
-            size_t index = it->second;
+            auto [pos, index] = *it;
             to_remove.erase(it);
             to_remove.insert({value.find(bad[index], pos + 1), index});
             

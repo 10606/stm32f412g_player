@@ -50,62 +50,62 @@ int main (int argc, char ** argv)
             while (!exit)
             {
                 clients.remove_too_big();
-                std::vector <std::pair <int, uint32_t> > events = epoll_wrap.wait();
-                for (std::pair <int, uint32_t> const & event : events)
+                std::vector <epoll_wraper::e_event> events = epoll_wrap.wait();
+                for (epoll_wraper::e_event const & event : events)
                 {
-                    if (event.first == conn_sock.file_descriptor())
+                    if (event.fd == conn_sock.file_descriptor())
                     {
-                        if (event.second & EPOLLIN)
+                        if (event.mask & EPOLLIN)
                             clients.reg(conn_sock.accept());
                     }
-                    else if (event.first == tcp_server_sock.file_descriptor())
+                    else if (event.fd == tcp_server_sock.file_descriptor())
                     {
                         try
                         {
-                            if (event.second & EPOLLIN)
+                            if (event.mask & EPOLLIN)
                                 auth.add(tcp_server_sock.accept());
                         }
                         catch (...)
                         {}
                     }
-                    else if (event.first == stm32.file_descriptor())
+                    else if (event.fd == stm32.file_descriptor())
                     {
-                        if (event.second & EPOLLIN)
+                        if (event.mask & EPOLLIN)
                             clients.append(stm32.read());
-                        if (event.second & EPOLLOUT)
+                        if (event.mask & EPOLLOUT)
                             stm32.write();
                     }
-                    else if (auth.have(event.first))
+                    else if (auth.have(event.fd))
                     {
-                        if (event.second & EPOLLIN)
-                            auth.read(event.first);
-                        if (event.second & EPOLLOUT)
-                            auth.write(event.first);
+                        if (event.mask & EPOLLIN)
+                            auth.read(event.fd);
+                        if (event.mask & EPOLLOUT)
+                            auth.write(event.fd);
                     }
-                    else if (clients.have(event.first))
+                    else if (clients.have(event.fd))
                     {
-                        if (event.second & EPOLLIN)
-                            stm32.append(clients.read(event.first));
-                        if (event.second & EPOLLOUT)
-                            clients.write(event.first);
+                        if (event.mask & EPOLLIN)
+                            stm32.append(clients.read(event.fd));
+                        if (event.mask & EPOLLOUT)
+                            clients.write(event.fd);
                     }
                 }
 
-                for (std::pair <int, uint32_t> const & event : events)
+                for (epoll_wraper::e_event const & event : events)
                 {
                     static const uint32_t err_mask = EPOLLRDHUP | EPOLLERR | EPOLLHUP;
-                    if (event.second & err_mask)
+                    if (event.mask & err_mask)
                     {
-                        if (event.first == conn_sock.file_descriptor())
+                        if (event.fd == conn_sock.file_descriptor())
                             throw std::runtime_error("server socket error");
-                        else if (event.first == tcp_server_sock.file_descriptor())
+                        else if (event.fd == tcp_server_sock.file_descriptor())
                             tcp_server_sock.close();
-                        else if (event.first == stm32.file_descriptor())
+                        else if (event.fd == stm32.file_descriptor())
                             exit = 1;
-                        else if (auth.have(event.first))
-                            auth.remove(event.first);
-                        else if (clients.have(event.first))
-                            clients.unreg(event.first);
+                        else if (auth.have(event.fd))
+                            auth.remove(event.fd);
+                        else if (clients.have(event.fd))
+                            clients.unreg(event.fd);
                     }
                 }
 
@@ -144,14 +144,22 @@ int main (int argc, char ** argv)
                 while (flag)
                 {
                     flag = 0;
-                    std::vector <std::pair <int, uint32_t> > events = epoll_wrap.wait(1000);
-                    for (std::pair <int, uint32_t> const & event : events)
+                    std::vector <epoll_wraper::e_event> events = epoll_wrap.wait(1000);
+                    for (epoll_wraper::e_event const & event : events)
                     {
-                        if ((event.first == conn_sock.file_descriptor()) &&
-                            (event.second & EPOLLIN))
+                        if ((event.fd == conn_sock.file_descriptor()) &&
+                            (event.mask & EPOLLIN))
                         {
                             flag = 1;
                             int fd = conn_sock.accept();
+                            if (fd != -1)
+                                close(fd);
+                        }
+                        else if ((event.fd == tcp_server_sock.file_descriptor()) &&
+                            (event.mask & EPOLLIN))
+                        {
+                            flag = 1;
+                            int fd = tcp_server_sock.accept();
                             if (fd != -1)
                                 close(fd);
                         }

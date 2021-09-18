@@ -21,7 +21,7 @@ struct touch_state
 private:
     
     bool is_moved (point p) const;
-    direction_t get_direction (point p) const;
+    direction_n::type get_direction (point p) const;
     uint32_t unpressed (view * vv);
     uint32_t pressed (point p, view * vv);
 };

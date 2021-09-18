@@ -7,6 +7,7 @@
 #include "pl_list.h"
 #include "audio.h"
 #include "view_states.h"
+#include "direction_t.h"
 #include <optional>
 
 struct view
@@ -22,12 +23,12 @@ struct view
     uint32_t init (filename_t * path, uint32_t len);
     void display ();
     uint32_t open_song ();
-    uint32_t open_song_not_found (uint8_t direction); // direction == 1 - reverse
+    uint32_t open_song_not_found (directions::np::type direction = directions::np::next);
     void fake_song_and_playlist ();
 
     uint32_t process_up        ();
     uint32_t process_down      ();
-    uint32_t process_next_prev (uint8_t direction /* 0 - next, 1 - prev */);
+    uint32_t process_next_prev (directions::np::type direction);
     uint32_t process_left      ();
     uint32_t process_right     ();
     uint32_t process_center    ();
@@ -60,8 +61,8 @@ struct view
     
 private:
     uint32_t change_volume (int8_t value);
-    uint32_t seek (uint32_t value, uint8_t direction /* 0 - backward, 1 - forward */);
-    uint32_t change_song (uint8_t direction /* 0 - next, 1 - prev */);
+    uint32_t seek (uint32_t value, directions::fb::type direction /* CHANGE 0 - backward, 1 - forward */);
+    uint32_t change_song (directions::np::type direction);
     uint32_t play_new_playlist ();
 };
 

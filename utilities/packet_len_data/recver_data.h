@@ -5,21 +5,19 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <algorithm>
+#include <memory>
 
 struct recver_data_len
 {
     recver_data_len ():
         init(0),
         len{.value = 0},
-        value(nullptr),
+        value(),
         recv_ptr(0),
         fd(-1)
     {}
 
-    ~recver_data_len ()
-    {
-        delete [] value;
-    }
+    ~recver_data_len () = default;
     
     void swap (recver_data_len & rhs) noexcept
     {
@@ -46,10 +44,8 @@ struct recver_data_len
 
     void set (int _fd)
     {
-        delete [] value;
-        
         init = _fd != -1;
-        value = nullptr;
+        value.reset();
         recv_ptr = 0;
         fd = _fd;
     }
@@ -63,7 +59,7 @@ struct recver_data_len
     
     std::string_view get ()
     {
-        return std::string_view(value, len.value);
+        return std::string_view(value.get(), len.value);
     }
     
 private:
@@ -75,7 +71,7 @@ private:
         char bytes [sizeof(value)];
     } len;
     
-    char * value;
+    std::unique_ptr <char []> value;
     size_t recv_ptr;
     int fd;
 };

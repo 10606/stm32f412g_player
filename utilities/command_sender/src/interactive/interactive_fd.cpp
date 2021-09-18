@@ -109,11 +109,11 @@ struct escape_buffer
 
     void process ()
     {
-        for (std::pair <int, uint32_t> event : epoll.wait())
+        for (epoll_wraper::e_event event : epoll.wait())
         {
-            if (event.first == fd)
+            if (event.fd == fd)
             {
-                if (event.second & EPOLLIN)
+                if (event.mask & EPOLLIN)
                 {
                     char buffer[1024];
                     ssize_t ret = read(fd, buffer, sizeof(buffer));
@@ -127,7 +127,7 @@ struct escape_buffer
                     info_from_stm.insert(info_from_stm.end(), buffer, buffer + ret);
                     extract(info_from_stm, state);
                 }
-                if (event.second & EPOLLOUT)
+                if (event.mask & EPOLLOUT)
                 {
                     ssize_t ret = write(fd, to_write.c_str(), to_write.size());
                     if (ret == -1)
@@ -148,14 +148,16 @@ struct escape_buffer
                     }
                 }
             }
-            if ((event.second & EPOLLIN) && event.first == STDIN_FILENO)
+            if ((event.mask & EPOLLIN) && event.fd == STDIN_FILENO)
             {
                 char ch;
                 ssize_t ret = read(STDIN_FILENO, &ch, 1);
                 if (ret == 1)
                     put(ch);
             }
-            if ((event.second & EPOLLHUP) || (event.second & EPOLLRDHUP))
+            if ((event.mask & EPOLLHUP) || 
+                (event.mask & EPOLLRDHUP) || 
+                (event.mask & EPOLLERR))
             {
                 throw std::runtime_error("closed");
             }

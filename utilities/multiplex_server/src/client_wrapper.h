@@ -44,8 +44,16 @@ private:
     ring_buffer data;
     size_t last_full_struct_ptr;
     
+    struct client_pos
+    {
+        size_t offset;
+        int fd;
+        
+        friend std::strong_ordering operator <=> (client_pos const & lhs, client_pos const & rhs) = default;
+    };
+    
     std::map <int, size_t> pointers; // fd -> offset
-    std::set <std::pair <size_t, int> > less_size; // <offset, fd>
+    std::set <client_pos> less_size; // <offset, fd>
     std::set <int> not_registred; // not registred fd on write in epoll
 };
 

@@ -138,11 +138,27 @@ struct authentificator_t
     
 private:
     typedef std::chrono::time_point <std::chrono::system_clock> time_point;
-    typedef std::list <std::pair <pass_checker, time_point> > :: iterator it_t;
+    struct pass_check_with_time
+    {
+        pass_checker checker;
+        time_point time;
+        
+        template <typename Tuple_1, typename Tuple_2>
+        pass_check_with_time 
+        (
+            Tuple_1 && args_1, 
+            Tuple_2 && args_2
+        ) :
+            checker(std::make_from_tuple <pass_checker> (std::forward <Tuple_1> (args_1))),
+            time   (std::make_from_tuple <time_point>   (std::forward <Tuple_2> (args_2)))
+        {}
+    };
+    
+    typedef std::list <pass_check_with_time> :: iterator it_t;
     
     void remove (std::map <int, it_t> :: iterator it)
     {
-        int fd = it->second->first.file_descriptor();
+        int fd = it->second->checker.file_descriptor();
         clients.erase(it->second);
         pointers.erase(it);
         epoll.unreg(fd);
@@ -150,7 +166,7 @@ private:
     }
     
     epoll_wraper & epoll;
-    std::list <std::pair <pass_checker, time_point> > clients;
+    std::list <pass_check_with_time> clients;
     std::map <int, it_t> pointers;
     
     static const size_t max_clients = 100;

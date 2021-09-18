@@ -15,6 +15,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <iostream>
+#include <memory>
 
 #include <sys/epoll.h>
 #include <sys/socket.h>
@@ -23,9 +24,7 @@
 
 std::string enc_pass (std::string_view password, std::string_view pub_key)
 {
-    std::string ans;
-    bool has_err = 1;
-    char * encrypt;
+    std::unique_ptr <char []> encrypt;
 
     BIO * pub;
     RSA * rsa = NULL;
@@ -49,7 +48,7 @@ std::string enc_pass (std::string_view password, std::string_view pub_key)
 
     try
     {
-        encrypt = new char [RSA_size(rsa)];
+        encrypt = std::make_unique <char []> (RSA_size(rsa));
     }
     catch (...)
     {
@@ -61,27 +60,25 @@ std::string enc_pass (std::string_view password, std::string_view pub_key)
                         (
                             password.size(), 
                             reinterpret_cast <unsigned char const *> (password.data()), 
-                            reinterpret_cast <unsigned char *> (encrypt),
+                            reinterpret_cast <unsigned char *> (encrypt.get()),
                             rsa, 
                             RSA_PKCS1_OAEP_PADDING
                         )) == -1) 
     {
         std::cerr << "can't encrypt\n";
-        goto encrypt_free;
+        goto rsa_free;
     }
     
-    has_err = 0;
-    ans = std::string(encrypt, encrypt_len);
-encrypt_free:
-    delete [] encrypt;
+    RSA_free(rsa);
+    BIO_free_all(pub);
+    return std::string(encrypt.get(), encrypt_len);
+
 rsa_free:
     RSA_free(rsa);
 bio_free:
     BIO_free_all(pub);
 done:
-    if (has_err)
-        throw std::runtime_error("can't encrypt pass");
-    return ans;
+    throw std::runtime_error("can't encrypt pass");
 }
 
 
@@ -312,32 +309,32 @@ int main (int argc, char const * const * argv)
         bool exit = 0;
         while (!exit && !conn_sock.ready())
         {
-            std::vector <std::pair <int, uint32_t> > events = epoll_wrap.wait();
-            for (std::pair <int, uint32_t> const & event : events)
+            std::vector <epoll_wraper::e_event> events = epoll_wrap.wait();
+            for (epoll_wraper::e_event const & event : events)
             {
-                if ((event.first == conn_sock.file_descriptor()) ||
-                    (event.first == STDIN_FILENO))
+                if ((event.fd == conn_sock.file_descriptor()) ||
+                    (event.fd == STDIN_FILENO))
                 {
-                    if (event.second & EPOLLIN)
+                    if (event.mask & EPOLLIN)
                         conn_sock.read();
-                    if (event.second & EPOLLOUT)
+                    if (event.mask & EPOLLOUT)
                         conn_sock.write();
                 }
             }
             
-            for (std::pair <int, uint32_t> const & event : events)
+            for (epoll_wraper::e_event const & event : events)
             {
                 static const uint32_t err_mask = EPOLLRDHUP | EPOLLERR | EPOLLHUP;
-                if (event.second & err_mask)
+                if (event.mask & err_mask)
                 {
                     try
                     {
-                        epoll_wrap.unreg(event.first);
+                        epoll_wrap.unreg(event.fd);
                     }
                     catch (...)
                     {}
             
-                    if (event.first == conn_sock.file_descriptor())
+                    if (event.fd == conn_sock.file_descriptor())
                         exit = 1;
                 }
             }

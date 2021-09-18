@@ -55,10 +55,10 @@ inline uint32_t sub_in_bound (uint32_t value, uint32_t a, uint32_t b, uint32_t a
     return value - add;
 }
 
-uint32_t view::seek (uint32_t value, uint8_t direction /* 0 - backward, 1 - forward */)
+uint32_t view::seek (uint32_t value, directions::fb::type direction)
 {
     uint32_t (* op_in_bound[2]) (uint32_t, uint32_t, uint32_t, uint32_t) = 
-        {sub_in_bound, add_in_bound};
+        {add_in_bound, sub_in_bound};
 
     uint32_t ret, new_pos;
     new_pos = audio_ctl->audio_file.current_position();
@@ -73,15 +73,15 @@ uint32_t view::seek (uint32_t value, uint8_t direction /* 0 - backward, 1 - forw
 
 uint32_t view::seek_forward ()
 {
-    return seek(seek_value, 1);
+    return seek(seek_value, directions::fb::forward);
 }
 
 uint32_t view::seek_backward ()
 {
-    return seek(seek_value, 0);
+    return seek(seek_value, directions::fb::backward);
 }
 
-uint32_t view::change_song (uint8_t direction /* 0 - next, 1 - prev */)
+uint32_t view::change_song (directions::np::type direction)
 {
     static uint32_t (playlist::* const do_on_playlist[2]) () =
     {
@@ -104,15 +104,15 @@ uint32_t view::change_song (uint8_t direction /* 0 - next, 1 - prev */)
 
 uint32_t view::prev_song ()
 {
-    return change_song(1);
+    return change_song(directions::np::prev);
 }
 
 uint32_t view::next_song ()
 {
-    return change_song(0);
+    return change_song(directions::np::next);
 }
 
-uint32_t view::process_next_prev (uint8_t direction /* 0 - next, 1 - prev */)
+uint32_t view::process_next_prev (directions::np::type direction)
 {
     static void (pl_list::* const do_on_pl_list[2]) () = 
     {
@@ -140,10 +140,10 @@ uint32_t view::process_next_prev (uint8_t direction /* 0 - next, 1 - prev */)
         switch (state_song_view)
         {
         case state_song_view_t::volume:
-            return change_volume(direction? 1 : -1);
+            return change_volume(direction == directions::np::prev? 1 : -1);
             
         case state_song_view_t::seek:
-            return seek(seek_value, direction);
+            return seek(seek_value, direction == directions::np::next? directions::fb::backward : directions::fb::forward);
 
         case state_song_view_t::next_prev:
             return change_song(direction);
@@ -154,12 +154,12 @@ uint32_t view::process_next_prev (uint8_t direction /* 0 - next, 1 - prev */)
 
 uint32_t view::process_up ()
 {
-    return process_next_prev(1);
+    return process_next_prev(directions::np::prev);
 }
 
 uint32_t view::process_down ()
 {
-    return process_next_prev(0);
+    return process_next_prev(directions::np::next);
 }
 
 uint32_t view::play_pause ()
@@ -213,7 +213,7 @@ uint32_t view::play_new_playlist ()
     ret = plv.play(pl);
     if (ret)
         return ret;
-    ret = open_song_not_found(0);
+    ret = open_song_not_found();
     if (ret)
     {
         pl = std::move(old_pl);

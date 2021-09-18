@@ -98,9 +98,9 @@ void clients_wrapper_t::remove_too_big ()
     {
         while (!less_size.empty())
         {
-            std::set <std::pair <size_t, int> > :: iterator it = less_size.begin();
-            if (it->first + max_capacity / 2 < data.end())
-                unreg(it->second);
+            std::set <client_pos> :: iterator it = less_size.begin();
+            if (it->offset + max_capacity / 2 < data.end())
+                unreg(it->fd);
             else
                 break;
         }
@@ -112,7 +112,7 @@ void clients_wrapper_t::shrink_to_fit ()
 {
     size_t min_ptr = last_full_struct_ptr;
     if (!less_size.empty())
-        min_ptr = std::min(min_ptr, less_size.begin()->first);
+        min_ptr = std::min(min_ptr, less_size.begin()->offset);
         
     data.erase(min_ptr - data.begin());
 }
@@ -157,9 +157,9 @@ void clients_wrapper_t::append (std::string_view value)
     size_t diff = data.add(value);
     if (diff != 0)
     {
-        std::set <std::pair <size_t, int> > new_less_size;
+        std::set <client_pos> new_less_size;
         for (auto const & v : less_size)
-            new_less_size.insert({v.first - diff, v.second});
+            new_less_size.insert({v.offset - diff, v.fd});
         less_size.swap(new_less_size);
         
         for (auto & v : pointers)

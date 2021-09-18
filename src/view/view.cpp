@@ -54,7 +54,7 @@ uint32_t view::open_song ()
     return 0;
 }
 
-uint32_t view::open_song_not_found (uint8_t direction)
+uint32_t view::open_song_not_found (directions::np::type direction)
 {
     uint32_t (playlist::* np_playlist[2]) () = 
     {

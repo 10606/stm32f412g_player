@@ -34,7 +34,7 @@ uint32_t audio_ctl_t::audio_init ()
     
     init_mad();
     uint32_t ret;
-    ret = viewer().open_song_not_found(0);
+    ret = viewer().open_song_not_found();
     if (ret)
     {
         deinit_mad();
@@ -161,7 +161,7 @@ uint32_t audio_ctl_t::new_song_or_repeat ()
             display::error("err get next song");
             return ret;
         }
-        if ((ret = viewer().open_song_not_found(0)))
+        if ((ret = viewer().open_song_not_found()))
         {
             viewer().fake_song_and_playlist();
             memset(buff, 0, audio_buffer_size);

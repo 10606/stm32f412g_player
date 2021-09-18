@@ -5,11 +5,12 @@
 #include <stdint.h>
 #include <string_view>
 #include <algorithm>
+#include <memory>
 
 struct ring_buffer
 {
     ring_buffer (size_t _size_inc_value = 1024) :
-        data(nullptr),
+        data(),
         capacity(0),
         begin_v(0),
         size_v(0),
@@ -17,10 +18,7 @@ struct ring_buffer
         size_inc_value(_size_inc_value)
     {}
     
-    ~ring_buffer ()
-    {
-        delete [] data;
-    }
+    ~ring_buffer () = default;
     
     void swap (ring_buffer & rhs) noexcept
     {
@@ -95,7 +93,7 @@ struct ring_buffer
 private:
     void realloc (size_t size_diff);
 
-    char * data;
+    std::unique_ptr <char []> data;
     size_t capacity;
     size_t begin_v;
     size_t size_v;

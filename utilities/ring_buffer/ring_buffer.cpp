@@ -4,8 +4,8 @@
 #include <memory.h>
 #include <limits>
 
-#include "unistd.h"
-#include "errno.h"
+#include <unistd.h>
+#include <errno.h>
 
 size_t ring_buffer::add (std::string_view value)
 {
@@ -19,12 +19,12 @@ size_t ring_buffer::add (std::string_view value)
     size_t tail = capacity - end;
     if (value.size() > tail)
     {
-        memcpy(data + end, value.data(), tail);
-        memcpy(data, value.data() + tail, value.size() + - tail);
+        memcpy(data.get() + end, value.data(), tail);
+        memcpy(data.get(), value.data() + tail, value.size() + - tail);
     }
     else
     {
-        memcpy(data + end, value.data(), value.size());
+        memcpy(data.get() + end, value.data(), value.size());
     }
     size_v += value.size();
     
@@ -50,7 +50,7 @@ size_t ring_buffer::write (int fd, size_t pos)
     if (pos + count > capacity)
         count = capacity - pos;
     
-    ssize_t ret = ::write(fd, data + pos, count);
+    ssize_t ret = ::write(fd, data.get() + pos, count);
     if (ret == -1)
     {
         if ((errno != EINTR) && (errno != EPIPE))
@@ -70,17 +70,16 @@ void ring_buffer::realloc (size_t size_diff)
     size_t head = capacity - begin_v;
     if (size_v > head)
     {
-        memmove(new_data, data + begin_v, head);
-        memmove(new_data + head, data, size_v - head);
+        memmove(new_data, data.get() + begin_v, head);
+        memmove(new_data + head, data.get(), size_v - head);
     }
     else
     {
-        memmove(new_data, data + begin_v, size_v);
+        memmove(new_data, data.get() + begin_v, size_v);
     }
     
     begin_v = 0;
     capacity = new_capacity;
-    delete [] data;
-    data = new_data;
+    data.reset(new_data);
 }
 
