@@ -144,7 +144,12 @@ struct client_socket_t
     {
         if (fd != -1)
         {
-            epoll.unreg(fd);
+            try
+            {
+                epoll.unreg(fd);
+            }
+            catch (...)
+            {}
             close(fd);
         }
     }
@@ -162,7 +167,12 @@ struct client_socket_t
     int reset_file_descriptor () noexcept
     {
         int _fd = fd;
-        epoll.unreg(fd);
+        try
+        {
+            epoll.unreg(fd);
+        }
+        catch (...)
+        {}
         fd = -1;
         return _fd;
     }
@@ -231,7 +241,7 @@ void client_socket_t::read ()
         {
             status = read_password;
             epoll.reg(STDIN_FILENO, EPOLLIN);
-            epoll.unreg(fd);
+            epoll.reg(fd, 0);
         }
         return;
     }
@@ -293,8 +303,6 @@ int main (int argc, char const * const * argv)
 {
     try
     {
-        epoll_wraper epoll_wrap;
-        
         in_addr addr{0x7f000001}; // 127.0.0.1
         if (argc > 1)
         {
@@ -304,6 +312,8 @@ int main (int argc, char const * const * argv)
                 return 1;
             }
         }
+
+        epoll_wraper epoll_wrap;
         client_socket_t conn_sock(addr.s_addr, 750, epoll_wrap);
         
         bool exit = 0;
@@ -327,14 +337,8 @@ int main (int argc, char const * const * argv)
                 static const uint32_t err_mask = EPOLLRDHUP | EPOLLERR | EPOLLHUP;
                 if (event.mask & err_mask)
                 {
-                    try
-                    {
-                        epoll_wrap.unreg(event.fd);
-                    }
-                    catch (...)
-                    {}
-            
-                    if (event.fd == conn_sock.file_descriptor())
+                    if ((event.fd == conn_sock.file_descriptor()) ||
+                        (event.fd == STDIN_FILENO))
                         exit = 1;
                 }
             }

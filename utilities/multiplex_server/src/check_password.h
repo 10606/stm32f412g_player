@@ -66,7 +66,7 @@ struct pass_checker
         return ready;
     }
     
-    bool is_acc () const
+    bool is_acc () const noexcept
     {
         return acc;
     }
@@ -118,7 +118,7 @@ struct authentificator_t
         {
             try
             {
-                remove (it);
+                remove(it);
             }
             catch (...)
             {}
@@ -161,7 +161,6 @@ private:
         int fd = it->second->checker.file_descriptor();
         clients.erase(it->second);
         pointers.erase(it);
-        epoll.unreg(fd);
         close(fd);
     }
     

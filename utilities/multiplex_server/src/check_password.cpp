@@ -271,7 +271,6 @@ std::vector <int> authentificator_t::check ()
             else
             {
                 clients.erase(it);
-                epoll.unreg(fd);
                 close(fd);
             }
         }
@@ -279,7 +278,6 @@ std::vector <int> authentificator_t::check ()
         {
             pointers.erase(fd);
             clients.erase(it);
-            epoll.unreg(fd);
             close(fd);
         }
         
