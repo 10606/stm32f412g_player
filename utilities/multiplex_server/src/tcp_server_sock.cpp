@@ -59,12 +59,7 @@ void tcp_server_sock_t::close () noexcept
 {
     if (fd != -1)
     {
-        try
-        {
-            epoll.unreg(fd);
-        }
-        catch (...)
-        {}
+        epoll.unreg(fd);
         ::close(fd);
         fd = -1;
     }

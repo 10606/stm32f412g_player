@@ -24,11 +24,13 @@ set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${release_flags}")
 message("CMAKE_CXX_FLAGS" ${CMAKE_CXX_FLAGS})
 
 include_directories(
+    src
     ${player_path}/main
     ${player_path}/view
     ${player_path}/usb
     ../packet_len_data
     ../ring_buffer
+    ../sockets
 )
 
 add_executable(multiplex_server
@@ -39,8 +41,8 @@ add_executable(multiplex_server
     src/unix_server_sock.cpp
     src/check_password.cpp
     src/tcp_server_sock.cpp
-    ../packet_len_data/sender_data.cpp
     ../ring_buffer/ring_buffer.cpp
+    ../sockets/web_socket.cpp
 )
 
 target_link_libraries(multiplex_server

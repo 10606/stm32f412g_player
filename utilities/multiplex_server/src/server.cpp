@@ -10,12 +10,17 @@
 #include <vector>
 #include <stdexcept>
 
-#include "check_password.h"
-#include "tcp_server_sock.h"
+#include "simple_socket.h"
+#include "web_socket.h"
 #include "epoll_wrapper.h"
+#include "tcp_server_sock.h"
 #include "unix_server_sock.h"
+#include "authentificator.h"
+#include "pass_checker.h"
+#include "check_password.h"
 #include "com_wrapper.h"
 #include "client_wrapper.h"
+#include "helper_functions.h"
 
 void set_sig_handler (int sig_num, void (* handler) (int))
 {
@@ -39,12 +44,16 @@ int main (int argc, char ** argv)
         epoll_wraper epoll_wrap;
         unix_server_sock_t conn_sock(sock_name, socket_activation, epoll_wrap);
         tcp_server_sock_t tcp_server_sock(INADDR_ANY, 750, epoll_wrap);
+        tcp_server_sock_t web_server_sock(INADDR_ANY, 751, epoll_wrap);
             
         try
         {
             clients_wrapper_t clients(epoll_wrap);
             com_wrapper_t stm32(stm32_name, epoll_wrap);
-            authentificator_t auth(epoll_wrap);
+            authentificator_t <pass_checker <socket_t> > auth(epoll_wrap);
+            
+            authentificator_t <web_socket_init_t> web_init(epoll_wrap);
+            authentificator_t <pass_checker <web_socket_t> > web_auth(epoll_wrap);
 
             bool exit = 0;
             while (!exit)
@@ -56,18 +65,12 @@ int main (int argc, char ** argv)
                     if (event.fd == conn_sock.file_descriptor())
                     {
                         if (event.mask & EPOLLIN)
-                            clients.reg(conn_sock.accept());
+                            clients.reg <socket_t> (conn_sock.accept());
                     }
-                    else if (event.fd == tcp_server_sock.file_descriptor())
-                    {
-                        try
-                        {
-                            if (event.mask & EPOLLIN)
-                                auth.add(tcp_server_sock.accept());
-                        }
-                        catch (...)
-                        {}
-                    }
+                    else if (accept_for_auth(tcp_server_sock, auth, event))
+                    {}
+                    else if (accept_for_auth(web_server_sock, web_init, event))
+                    {}
                     else if (event.fd == stm32.file_descriptor())
                     {
                         if (event.mask & EPOLLIN)
@@ -75,22 +78,29 @@ int main (int argc, char ** argv)
                         if (event.mask & EPOLLOUT)
                             stm32.write();
                     }
-                    else if (auth.have(event.fd))
-                    {
-                        if (event.mask & EPOLLIN)
-                            auth.read(event.fd);
-                        if (event.mask & EPOLLOUT)
-                            auth.write(event.fd);
-                    }
                     else if (clients.have(event.fd))
                     {
-                        if (event.mask & EPOLLIN)
-                            stm32.append(clients.read(event.fd));
-                        if (event.mask & EPOLLOUT)
-                            clients.write(event.fd);
+                        try
+                        {
+                            if (event.mask & EPOLLIN)
+                                stm32.append(clients.read(event.fd));
+                            if (event.mask & EPOLLOUT)
+                                clients.write(event.fd);
+                        }
+                        catch (...)
+                        {
+                            clients.unreg(event.fd);
+                        }
                     }
+                    else if (just_do(auth, event))
+                    {}
+                    else if (just_do(web_init, event))
+                    {}
+                    else if (just_do(web_auth, event))
+                    {}
                 }
 
+                // errors / close handle
                 for (epoll_wraper::e_event const & event : events)
                 {
                     static const uint32_t err_mask = EPOLLRDHUP | EPOLLERR | EPOLLHUP;
@@ -100,33 +110,24 @@ int main (int argc, char ** argv)
                             throw std::runtime_error("server socket error");
                         else if (event.fd == tcp_server_sock.file_descriptor())
                             tcp_server_sock.close();
+                        else if (event.fd == web_server_sock.file_descriptor())
+                            web_server_sock.close();
                         else if (event.fd == stm32.file_descriptor())
                             exit = 1;
                         else if (auth.have(event.fd))
                             auth.remove(event.fd);
+                        else if (web_init.have(event.fd))
+                            web_init.remove(event.fd);
+                        else if (web_auth.have(event.fd))
+                            web_auth.remove(event.fd);
                         else if (clients.have(event.fd))
                             clients.unreg(event.fd);
                     }
                 }
 
-                std::vector <int> acc = auth.check();
-                for (int fd : acc)
-                {
-                    try
-                    {
-                        clients.reg(fd);
-                    }
-                    catch (...)
-                    {
-                        try
-                        {
-                            epoll_wrap.unreg(fd);
-                        }
-                        catch (...)
-                        {}
-                        close(fd);
-                    }
-                }
+                check_all(auth, epoll_wrap, [&clients] (int fd) -> void {clients.reg <socket_t> (fd);});
+                check_all(web_init, epoll_wrap, [&web_auth] (int fd) -> void {web_auth.add(fd);});
+                check_all(web_auth, epoll_wrap, [&clients] (int fd) -> void {clients.reg <web_socket_t> (fd);});
             }
         }
         catch (std::exception const & e)
@@ -137,39 +138,17 @@ int main (int argc, char ** argv)
             //      client wait on connect
             //      systemd will restart me
             //      (((
-            try
+            bool flag = 1;
+            while (flag)
             {
-                bool flag = 1;
-                
-                while (flag)
+                flag = 0;
+                std::vector <epoll_wraper::e_event> events = epoll_wrap.wait(1000);
+                for (epoll_wraper::e_event const & event : events)
                 {
-                    flag = 0;
-                    std::vector <epoll_wraper::e_event> events = epoll_wrap.wait(1000);
-                    for (epoll_wraper::e_event const & event : events)
-                    {
-                        if ((event.fd == conn_sock.file_descriptor()) &&
-                            (event.mask & EPOLLIN))
-                        {
-                            flag = 1;
-                            int fd = conn_sock.accept();
-                            if (fd != -1)
-                                close(fd);
-                        }
-                        else if ((event.fd == tcp_server_sock.file_descriptor()) &&
-                            (event.mask & EPOLLIN))
-                        {
-                            flag = 1;
-                            int fd = tcp_server_sock.accept();
-                            if (fd != -1)
-                                close(fd);
-                        }
-                    }
+                    flag |= accept_and_close(conn_sock, event);
+                    flag |= accept_and_close(tcp_server_sock, event);
+                    flag |= accept_and_close(web_server_sock, event);
                 }
-            }
-            catch (std::exception const & e)
-            {
-                std::cerr << e.what() << '\n';
-                return 1;
             }
             return 0;
         }

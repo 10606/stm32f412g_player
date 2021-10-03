@@ -30,12 +30,7 @@ com_wrapper_t::com_wrapper_t (char const * _file_name, epoll_wraper & _epoll) :
 
 com_wrapper_t::~com_wrapper_t ()
 {
-    try
-    {
-        epoll.unreg(fd);
-    }
-    catch (...)
-    {}
+    epoll.unreg(fd);
     close(fd);
 }
 
@@ -50,6 +45,9 @@ void com_wrapper_t::write ()
 
 void com_wrapper_t::append (std::string_view value)
 {
+    if (value.empty())
+        return;
+
     size_t old_end = data.end();
     size_t diff = data.add(value);
     if (pos == old_end)

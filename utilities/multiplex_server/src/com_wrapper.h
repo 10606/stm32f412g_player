@@ -7,6 +7,7 @@
 
 #include "ring_buffer.h"
 #include "epoll_wrapper.h"
+#include "simple_socket.h"
 
 struct com_wrapper_t
 {

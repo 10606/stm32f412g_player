@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <memory>
 
+template <typename Socket>
 struct recver_data_len
 {
     recver_data_len ():
@@ -14,7 +15,7 @@ struct recver_data_len
         len{.value = 0},
         value(),
         recv_ptr(0),
-        fd(-1)
+        sock(nullptr)
     {}
 
     ~recver_data_len () = default;
@@ -25,7 +26,7 @@ struct recver_data_len
         std::swap(len, rhs.len);
         std::swap(value, rhs.value);
         std::swap(recv_ptr, rhs.recv_ptr);
-        std::swap(fd, rhs.fd);
+        std::swap(sock, rhs.sock);
     }
     
     recver_data_len (recver_data_len const &) = delete;
@@ -42,12 +43,20 @@ struct recver_data_len
         return *this;
     }
 
-    void set (int _fd)
+    void set (Socket & _sock)
     {
-        init = _fd != -1;
+        init = _sock.fd() != -1;
         value.reset();
         recv_ptr = 0;
-        fd = _fd;
+        sock = &_sock;
+    }
+    
+    void reset () noexcept
+    {
+        init = 0;
+        value.reset();
+        recv_ptr = 0;
+        sock = nullptr;
     }
     
     void read ();
@@ -73,8 +82,51 @@ private:
     
     std::unique_ptr <char []> value;
     size_t recv_ptr;
-    int fd;
+    Socket * sock;
 };
+
+template <typename Socket>
+void recver_data_len <Socket> ::read ()
+{
+    if (!init)
+        return;
+    if (recv_ptr == sizeof(len.value) + len.value)
+        return;
+    
+    if (recv_ptr < sizeof(len.value))
+    {
+        ssize_t rb = sock->read(len.bytes + recv_ptr, sizeof(len.value) - recv_ptr);
+        if (rb == -1)
+        {
+            if ((errno != EINTR) && (errno != EPIPE))
+                throw std::runtime_error("error read len");
+        }
+        else
+        {
+            recv_ptr += rb;
+            len.value += 0;
+            if (recv_ptr == sizeof(len.value))
+            {
+                value = std::make_unique <char []> (len.value);
+            }
+        }
+    }
+    else
+    {
+        size_t cur_recv_ptr = recv_ptr - sizeof(len.value);
+        ssize_t rb = sock->read(value.get() + cur_recv_ptr, len.value - cur_recv_ptr);
+        if (rb == -1)
+        {
+            if ((errno != EINTR) && (errno != EPIPE))
+                throw std::runtime_error("error read len");
+        }
+        else
+        {
+            recv_ptr += rb;
+        }
+    }
+}
+
 
 #endif
 

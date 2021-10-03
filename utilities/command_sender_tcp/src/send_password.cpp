@@ -2,6 +2,7 @@
 #include "recver_data.h"
 #include "sender_data.h"
 #include "interactive.h"
+#include "simple_socket.h"
 
 #include <openssl/rsa.h> 
 #include <openssl/pem.h> 
@@ -87,21 +88,21 @@ struct client_socket_t
 {
     client_socket_t (in_addr_t _addr, uint16_t _port, epoll_wraper & _epoll) :
         status(not_connected),
-        fd(-1),
+        sock(-1),
         epoll(_epoll),
         rsa_key(),
         pass_pos(0),
         encrypted_pass(),
         sender_password()
     {
-        fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
-        if (fd == -1)
+        sock = socket_t(socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0));
+        if (sock.fd() == -1)
             throw std::runtime_error("can't create socket");
         
         sockaddr_in addr = {AF_INET, htons(_port), {htonl(_addr)}};
         
         int ret;
-        ret = ::connect(fd, reinterpret_cast <sockaddr *> (&addr), sizeof(addr));
+        ret = ::connect(sock.fd(), reinterpret_cast <sockaddr *> (&addr), sizeof(addr));
         status = in_connect;
         
         if (ret == -1)
@@ -110,18 +111,18 @@ struct client_socket_t
             {
                 try
                 {
-                    epoll.reg(fd, EPOLLOUT);
+                    epoll.reg(sock.fd(), EPOLLOUT);
                 }
                 catch (...)
                 {
-                    close(fd);
+                    close(sock.fd());
                     throw;
                 }
                 return;
             }
             else
             {
-                close(fd);
+                close(sock.fd());
                 switch (errno)
                 {
                 case ECONNREFUSED:
@@ -136,21 +137,21 @@ struct client_socket_t
         }
 
         status = get_rsa_key;
-        rsa_key.set(fd);
-        epoll.reg(fd, EPOLLIN);
+        rsa_key.set(sock);
+        epoll.reg(sock.fd(), EPOLLIN);
     }
     
     ~client_socket_t ()
     {
-        if (fd != -1)
+        if (sock.fd() != -1)
         {
             try
             {
-                epoll.unreg(fd);
+                epoll.unreg(sock.fd());
             }
             catch (...)
             {}
-            close(fd);
+            close(sock.fd());
         }
     }
     
@@ -161,19 +162,19 @@ struct client_socket_t
     
     int file_descriptor () const noexcept
     {
-        return fd;
+        return sock.fd();
     }
     
     int reset_file_descriptor () noexcept
     {
-        int _fd = fd;
+        int _fd = sock.fd();
         try
         {
-            epoll.unreg(fd);
+            epoll.unreg(_fd);
         }
         catch (...)
         {}
-        fd = -1;
+        sock = socket_t(-1);
         return _fd;
     }
     
@@ -199,16 +200,16 @@ private:
     void connect ();
     
     status_t status;
-    int fd;
+    socket_t sock;
     epoll_wraper & epoll;
 
-    recver_data_len rsa_key;
+    recver_data_len <socket_t> rsa_key;
     
     char pass_buff[1024];
     size_t pass_pos;
     
     std::string encrypted_pass;
-    sender_data_len sender_password;
+    sender_data_len <socket_t> sender_password;
 };
 
 
@@ -224,9 +225,9 @@ void client_socket_t::write ()
         sender_password.write();
         if (sender_password.ready())
         {
-            epoll.reg(fd, EPOLLIN);
+            epoll.reg(sock.fd(), EPOLLIN);
             status = connected;
-            sender_password.set(-1, std::string()); // free memory
+            sender_password.reset(); // free memory
         }
         return;
     }
@@ -241,7 +242,7 @@ void client_socket_t::read ()
         {
             status = read_password;
             epoll.reg(STDIN_FILENO, EPOLLIN);
-            epoll.reg(fd, 0);
+            epoll.reg(sock.fd(), 0);
         }
         return;
     }
@@ -260,9 +261,9 @@ void client_socket_t::read ()
         {
             status = send_password;
             encrypted_pass = enc_pass(std::string_view(pass_buff, pass_pos), rsa_key.get());
-            rsa_key.set(-1); // free memory
-            sender_password.set(fd, std::move(encrypted_pass));
-            epoll.reg(fd, EPOLLOUT);
+            rsa_key.reset(); // free memory
+            sender_password.set(sock, std::move(encrypted_pass));
+            epoll.reg(sock.fd(), EPOLLOUT);
             epoll.unreg(STDIN_FILENO);
         }
         else if (pass_pos + rb == sizeof(pass_buff))
@@ -281,21 +282,21 @@ void client_socket_t::connect ()
     int err = -1;
     socklen_t err_len = sizeof(err);
 
-    int ret = getsockopt(fd, SOL_SOCKET, SO_ERROR, &err, &err_len);
+    int ret = getsockopt(sock.fd(), SOL_SOCKET, SO_ERROR, &err, &err_len);
     if ((ret == -1) || (err != 0))
     {
         status = not_connected;
         if (err != 0)
             errno = err;
-        close(fd);
-        fd = -1;
+        close(sock.fd());
+        sock = socket_t(-1);
         perror("connect event");
         throw std::runtime_error("error on connect (progress)");
     }
     
     status = get_rsa_key;
-    rsa_key.set(fd);
-    epoll.reg(fd, EPOLLIN);
+    rsa_key.set(sock);
+    epoll.reg(sock.fd(), EPOLLIN);
 }
 
 

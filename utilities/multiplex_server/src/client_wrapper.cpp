@@ -21,12 +21,7 @@ clients_wrapper_t::~clients_wrapper_t ()
 {
     for (auto const & i : pointers)
     {
-        try
-        {
-            epoll.unreg(i.first);
-        }
-        catch (...)
-        {}
+        epoll.unreg(i.first);
         close(i.first);
     }
 }
@@ -55,41 +50,22 @@ size_t inc_struct_ptr (char c) noexcept
     }
 }
 
-void clients_wrapper_t::reg (int fd)
+void clients_wrapper_t::unreg (int fd) noexcept
 {
-    if (fd == -1)
-        throw std::runtime_error("bad fd");
-    
-    if (pointers.size() >= max_clients)
+    try
     {
+        std::map <int, client_data_t> :: iterator it = pointers.find(fd);
+        if (it == pointers.end())
+            return;
+        less_size.erase({it->second.pointer, it->first});
+        not_registred.erase(it->first);
+        pointers.erase(it);
+        epoll.unreg(fd);
         close(fd);
-        return;
+        shrink_to_fit();
     }
-    
-    pointers.insert({fd, last_full_struct_ptr});
-    less_size.insert({last_full_struct_ptr, fd});
-    if (last_full_struct_ptr != data.end())
-    {
-        epoll.reg(fd, (EPOLLIN | EPOLLOUT));
-    }
-    else
-    {
-        not_registred.insert(fd);
-        epoll.reg(fd, EPOLLIN);
-    }
-}
-
-void clients_wrapper_t::unreg (int fd)
-{
-    std::map <int, size_t> :: iterator it = pointers.find(fd);
-    if (it == pointers.end())
-        throw std::runtime_error("unreg unknown fd");
-    less_size.erase({it->second, it->first});
-    not_registred.erase(it->first);
-    pointers.erase(it);
-    epoll.unreg(fd);
-    close(fd);
-    shrink_to_fit();
+    catch (...)
+    {}
 }
 
 void clients_wrapper_t::remove_too_big ()
@@ -119,14 +95,14 @@ void clients_wrapper_t::shrink_to_fit ()
 
 void clients_wrapper_t::write (int fd)
 {
-    std::map <int, size_t> :: iterator it = pointers.find(fd);
+    std::map <int, client_data_t> :: iterator it = pointers.find(fd);
     if (it == pointers.end())
         throw std::runtime_error("write unknown fd");
-    size_t wb = data.write(fd, it->second);
-    less_size.erase({it->second, it->first});
-    it->second += wb;
-    less_size.insert({it->second, it->first});
-    if (it->second == data.end())
+    size_t wb = data.write(*it->second.socket, it->second.pointer);
+    less_size.erase({it->second.pointer, it->first});
+    it->second.pointer += wb;
+    less_size.insert({it->second.pointer, it->first});
+    if (it->second.pointer == data.end())
     {
         epoll.reg(fd, EPOLLIN);
         not_registred.insert(it->first);
@@ -136,12 +112,12 @@ void clients_wrapper_t::write (int fd)
 
 std::string clients_wrapper_t::read (int fd)
 {
-    std::map <int, size_t> :: iterator it = pointers.find(fd);
+    std::map <int, client_data_t> :: iterator it = pointers.find(fd);
     if (it == pointers.end())
         throw std::runtime_error("read for unknown fd");
     
     char buff [64];
-    ssize_t rb = ::read(fd, buff, sizeof(buff));
+    ssize_t rb = it->second.socket->read(buff, sizeof(buff));
     if (rb < 0)
     {
         if (errno != EINTR)
@@ -154,6 +130,9 @@ std::string clients_wrapper_t::read (int fd)
 
 void clients_wrapper_t::append (std::string_view value)
 {
+    if (value.empty())
+        return;
+    
     size_t diff = data.add(value);
     if (diff != 0)
     {
@@ -163,7 +142,7 @@ void clients_wrapper_t::append (std::string_view value)
         less_size.swap(new_less_size);
         
         for (auto & v : pointers)
-            v.second -= diff;
+            v.second.pointer -= diff;
         last_full_struct_ptr -= diff;
     }
     

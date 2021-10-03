@@ -33,12 +33,11 @@ include_directories(
     ../packet_len_data
     ../command_sender/src/interactive
     ../characters/
+    ../sockets/
 )
 
 add_executable(command_sender_tcp 
     src/send_password.cpp
-    ../packet_len_data/recver_data.cpp
-    ../packet_len_data/sender_data.cpp
     ../multiplex_server/src/epoll_wrapper.cpp
     ../command_sender/src/interactive/char_reconvert.cpp
     ../command_sender/src/interactive/interactive_fd.cpp

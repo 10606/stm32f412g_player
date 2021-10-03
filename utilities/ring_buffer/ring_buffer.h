@@ -61,7 +61,8 @@ struct ring_buffer
             realloc(0);
     }
     
-    size_t write (int fd, size_t pos);
+    template <typename Socket>
+    size_t write (Socket && socket, size_t pos);
     
     char operator [] (size_t pos) const noexcept
     {
@@ -100,6 +101,71 @@ private:
     size_t offset_in_history;
     size_t size_inc_value;
 };
+
+
+namespace
+{
+template <typename Socket, typename = void>
+struct has_member_func_write
+{
+    static const bool value = 0;
+};
+
+template <typename Socket>
+struct has_member_func_write 
+<
+    Socket, 
+    std::enable_if_t <std::is_same_v 
+    <
+        std::invoke_result_t <decltype(&Socket::write), Socket, const char *, size_t>, 
+        ssize_t
+    > > 
+>
+{
+    static const bool value = 1;
+};
+
+
+template <typename Socket>
+requires (!has_member_func_write <Socket> :: value)
+ssize_t call_write (Socket & socket, char const * data, size_t count)
+{
+    return write(socket, data, count);
+}
+
+template <typename Socket>
+requires has_member_func_write <Socket> :: value
+ssize_t call_write (Socket & socket, char const * data, size_t count)
+{
+    return socket.write(data, count);
+}
+}
+
+
+template <typename Socket>
+size_t ring_buffer::write (Socket && socket, size_t pos)
+{
+    pos -= offset_in_history;
+    
+    size_t count = size_v - pos;
+    pos += begin_v;
+    if (pos >= capacity)
+        pos -= capacity;
+    
+    if (pos + count > capacity)
+        count = capacity - pos;
+    
+    ssize_t ret = call_write(socket, data.get() + pos, count);
+    if (ret == -1)
+    {
+        if ((errno != EINTR) && (errno != EPIPE))
+            throw std::runtime_error("error write");
+        else
+            ret = 0;
+    }
+
+    return ret;
+}
 
 #endif
 

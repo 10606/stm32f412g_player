@@ -22,10 +22,11 @@ void epoll_reg (int epoll_fd, int fd, uint32_t flag)
         throw std::runtime_error("can't add to epoll");
 }
 
-void epoll_del (int epoll_fd, int fd)
+void epoll_del (int epoll_fd, int fd) noexcept
 {
     if (epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd, NULL) == -1)
-        throw std::runtime_error("can't del from epoll");
+        /*ignore*/;
+    // or maybe need throw std::runtime_error("can't del from epoll");
 }
 
 
@@ -48,7 +49,7 @@ void epoll_wraper::reg (int fd, uint32_t flag)
     epoll_reg(epoll_fd, fd, flag);
 }
 
-void epoll_wraper::unreg (int fd)
+void epoll_wraper::unreg (int fd) noexcept
 {
     epoll_del(epoll_fd, fd);
 }

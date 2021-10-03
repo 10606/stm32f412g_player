@@ -38,30 +38,6 @@ size_t ring_buffer::add (std::string_view value)
     return ans;
 }
 
-size_t ring_buffer::write (int fd, size_t pos)
-{
-    pos -= offset_in_history;
-    
-    size_t count = size_v - pos;
-    pos += begin_v;
-    if (pos >= capacity)
-        pos -= capacity;
-    
-    if (pos + count > capacity)
-        count = capacity - pos;
-    
-    ssize_t ret = ::write(fd, data.get() + pos, count);
-    if (ret == -1)
-    {
-        if ((errno != EINTR) && (errno != EPIPE))
-            throw std::runtime_error("error write");
-        else
-            ret = 0;
-    }
-
-    return ret;
-}
-
 void ring_buffer::realloc (size_t size_diff)
 {
     size_t new_capacity = size_v + size_diff + size_inc_value;

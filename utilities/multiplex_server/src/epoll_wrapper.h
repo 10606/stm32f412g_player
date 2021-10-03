@@ -5,7 +5,7 @@
 #include <stdint.h>
 
 void epoll_reg (int epoll_fd, int fd, uint32_t flag);
-void epoll_del (int epoll_fd, int fd);
+void epoll_del (int epoll_fd, int fd) noexcept;
 
 struct epoll_wraper
 {
@@ -18,7 +18,7 @@ struct epoll_wraper
     epoll_wraper & operator = (epoll_wraper &&) = delete;
     
     void reg (int fd, uint32_t flag);
-    void unreg (int fd);
+    void unreg (int fd) noexcept;
     
     struct e_event
     {
