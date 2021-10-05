@@ -47,11 +47,7 @@ private:
     size_t send_ptr;
     
     
-    union
-    {
-        uint32_t value;
-        char bytes[sizeof(value)];
-    } pass_size;
+    uint32_t pass_size;
     std::unique_ptr <char []> enc_pass_buf;
     size_t recv_ptr;
     
@@ -113,10 +109,10 @@ void pass_checker <Socket> ::read ()
     if (ready)
         return;
     
-    size_t total_size = sizeof(pass_size.value);
+    size_t total_size = sizeof(pass_size);
     if (recv_ptr < total_size)
     {
-        ssize_t rb = sock.read(pass_size.bytes + recv_ptr, total_size - recv_ptr);
+        ssize_t rb = sock.read(reinterpret_cast <char *> (&pass_size) + recv_ptr, total_size - recv_ptr);
         if (rb == -1)
         {
             if (errno != EINTR)
@@ -127,17 +123,17 @@ void pass_checker <Socket> ::read ()
         recv_ptr += rb;
         if (recv_ptr == total_size)
         {
-            try
-            {
-                enc_pass_buf = std::make_unique <char []> (pass_size.value);
-                dec_pass_buf = std::make_unique <char []> (pass_size.value);
-            }
-            catch (...)
+            if (pass_size > rsa.size())
             {
                 ready = 1;
                 return;
             }
-            if (pass_size.value > rsa.size())
+            try
+            {
+                enc_pass_buf = std::make_unique <char []> (pass_size);
+                dec_pass_buf = std::make_unique <char []> (pass_size);
+            }
+            catch (...)
             {
                 ready = 1;
                 return;
@@ -146,8 +142,8 @@ void pass_checker <Socket> ::read ()
     }
     else
     {
-        size_t cur_recv_ptr = recv_ptr - sizeof(pass_size.value);
-        ssize_t rb = sock.read(enc_pass_buf.get() + cur_recv_ptr, pass_size.value - cur_recv_ptr);
+        size_t cur_recv_ptr = recv_ptr - sizeof(pass_size);
+        ssize_t rb = sock.read(enc_pass_buf.get() + cur_recv_ptr, pass_size - cur_recv_ptr);
         if (rb == -1)
         {
             if (errno != EINTR)
@@ -156,7 +152,7 @@ void pass_checker <Socket> ::read ()
                 rb = 0;
         }
         recv_ptr += rb;
-        if (recv_ptr == sizeof(pass_size.value) + pass_size.value)
+        if (recv_ptr == sizeof(pass_size) + pass_size)
             check_pass();
     }
 }
@@ -165,7 +161,7 @@ template <typename Socket>
 void pass_checker <Socket> ::check_pass ()
 {
     epoll.reg(sock.fd(), 0);
-    int dec_len = rsa.decrypt(enc_pass_buf.get(), pass_size.value, dec_pass_buf.get());
+    int dec_len = rsa.decrypt(enc_pass_buf.get(), pass_size, dec_pass_buf.get());
     if (dec_len < 0)
         goto set_ready;
     

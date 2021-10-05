@@ -67,7 +67,7 @@ touch_state::touch_state () :
 void touch_state::on_timer ()
 {
     if (tick_counter < 10)
-        tick_counter++;
+        tick_counter = tick_counter + 1;
 }
 
 bool touch_state::is_moved (point p) const

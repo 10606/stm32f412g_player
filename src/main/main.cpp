@@ -29,11 +29,10 @@ uint32_t init_fs ()
 uint32_t init_audio (filename_t * path, uint32_t len)
 {
     // get the .PLB file names from path directory 
-    uint32_t ret = viewer.init(path, len, &audio_ctl);
+    uint32_t ret = viewer.init(path, len);
     if (ret)
     {
         display::error("err init view");
-        viewer.reset();
         return ret;
     }
     return 0;

@@ -4,14 +4,6 @@
 #include <stdio.h>
 #include <type_traits>
 
-void playlist_view::copy_from_lpl (size_t ins_pos)
-{
-    memcpy(name_group[ins_pos], lpl.song.group_name, sizeof(song_header::group_name));
-    name_group[ins_pos][sizeof(song_header::group_name)] = 0;
-    memcpy(name_song[ins_pos], lpl.song.song_name, sizeof(song_header::song_name));
-    name_song[ins_pos][sizeof(song_header::song_name)] = 0;
-}
-
 uint32_t playlist_view::fill_names ()
 {
     if (lpl.header.cnt_songs == 0)
@@ -56,17 +48,6 @@ uint32_t playlist_view::init ()
     return 0;
 }
 
-void playlist_view::pn_common (size_t ins_pos)
-{
-    pos_begin %= lpl.header.cnt_songs;
-    pos_begin %= view_cnt;
-    
-    ins_pos %= lpl.header.cnt_songs;
-    ins_pos %= view_cnt;
-    
-    copy_from_lpl(ins_pos);
-}
-
 uint32_t playlist_view::seek (uint32_t pos)
 {
     if (lpl.header.cnt_songs == 0)
@@ -103,12 +84,6 @@ uint32_t playlist_view::seek (uint32_t pos)
     current_state.type = redraw_type_t::not_easy;
     
     return 0;
-}
-
-void playlist_view::next_prev_for_short (uint32_t diff)
-{
-    current_state.type = redraw_type_t::not_easy;
-    current_state.pos = (current_state.pos + diff) % lpl.header.cnt_songs;
 }
 
 uint32_t playlist_view::jump_over (uint32_t seek_pos, uint32_t new_pos)
@@ -205,11 +180,6 @@ uint32_t playlist_view::prev ()
 uint32_t playlist_view::play (playlist & pl) const
 {
     return pl.open(lpl, current_state.pos);
-}
-
-bool playlist_view::compare (playlist const & b) const
-{
-    return lpl.fd == b.lpl.fd;
 }
 
 bool playlist_view::check_near (playlist const & playing_pl) const

@@ -8,11 +8,33 @@
 #include "audio.h"
 #include "view_states.h"
 #include "direction_t.h"
-#include <optional>
 
 struct view
 {
-    view (audio_ctl_t *);
+    consteval view (audio_ctl_t * _audio_ctl) :
+        playing_playlist(pl_list::max_plb_files),
+        selected_playlist(pl_list::max_plb_files),
+        state(state_t::pl_list),
+        old_state(state),
+        state_song_view(state_song_view_t::volume),
+        audio_ctl(_audio_ctl),
+        pll(),
+        pl(),
+        plv()
+    {}
+    
+    constexpr void reset ()
+    {
+        playing_playlist = pl_list::max_plb_files;
+        selected_playlist = pl_list::max_plb_files;
+        state = state_t::pl_list;
+        old_state = state;
+        state_song_view = state_song_view_t::volume;
+        pll.reset();
+        pl.make_fake();
+        plv.reset();
+    }
+
     ~view () = default;
     
     view (view const &) = delete;
@@ -67,29 +89,7 @@ private:
 };
 
 
-struct view_holder
-{
-    void reset ()
-    {
-        value.reset();
-    }
-    
-    uint32_t init (filename_t * path, uint32_t len, audio_ctl_t * audio_ctl)
-    {
-        value.emplace(audio_ctl);
-        return value.value().init(path, len);
-    }
-    
-    view & operator () ()
-    {
-        return value.value();
-    }
-
-private:
-    std::optional <view> value;
-};
-
-extern view_holder viewer;
+extern view viewer;
 
 #endif
 

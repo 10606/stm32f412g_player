@@ -1,5 +1,6 @@
 #include "path_conversion.h"
 
+#include <algorithm>
 #include <vector>
 #include <string>
 #include <cstring>
@@ -38,8 +39,8 @@ converted_path::converted_path (std::vector <std::string> const & _path) :
     path(_path.size(), nullptr),
     wpath()
 {
-    for (std::string const & p : _path)
-        wpath.push_back(utf8_to_ucs2(p));
+    wpath.reserve(_path.size());
+    std::transform(_path.begin(), _path.end(), std::back_inserter(wpath), utf8_to_ucs2);
     for (size_t i = 0; i != path.size(); ++i)
         path[i] = wpath[i].data();
 }

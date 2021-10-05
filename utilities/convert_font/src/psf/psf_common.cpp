@@ -33,7 +33,7 @@ std::ostream & print_tail
 std::ostream & print_in_hex (std::ostream & s, char c)
 {
     uint8_t v = c;
-    static const char * table = "0123456789abcdef";
+    static const char table [] = "0123456789abcdef";
     s << "0x" << table[(v >> 4) & 0x0f] << table[v & 0x0f];
     return s;
 }

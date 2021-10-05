@@ -8,7 +8,7 @@ ssize_t web_socket_reader_t::read (char * buffer, size_t size)
 {
     if (status != status_t::data)
     {
-        ssize_t ret = ::read(fd, data.value + cur_pos, cur_size - cur_pos);
+        ssize_t ret = ::read(fd, data + cur_pos, cur_size - cur_pos);
         if (ret == -1)
             return ret;
                     
@@ -19,42 +19,48 @@ ssize_t web_socket_reader_t::read (char * buffer, size_t size)
             switch (status)
             {
             case status_t::header:
-                fin = data.header.fin;
-                has_mask = data.header.mask;
-                opcode = data.header.opcode;
+                web_socket_header_t header;
+                memcpy(&header, data, sizeof(header));
+                fin = header.fin;
+                has_mask = header.mask;
+                opcode = header.opcode;
                 
-                if (data.header.len < 126)
+                if (header.len < 126)
                 {
-                    data_len = reinterpret_cast <uint8_t> (data.header.len);
+                    data_len = reinterpret_cast <uint8_t> (header.len);
                     status = status_t::mask;
-                    cur_size = sizeof(data.mask);
+                    cur_size = sizeof(mask);
                 }
-                else if (data.header.len == 126)
+                else if (header.len == 126)
                 {
                     status = status_t::len_2;
-                    cur_size = sizeof(data.len_2);
+                    cur_size = sizeof(uint16_t);
                 }
-                else if (data.header.len == 127)
+                else if (header.len == 127)
                 {
                     status = status_t::len_8;
-                    cur_size = sizeof(data.len_8);
+                    cur_size = sizeof(uint64_t);
                 }
                 break;
                 
             case status_t::len_2:
-                data_len = data.len_2;
+                uint16_t len_2;
+                memcpy(&len_2, data, sizeof(len_2));
+                data_len = len_2;
                 status = status_t::mask;
-                cur_size = sizeof(data.mask);
+                cur_size = sizeof(mask);
                 break;
                 
             case status_t::len_8:
-                data_len = data.len_8;
+                uint64_t len_8;
+                memcpy(&len_8, data, sizeof(len_8));
+                data_len = len_8;
                 status = status_t::mask;
-                cur_size = sizeof(data.mask);
+                cur_size = sizeof(mask);
                 break;
                 
             case status_t::mask:
-                memcpy(mask, data.mask, sizeof(mask));
+                memcpy(mask, data, sizeof(mask));
                 status = status_t::data;
                 cur_size = data_len;   
                 break;

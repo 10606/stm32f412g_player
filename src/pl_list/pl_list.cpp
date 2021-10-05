@@ -9,25 +9,6 @@
 #include "playlist_view.h"
 #include "playlist_structures.h"
 
-pl_list::pl_list () :
-    root_path(nullptr),
-    path_len(0),
-    cnt(0),
-    current_state{0, 0, redraw_type_t::not_easy}
-{}
-
-pl_list::~pl_list ()
-{
-    destroy();
-}
-
-void pl_list::destroy ()
-{
-    free(root_path);
-    root_path = nullptr;
-    path_len = 0;
-}
-
 uint32_t pl_list::init (filename_t * dir_name, size_t len_name)
 {
     cnt = 0;
@@ -106,14 +87,6 @@ void pl_list::prev ()
         
     current_state.pos = (current_state.pos + cnt - 1) % cnt;
     current_state.direction = 1;
-}
-
-void pl_list::seek (uint32_t pos)
-{
-    if (cnt == 0)
-        return;
-    current_state.type = redraw_type_t::not_easy;
-    current_state.pos = pos % cnt;
 }
 
 uint32_t pl_list::open_index (playlist_view & plv, uint32_t index, uint32_t & selected_pl) const
@@ -195,24 +168,6 @@ pl_list::print_info pl_list::print (uint32_t playing_pl) const
         ans.playlist_name[i][sizeof(ans.playlist_name[i]) - 1] = 0;
     }
     
-    return ans;
-}
-
-void pl_list::reset_display ()
-{
-    current_state.type = redraw_type_t::nothing;
-}
-
-redraw_type_t pl_list::redraw_type () const
-{
-    redraw_type_t ans = current_state;
-
-    if (current_state.pos <= border_cnt) // on top
-        ans.pos = current_state.pos;
-    else if (current_state.pos + border_cnt >= cnt) // on bottom
-        ans.pos = current_state.pos + view_cnt - cnt;
-    else // on middle
-        ans.pos = border_cnt;
     return ans;
 }
 

@@ -12,7 +12,7 @@ struct recver_data_len
 {
     recver_data_len ():
         init(0),
-        len{.value = 0},
+        len(0),
         value(),
         recv_ptr(0),
         sock(nullptr)
@@ -63,23 +63,18 @@ struct recver_data_len
     
     bool ready ()
     {
-        return init && (recv_ptr == sizeof(len.value) + len.value);
+        return init && (recv_ptr == sizeof(len) + len);
     }
     
     std::string_view get ()
     {
-        return std::string_view(value.get(), len.value);
+        return std::string_view(value.get(), len);
     }
     
 private:
     bool init;
     
-    union
-    {   
-        uint32_t value;
-        char bytes [sizeof(value)];
-    } len;
-    
+    uint32_t len;
     std::unique_ptr <char []> value;
     size_t recv_ptr;
     Socket * sock;
@@ -90,12 +85,12 @@ void recver_data_len <Socket> ::read ()
 {
     if (!init)
         return;
-    if (recv_ptr == sizeof(len.value) + len.value)
+    if (recv_ptr == sizeof(len) + len)
         return;
     
-    if (recv_ptr < sizeof(len.value))
+    if (recv_ptr < sizeof(len))
     {
-        ssize_t rb = sock->read(len.bytes + recv_ptr, sizeof(len.value) - recv_ptr);
+        ssize_t rb = sock->read(reinterpret_cast <char *> (&len) + recv_ptr, sizeof(len) - recv_ptr);
         if (rb == -1)
         {
             if ((errno != EINTR) && (errno != EPIPE))
@@ -104,21 +99,20 @@ void recver_data_len <Socket> ::read ()
         else
         {
             recv_ptr += rb;
-            len.value += 0;
-            if (recv_ptr == sizeof(len.value))
+            if (recv_ptr == sizeof(len))
             {
-                value = std::make_unique <char []> (len.value);
+                value = std::make_unique <char []> (len);
             }
         }
     }
     else
     {
-        size_t cur_recv_ptr = recv_ptr - sizeof(len.value);
-        ssize_t rb = sock->read(value.get() + cur_recv_ptr, len.value - cur_recv_ptr);
+        size_t cur_recv_ptr = recv_ptr - sizeof(len);
+        ssize_t rb = sock->read(value.get() + cur_recv_ptr, len - cur_recv_ptr);
         if (rb == -1)
         {
             if ((errno != EINTR) && (errno != EPIPE))
-                throw std::runtime_error("error read len");
+                throw std::runtime_error("error read");
         }
         else
         {

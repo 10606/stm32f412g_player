@@ -37,8 +37,8 @@ bool joystick_state_t::check_button_state (uint32_t joy_button)
     bool ans = process[joy_button] >= cost[prev_processed[joy_button]];
     if (ans)
     {
-        process[joy_button] -= cost[prev_processed[joy_button]];
-        prev_processed[joy_button]++;
+        process[joy_button] = process[joy_button] - cost[prev_processed[joy_button]];
+        prev_processed[joy_button] = prev_processed[joy_button] + 1;
         if (prev_processed[joy_button] >= count)
             prev_processed[joy_button] = count - 1;
     }
@@ -85,7 +85,7 @@ void joystick_state_t::on_timer ()
         {
             if (pressed[i])
             {
-                process[i]++;
+                process[i] = process[i] + 1;
                 pressed[i] = 0;
             }
             else

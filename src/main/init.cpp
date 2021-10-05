@@ -106,13 +106,13 @@ void SystemClock_Config (void)
 
 void init_timer ()
 {
-    RCC->APB1ENR |= RCC_APB1ENR_TIM2EN;
-    TIM2->SMCR &= ~TIM_SMCR_SMS;
+    RCC->APB1ENR = RCC->APB1ENR | RCC_APB1ENR_TIM2EN;
+    TIM2->SMCR = TIM2->SMCR & ~TIM_SMCR_SMS;
     TIM2->PSC = 179;//359;//719;
     TIM2->ARR = 24999;
-    TIM2->DIER |= TIM_DIER_UIE;
+    TIM2->DIER = TIM2->DIER | TIM_DIER_UIE;
     NVIC_EnableIRQ(TIM2_IRQn);
-    TIM2->CR1 |= TIM_CR1_CEN;
+    TIM2->CR1 = TIM2->CR1 | TIM_CR1_CEN;
 }
 
 void init_usb ()

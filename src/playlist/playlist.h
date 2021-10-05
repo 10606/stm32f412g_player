@@ -9,8 +9,16 @@
 
 struct playlist 
 {
-    playlist ();
-    ~playlist ();
+    constexpr playlist () :
+        path(nullptr),
+        path_sz(0),
+        lpl()
+    {}
+
+    ~playlist ()
+    {
+        free(path);
+    }
     
     playlist (playlist && other);
     playlist & operator = (playlist && other);
@@ -21,21 +29,24 @@ struct playlist
     uint32_t seek (uint32_t pos);
     uint32_t next ();
     uint32_t prev ();
-    void make_fake ();
-    bool is_fake () const;
+    
+    constexpr void make_fake ()
+    {
+        lpl.fd.init_fake();
+        lpl.init_base();
+    }
+
+    constexpr bool is_fake () const
+    {
+        return lpl.fd.is_fake();
+    }
+
 
     filename_t * path;
     uint32_t path_sz;
     light_playlist lpl;
-    /*
-    uint32_t pos;
-    playlist_header header;
-    song_header song;
-    file_descriptor fd;
-    */
     
 private:
-    void init_base ();
     uint32_t realloc (light_playlist const & old_lpl);
 };
 

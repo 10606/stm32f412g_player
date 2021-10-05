@@ -71,25 +71,12 @@ uint32_t playlist::prev ()
         return seek(lpl.pos - 1);
 }
     
-void playlist::init_base ()
-{
-    path = nullptr;
-    path_sz = 0;
-    lpl.init_base();
-}
- 
-playlist::playlist () :
-    path(nullptr),
-    path_sz(0),
-    lpl()
-{}
-
 uint32_t playlist::open (light_playlist const & other_lpl, uint32_t pos_selected)
 {
     uint32_t ret;
     playlist old_pl(std::move(*this));
     lpl.fd.copy_seek_0(other_lpl.fd);
-    init_base();
+    lpl.init_base();
     if (lpl.fd.is_fake())
         return 0;
     
@@ -125,22 +112,5 @@ playlist & playlist::operator = (playlist && src)
     src.path = nullptr;
     
     return *this;
-}
-
-void playlist::make_fake ()
-{
-    free(path);
-    lpl.fd.init_fake();
-    init_base();
-}
-
-playlist::~playlist ()
-{
-    free(path);
-}
-
-bool playlist::is_fake () const
-{
-    return lpl.fd.is_fake();
 }
 

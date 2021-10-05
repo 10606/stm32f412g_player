@@ -52,13 +52,13 @@ void usb_process_t::receive_callback (volatile uint8_t * buf, uint32_t len)
         
         if (need_skip != 0)
         {
-            need_skip--;
+            need_skip = need_skip - 1;
             continue;
         }
         
         buffer[end_buf] = buf[i];
         end_buf = tmp;
-        need_rd--;
+        need_rd = need_rd - 1;
         tmp = (tmp + 1) % n;
         
         if (need_rd == 0)
@@ -74,7 +74,7 @@ void usb_process_t::receive_callback (volatile uint8_t * buf, uint32_t len)
     for (; i != len; ++i)
     {
         if (need_skip != 0)
-            need_skip--;
+            need_skip = need_skip - 1;
         else
             need_skip = calc_need_rd(buf[i]) - 1;
     }

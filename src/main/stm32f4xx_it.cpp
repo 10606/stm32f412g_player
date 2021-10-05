@@ -138,7 +138,7 @@ void TIM2_IRQHandler (void)
     else
         HAL_GPIO_WritePin(GPIOE, GPIO_PIN_2, GPIO_PIN_RESET);
     */
-    TIM2->SR &= ~TIM_SR_UIF;
+    TIM2->SR = TIM2->SR & ~TIM_SR_UIF;
 }
 
 void OTG_FS_IRQHandler(void)

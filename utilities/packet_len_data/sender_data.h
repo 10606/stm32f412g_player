@@ -11,7 +11,7 @@ struct sender_data_len
 {
     sender_data_len ():
         init(0),
-        len{.value = 0},
+        len(0),
         value(),
         send_ptr(0),
         sock(nullptr)
@@ -43,7 +43,7 @@ struct sender_data_len
     void set (Socket & _sock, std::string && _value)
     {
         value = std::move(_value);
-        len.value = value.size();
+        len = value.size();
         send_ptr = 0;
         sock = &_sock;
         init = sock->fd() != -1;
@@ -52,7 +52,7 @@ struct sender_data_len
     void reset () noexcept
     {
         value = std::string();
-        len.value = 0;
+        len = 0;
         send_ptr = 0;
         sock = nullptr;
         init = 0;
@@ -62,18 +62,13 @@ struct sender_data_len
     
     bool ready () const noexcept
     {
-        return init && (send_ptr == sizeof(len.value) + len.value);
+        return init && (send_ptr == sizeof(len) + len);
     }
     
 private:
     bool init;
     
-    union 
-    {
-        uint32_t value;
-        char bytes [sizeof(value)];
-    } len;
-    
+    uint32_t len;
     std::string value;
     size_t send_ptr;
     Socket * sock;
@@ -84,12 +79,12 @@ void sender_data_len <Socket> ::write ()
 {
     if (!init)
         return;
-    if (send_ptr == sizeof(len.value) + len.value)
+    if (send_ptr == sizeof(len) + len)
         return;
     
-    if (send_ptr < sizeof(len.value))
+    if (send_ptr < sizeof(len))
     {
-        ssize_t wb = sock->write(len.bytes + send_ptr, sizeof(len.value) - send_ptr);
+        ssize_t wb = sock->write(reinterpret_cast <char *> (&len) + send_ptr, sizeof(len) - send_ptr);
         if (wb == -1)
         {
             if ((errno != EINTR) && (errno != EPIPE))
@@ -102,8 +97,8 @@ void sender_data_len <Socket> ::write ()
     }
     else
     {
-        size_t cur_send_ptr = send_ptr - sizeof(len.value);
-        ssize_t wb = sock->write(value.data() + cur_send_ptr, len.value - cur_send_ptr);
+        size_t cur_send_ptr = send_ptr - sizeof(len);
+        ssize_t wb = sock->write(value.data() + cur_send_ptr, len - cur_send_ptr);
         if (wb == -1)
         {
             if ((errno != EINTR) && (errno != EPIPE))

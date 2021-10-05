@@ -41,22 +41,9 @@ struct web_socket_reader_t
         data
     };
 
-    union data_t
-    {
-        web_socket_header_t header;
-        uint16_t len_2;
-        uint64_t len_8;
-        uint8_t mask[4];
-        
-        char value[std::max(sizeof(header), sizeof(len_8))];
-        
-        static_assert(sizeof(uint64_t) == sizeof(size_t));
-    };
-
     int fd;
     
     status_t status;
-    data_t data;
     size_t cur_pos;
     size_t cur_size;
     bool fin;
@@ -64,6 +51,9 @@ struct web_socket_reader_t
     uint8_t mask[4];
     uint8_t opcode;
     size_t data_len;
+
+    static_assert(sizeof(uint64_t) == sizeof(size_t));
+    char data[std::max(sizeof(web_socket_header_t), std::max(sizeof(uint64_t), sizeof(mask)))];
 };
 
 

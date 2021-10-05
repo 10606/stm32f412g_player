@@ -5,16 +5,6 @@
 #include "usb_send.h"
 #include <new>
 
-view::view (audio_ctl_t * _audio_ctl)
-{
-    audio_ctl = _audio_ctl;
-    state = state_t::pl_list;
-    old_state = state;
-    state_song_view = state_song_view_t::volume;
-    playing_playlist = pl_list::max_plb_files;
-    selected_playlist = pl_list::max_plb_files;
-}
-
 uint32_t view::init (filename_t * path, uint32_t len)
 {
     uint32_t ret;
@@ -91,5 +81,5 @@ uint32_t view::send_info ()
     return 0;
 }
 
-view_holder viewer;
+view viewer(&audio_ctl);
 

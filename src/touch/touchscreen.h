@@ -14,7 +14,7 @@ struct touch_state
     touch_processing state;
     point old;
     point dolg;
-    uint32_t tick_counter;
+    volatile uint32_t tick_counter;
     bool press; // 1 if press
     bool moved; // 1 if |old_x - new_x| > 20 while pressed
 

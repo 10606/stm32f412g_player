@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.0)
 project(multiplex_server VERSION 1.0 LANGUAGES C CXX)
 
 set(release_flags
-    "-Os -flto -march=native -Wall -ftemplate-depth=10000 -std=c++20  -DNDEBUG"
+    "-Os -flto -march=native -Wall -ftemplate-depth=10000 -std=c++20  -DNDEBUG --pedantic"
 )
 
 set(compile_flags 
