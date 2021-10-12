@@ -88,6 +88,7 @@ private:
     {
         std::unique_ptr <socket_base_t> socket;
         size_t pointer;
+        std::string readed_data;
     };
     
     std::map <int, client_data_t> pointers; // fd -> socket, offset
@@ -110,7 +111,7 @@ void clients_wrapper_t::reg (int fd)
     
     pointers.insert(std::pair <int, client_data_t> {
         fd, 
-        client_data_t{std::make_unique <socket_wrap_t <Socket> > (fd), last_full_struct_ptr}
+        client_data_t{std::make_unique <socket_wrap_t <Socket> > (fd), last_full_struct_ptr, std::string()}
     });
     
     less_size.insert({last_full_struct_ptr, fd});

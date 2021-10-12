@@ -157,7 +157,8 @@ display_sources = $(addprefix src/display/, $(display_sources_))
 playlist_sources_ = \
 	light_playlist.cpp \
 	playlist.cpp \
-	playlist_view.cpp
+	playlist_view.cpp \
+	find_song.cpp
 playlist_sources = \
 	$(addprefix src/playlist/, $(playlist_sources_)) \
 	src/pl_list/pl_list.cpp

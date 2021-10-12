@@ -171,7 +171,7 @@ $(BUILD_DIR)/%.o: %.c $(make_files) | $(BUILD_DIR)
 $(BUILD_DIR)/%.o: %.s $(make_files) | $(BUILD_DIR)
 	$(AS) -c $(CFLAGS) $< -o $@
 
-$(BUILD_DIR)/$(TARGET).elf: $(OBJECTS) $(make_files)
+$(BUILD_DIR)/$(TARGET).elf: $(OBJECTS) $(make_files) STM32F412ZGTx_FLASH.ld
 	$(LD) $(LDFLAGS) $(OBJECTS) -o $@
 	$(SZ) $@
 

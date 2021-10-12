@@ -42,6 +42,7 @@ struct playlist_view
     {
         pos_begin = 0;
         current_state = {0, 0, redraw_type_t::not_easy};
+        lpl.fd.init_fake();
         lpl.init_base();
     }
     
@@ -50,14 +51,19 @@ struct playlist_view
     uint32_t prev ();
     uint32_t seek (uint32_t pos);
     uint32_t play (playlist & pl) const;
-    uint32_t to_playing_playlist (playlist const & pl);
+    uint32_t to_playing_playlist (light_playlist const & pl);
     bool is_fake () const;
     bool check_near (playlist const & playing_pl) const;
     uint32_t open_playlist (filename_t const * path, uint32_t path_len);
 
-    constexpr bool compare (playlist const & b) const
+    constexpr bool compare (light_playlist const & b) const
     {
-        return lpl.fd == b.lpl.fd;
+        return lpl.fd == b.fd;
+    }
+
+    constexpr uint32_t get_pos () const
+    {
+        return current_state.pos;
     }
 
     
@@ -76,6 +82,7 @@ struct playlist_view
     print_info print (playlist const & playing_pl_) const;
     void reset_display ();
     redraw_type_t redraw_type () const;
+    light_playlist lpl_with_wrong_pos () const;
 
 private:
     uint32_t fill_names ();

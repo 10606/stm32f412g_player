@@ -8,7 +8,7 @@
 
 
 template <typename Init>
-bool just_do (authentificator_t <Init> & init, epoll_wraper::e_event event)
+bool just_do (authentificator_t <Init> & init, epoll_wraper::e_event event) noexcept
 {
     if (init.have(event.fd))
     {
@@ -29,7 +29,7 @@ bool just_do (authentificator_t <Init> & init, epoll_wraper::e_event event)
 }
 
 template <typename Init>
-bool accept_for_auth (tcp_server_sock_t & socket, authentificator_t <Init> & init, epoll_wraper::e_event event)
+bool accept_for_auth (tcp_server_sock_t & socket, authentificator_t <Init> & init, epoll_wraper::e_event event) noexcept
 {
     if (event.fd == socket.file_descriptor())
     {
@@ -49,7 +49,7 @@ bool accept_for_auth (tcp_server_sock_t & socket, authentificator_t <Init> & ini
 }
 
 template <typename Init>
-void check_all (authentificator_t <Init> & auth, epoll_wraper & epoll_wrap, std::function <void (int)> fn_add)
+void check_all (authentificator_t <Init> & auth, epoll_wraper & epoll_wrap, std::function <void (int)> fn_add) noexcept
 {
     try
     {
@@ -71,7 +71,7 @@ void check_all (authentificator_t <Init> & auth, epoll_wraper & epoll_wrap, std:
 }
 
 template <typename Socket>
-bool accept_and_close (Socket & socket, epoll_wraper::e_event event)
+bool accept_and_close (Socket & socket, epoll_wraper::e_event event) noexcept
 {
     if ((event.fd == socket.file_descriptor()) &&
         (event.mask & EPOLLIN))

@@ -8,6 +8,7 @@
 #include "audio.h"
 #include "view_states.h"
 #include "direction_t.h"
+#include "find_song.h"
 
 struct view
 {
@@ -20,7 +21,8 @@ struct view
         audio_ctl(_audio_ctl),
         pll(),
         pl(),
-        plv()
+        plv(),
+        finder()
     {}
     
     constexpr void reset ()
@@ -33,6 +35,7 @@ struct view
         pll.reset();
         pl.make_fake();
         plv.reset();
+        finder.reset();
     }
 
     ~view () = default;
@@ -48,25 +51,28 @@ struct view
     uint32_t open_song_not_found (directions::np::type direction = directions::np::next);
     void fake_song_and_playlist ();
 
-    uint32_t process_up        ();
-    uint32_t process_down      ();
-    uint32_t process_next_prev (directions::np::type direction);
-    uint32_t process_left      ();
-    uint32_t process_right     ();
-    uint32_t process_center    ();
+    uint32_t process_up         ();
+    uint32_t process_down       ();
+    uint32_t process_next_prev  (directions::np::type direction);
+    uint32_t process_left       ();
+    uint32_t process_right      ();
+    uint32_t process_center     ();
 
-    uint32_t play_pause        ();
-    uint32_t to_end_and_pause  ();
-    uint32_t toggle_repeat     ();
-    uint32_t inc_volume        ();
-    uint32_t dec_volume        ();
-    uint32_t seek_forward      ();
-    uint32_t seek_backward     ();
-    uint32_t prev_song         ();
-    uint32_t next_song         ();
+    uint32_t find               (find_pattern const & pattern);
+    uint32_t find_next          ();
+    uint32_t play_pause         ();
+    uint32_t to_end_and_pause   ();
+    uint32_t toggle_repeat      ();
+    uint32_t inc_volume         ();
+    uint32_t dec_volume         ();
+    uint32_t seek_forward       ();
+    uint32_t seek_backward      ();
+    uint32_t prev_song          ();
+    uint32_t next_song          ();
 
-    uint32_t do_nothing        (); // can use in table of function
-    uint32_t send_info         ();
+    uint32_t do_nothing         (); // can use in table of function
+    uint32_t send_info          ();
+    
 
     
     uint32_t playing_playlist;
@@ -79,6 +85,7 @@ struct view
     pl_list pll;
     playlist pl;
     playlist_view plv;
+    find_song finder;
     
     
 private:
@@ -86,6 +93,8 @@ private:
     uint32_t seek (uint32_t value, directions::fb::type direction /* CHANGE 0 - backward, 1 - forward */);
     uint32_t change_song (directions::np::type direction);
     uint32_t play_new_playlist ();
+    uint32_t to_playing_pos (light_playlist const & lpl);
+    uint32_t find_common (light_playlist const & backup);
 };
 
 

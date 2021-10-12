@@ -28,6 +28,7 @@ include_directories(
     ${player_path}/main
     ${player_path}/view
     ${player_path}/usb
+    ${player_path}/playlist
     ../packet_len_data
     ../ring_buffer
     ../sockets

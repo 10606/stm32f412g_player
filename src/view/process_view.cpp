@@ -288,21 +288,7 @@ uint32_t view::process_center ()
         else
         {
             if (pl.lpl.header.cnt_songs != 0)
-            {
-                uint32_t ret;
-                if (!plv.compare(pl))
-                {
-                    ret = plv.to_playing_playlist(pl);
-                    if (ret)
-                        return ret;
-                    pll.seek(playing_playlist);
-                    selected_playlist = playing_playlist;
-                }
-                audio_ctl->need_redraw = 1;
-                ret = plv.seek(pl.lpl.pos);
-                if (ret)
-                    return ret;
-            }
+                return to_playing_pos(pl.lpl);
         }
         break;
         

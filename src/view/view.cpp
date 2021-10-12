@@ -81,5 +81,61 @@ uint32_t view::send_info ()
     return 0;
 }
 
+uint32_t view::find (find_pattern const & pattern)
+{
+    light_playlist playing = plv.lpl_with_wrong_pos();
+    uint32_t ret;
+    ret = playing.seek(plv.get_pos());
+    if (ret)
+        return ret;
+    finder = find_song(playing, pattern);
+    return find_common(playing);
+}
+
+uint32_t view::find_next ()
+{
+    if (!plv.compare(finder.playlist))
+        return find(finder.search_pattern());
+    
+    light_playlist playing = finder.playlist;
+    uint32_t ret;
+    ret = finder.playlist.seek(plv.get_pos());
+    if (ret)
+        return ret;
+    return find_common(playing);
+}
+
+uint32_t view::find_common (light_playlist const & backup)
+{
+    uint32_t ret;
+    ret = finder.next();
+    if (ret)
+        return (ret == find_song::not_found)? 0 : ret;
+    ret = to_playing_pos(finder.playlist);
+    if (ret)
+    {
+        finder.playlist = backup;
+        return ret;
+    }
+    audio_ctl->need_redraw = 1;
+    return 0;
+}
+
+uint32_t view::to_playing_pos (light_playlist const & lpl)
+{
+    uint32_t ret;
+
+    if (!plv.compare(lpl))
+    {
+        ret = plv.to_playing_playlist(lpl);
+        if (ret)
+            return ret;
+        pll.seek(playing_playlist);
+        selected_playlist = playing_playlist;
+    }
+    audio_ctl->need_redraw = 1;
+    return plv.seek(lpl.pos);
+}
+
 view viewer(&audio_ctl);
 

@@ -3,6 +3,7 @@
 #include "usb_commands.h"
 #include "term_display.h"
 #include "epoll_wrapper.h"
+#include "playlist_structures.h"
 
 #include <string_view>
 #include <vector>
@@ -71,6 +72,51 @@ struct escape_buffer
     
     void is_in_expected ()
     {
+        if (finder.need_continue)
+        {
+            for (size_t i = 0; i != cmd_from_stdin.size(); ++i)
+            {
+                if (cmd_from_stdin[i] == '\n')
+                {
+                    finder.need_continue++;
+                    if (finder.need_continue == 3)
+                    {
+                        cmd_from_stdin.erase(cmd_from_stdin.begin(), cmd_from_stdin.begin() + i + 1);
+                        
+                        finder.need_continue = 0;
+                        find_pattern pattern;
+                        pattern.group_len = finder.pattern[0].size();
+                        pattern.song_len  = finder.pattern[1].size();
+                        memcpy(pattern.group_name, finder.pattern[0].c_str(), finder.pattern[0].size());
+                        memcpy(pattern.song_name,  finder.pattern[1].c_str(), finder.pattern[1].size());
+                        
+                        finder.pattern[0].clear();
+                        finder.pattern[1].clear();
+                        
+                        char pattern_bytes[1 + sizeof(pattern)];
+                        pattern_bytes[0] = 0x11;
+                        memcpy(pattern_bytes + 1, &pattern, sizeof(pattern));
+                        
+                        if (to_write.empty())
+                            epoll.reg(fd, EPOLLIN | EPOLLOUT);
+                        to_write += std::string(pattern_bytes, sizeof(pattern_bytes));
+                        return;
+                    }
+                }
+                else
+                {
+                    static const std::array <size_t, 2> max_sizes = {sizeof(find_pattern::group_name), sizeof(find_pattern::song_name)};
+
+                    size_t index = finder.need_continue - 1;
+                    if (max_sizes[index] > finder.pattern[index].size())
+                        finder.pattern[index].push_back(cmd_from_stdin[i]);
+                }
+            }
+
+            cmd_from_stdin.clear();
+            return;
+        }
+        
         bool has_continue = 0;
         for (unsigned char i = 1; i != int_commands.size(); ++i)
         {
@@ -82,13 +128,19 @@ struct escape_buffer
             }
             if (j == int_commands[i].size())
             {
-                for (size_t k = 0; k != j; ++k)
-                    cmd_from_stdin.pop_front();
-                if (int_commands[i] == "q") 
+                cmd_from_stdin.erase(cmd_from_stdin.begin(), cmd_from_stdin.begin() + j);
+                
+                if (int_commands[i] == quit) 
                 {
                     cl_term();
                     std::exit(0);
                 }
+                else if (i == 0x11) // int_command_find_set
+                {
+                    finder.need_continue = 1;
+                    return;
+                }
+                
                 if (to_write.empty())
                     epoll.reg(fd, EPOLLIN | EPOLLOUT);
                 to_write.push_back(i);
@@ -164,7 +216,14 @@ struct escape_buffer
         }
     }
 
+    struct long_command
+    {
+        uint8_t need_continue = 0;
+        std::array <std::string, 2> pattern;
+    };
+    
     int fd;
+    long_command finder;
     epoll_wraper epoll;
     std::deque <char> cmd_from_stdin;
     std::deque <char> info_from_stm;

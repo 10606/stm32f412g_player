@@ -35,25 +35,16 @@ void reuse_mad ()
 static uint32_t get_all_data (file_descriptor * _file, uint8_t * buffer, uint32_t size)
 {
     uint32_t total_read = 0;
-    while (total_read != size)
+    uint32_t ret = _file->read_all(buffer, size, &total_read);
+    if (!ret) [[likely]]
+        return total_read;
+    else if (ret == err::eof_file) [[unlikely]]
+        return total_read;
+    else
     {
-        uint32_t tried = 10;
-        uint32_t cnt_read;
-        uint32_t ret = 0;
-        
-        do
-        {
-            uint32_t ret = _file->read(buffer + total_read, size - total_read, &cnt_read);
-            if (ret == err::eof_file) [[unlikely]]
-                return total_read;
-            else if (ret != 0) [[unlikely]]
-                display::error("error read");
-        }
-        while ((ret != 0) && (--tried != 0));
-        
-        total_read += cnt_read;
+        display::error("error read");
+        return 0;
     }
-    return total_read;
 }
 
 inline int16_t scale (mad_fixed_t sample) 

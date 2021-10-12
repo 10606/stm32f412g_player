@@ -9,7 +9,7 @@
 
 struct ring_buffer
 {
-    ring_buffer (size_t _size_inc_value = 1024) :
+    ring_buffer (size_t _size_inc_value = 1024) noexcept :
         data(),
         capacity(0),
         begin_v(0),

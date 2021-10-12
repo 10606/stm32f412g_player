@@ -27,6 +27,7 @@ struct light_playlist
     uint32_t next ();
     uint32_t open_file ();
 
+    // don't reset file_descriptor
     constexpr void init_base ()
     {
         pos = 0;

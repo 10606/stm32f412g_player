@@ -8,8 +8,8 @@
 
 struct tcp_server_sock_t
 {
-    // INADDR_ANY, 110
-    tcp_server_sock_t (uint32_t _addr, uint16_t _port, epoll_wraper & _epoll);
+    // INADDR_ANY, 750
+    tcp_server_sock_t (uint32_t _addr, uint16_t _port, epoll_wraper & _epoll) noexcept;
     ~tcp_server_sock_t ();
     
     tcp_server_sock_t (tcp_server_sock_t const &) = delete;

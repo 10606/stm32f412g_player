@@ -26,9 +26,12 @@ const char * const int_command_prev_song = "<";
 
 const char * const int_command_send_info = "R";
 
+const char * const int_command_find_next = ".";
+const char * const int_command_find_set = "/";
+
 const char * const quit = "q";
 
-std::array <std::string_view, 17> const int_commands =
+std::array <std::string_view, 19> const int_commands =
 {
     "",                     //0x00
 
@@ -56,7 +59,10 @@ std::array <std::string_view, 17> const int_commands =
     
     int_command_end_pause,  //0x0f
     
-    quit                    //0x10
+    int_command_find_next,  //0x10
+    int_command_find_set,   //0x11
+    
+    quit                    //0x12
 };
 
 #endif

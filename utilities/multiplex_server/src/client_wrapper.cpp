@@ -2,6 +2,7 @@
 
 #include "usb_commands.h"
 #include "epoll_wrapper.h"
+#include "playlist_structures.h"
 
 #include <stdexcept>
 #include <limits>
@@ -48,6 +49,13 @@ size_t inc_struct_ptr (char c) noexcept
     default:
         return 1;
     }
+}
+
+size_t inc_command_ptr (char c) noexcept
+{
+    if (c == 0x11) [[unlikely]]
+        return 1 + sizeof(find_pattern);
+    return 1;
 }
 
 void clients_wrapper_t::unreg (int fd) noexcept
@@ -116,7 +124,7 @@ std::string clients_wrapper_t::read (int fd)
     if (it == pointers.end())
         throw std::runtime_error("read for unknown fd");
     
-    char buff [64];
+    char buff [64 + sizeof(find_pattern)];
     ssize_t rb = it->second.socket->read(buff, sizeof(buff));
     if (rb < 0)
     {
@@ -125,7 +133,21 @@ std::string clients_wrapper_t::read (int fd)
         else
             return std::string();
     }
-    return std::string(buff, rb);
+    
+    std::string ans = it->second.readed_data + std::string(buff, rb);
+    
+    size_t pos = 0;
+    while (pos < ans.size())
+    {
+        size_t cur_inc = inc_command_ptr(ans[pos]);
+        if (pos + cur_inc <= ans.size())
+            pos += cur_inc;
+        else
+            break;
+    }
+    
+    it->second.readed_data = ans.substr(pos);
+    return ans.substr(0, pos);
 }
 
 void clients_wrapper_t::append (std::string_view value)

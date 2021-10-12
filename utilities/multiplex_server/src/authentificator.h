@@ -12,7 +12,7 @@
 template <typename Checker>
 struct authentificator_t
 {
-    authentificator_t (epoll_wraper & _epoll) :
+    authentificator_t (epoll_wraper & _epoll) noexcept :
         epoll(_epoll),
         clients(),
         pointers()

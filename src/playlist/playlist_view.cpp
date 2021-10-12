@@ -184,7 +184,7 @@ uint32_t playlist_view::play (playlist & pl) const
 
 bool playlist_view::check_near (playlist const & playing_pl) const
 {
-    if (!compare(playing_pl))
+    if (!compare(playing_pl.lpl))
         return 0;
     
     return ::check_near
@@ -237,11 +237,11 @@ playlist_view::print_info playlist_view::print (playlist const & playing_pl) con
     return ans;
 }
 
-uint32_t playlist_view::to_playing_playlist (playlist const & pl)
+uint32_t playlist_view::to_playing_playlist (light_playlist const & pl)
 {
     file_descriptor old_fd(lpl.fd);
     
-    lpl.fd.copy_seek_0(pl.lpl.fd);
+    lpl.fd.copy_seek_0(pl.fd);
     uint32_t ret;
     if ((ret = init()))
     {
@@ -290,5 +290,13 @@ redraw_type_t playlist_view::redraw_type () const
     else // on middle
         ans.pos = border_cnt;
     return ans;
+}
+
+light_playlist playlist_view::lpl_with_wrong_pos () const
+{
+    return lpl;
+    // after this need 
+    //  seek(plv.get_pos());
+    // to get selected pos
 }
 

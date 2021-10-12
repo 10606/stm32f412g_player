@@ -13,7 +13,7 @@
 #include <stdint.h>
 #include <stdexcept>
 
-tcp_server_sock_t::tcp_server_sock_t (uint32_t _addr, uint16_t _port, epoll_wraper & _epoll) :
+tcp_server_sock_t::tcp_server_sock_t (uint32_t _addr, uint16_t _port, epoll_wraper & _epoll) noexcept :
     fd(-1),
     epoll(_epoll)
 {

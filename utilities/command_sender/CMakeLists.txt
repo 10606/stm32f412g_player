@@ -27,6 +27,7 @@ include_directories(
     ${player_path}/main
     ${player_path}/view
     ${player_path}/usb
+    ${player_path}/playlist
     src/
     src/command_line/
     src/interactive/
