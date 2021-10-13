@@ -73,69 +73,66 @@ struct escape_buffer
     escape_buffer & operator = (escape_buffer &&) = delete;
     escape_buffer & operator = (escape_buffer const &) = delete;
     
+    void search_input ()
+    {
+        for (size_t i = 0; i != cmd_from_stdin.size(); ++i)
+        {
+            size_t index = finder.need_continue - 1;
+            if ((cmd_from_stdin[i] == 0x7f)  || // linux / xfce
+                (cmd_from_stdin[i] == 0x08))    // xterm
+            {
+                if (!finder.pattern[index].empty())
+                    finder.pattern[index].pop_back();
+            }
+            else if (cmd_from_stdin[i] == '\n')
+            {
+                finder.need_continue++;
+                if (finder.need_continue == 3)
+                {
+                    std::basic_string <uint8_t> group_name = utf8_to_custom(finder.pattern[0]);
+                    std::basic_string <uint8_t> song_name = utf8_to_custom(finder.pattern[1]);
+                
+                    find_pattern pattern;
+                    pattern.group_len = group_name.size();
+                    pattern.song_len  = song_name.size();
+                    memcpy(pattern.group_name, group_name.c_str(), std::min(group_name.size(), sizeof(find_pattern::group_name)));
+                    memcpy(pattern.song_name,  song_name.c_str(),  std::min(song_name.size(),  sizeof(find_pattern::song_name)));
+                    
+                    char pattern_bytes[1 + sizeof(pattern)];
+                    pattern_bytes[0] = 0x11;
+                    memcpy(pattern_bytes + 1, &pattern, sizeof(pattern));
+                    
+                    if (to_write.empty())
+                        epoll.reg(fd, EPOLLIN | EPOLLOUT);
+                    to_write += std::string(pattern_bytes, sizeof(pattern_bytes));
+
+                    finder.pattern[0].clear();
+                    finder.pattern[1].clear();
+                    finder.need_continue = 0;
+                    cmd_from_stdin.erase(cmd_from_stdin.begin(), cmd_from_stdin.begin() + i + 1);
+                    
+                    display_search(finder.pattern);
+                    return;
+                }
+            }
+            else
+            {
+                static const std::array <size_t, 2> max_sizes = {3 * sizeof(find_pattern::group_name), 
+                                                                 3 * sizeof(find_pattern::song_name)};
+                if (max_sizes[index] > finder.pattern[index].size())
+                    finder.pattern[index].push_back(cmd_from_stdin[i]);
+            }
+        }
+
+        display_search(finder.pattern);
+        cmd_from_stdin.clear();
+    }
+
     void is_in_expected ()
     {
         if (finder.need_continue)
         {
-            for (size_t i = 0; i != cmd_from_stdin.size(); ++i)
-            {
-                size_t index = finder.need_continue - 1;
-                if ((cmd_from_stdin[i] == 0x7f) || // linux / xfce
-                    (cmd_from_stdin[i] == 0x08))   // xterm
-                {
-                    if (!finder.pattern[index].empty())
-                        finder.pattern[index].pop_back();
-                    display_search(finder.pattern);
-                    continue;
-                }
-                else if (cmd_from_stdin[i] == '\n')
-                {
-                    finder.need_continue++;
-                    if (finder.need_continue == 3)
-                    {
-                        cmd_from_stdin.erase(cmd_from_stdin.begin(), cmd_from_stdin.begin() + i + 1);
-                        
-                        std::basic_string <uint8_t> group_name = utf8_to_custom(finder.pattern[0]);
-                        std::basic_string <uint8_t> song_name = utf8_to_custom(finder.pattern[1]);
-                        if (group_name.size() > sizeof(find_pattern::group_name))
-                            group_name = group_name.substr(0, sizeof(find_pattern::group_name));
-                        if (song_name.size()  > sizeof(find_pattern::song_name))
-                            song_name = song_name.substr(0, sizeof(find_pattern::song_name));
-                    
-                        finder.need_continue = 0;
-                        find_pattern pattern;
-                        pattern.group_len = group_name.size();
-                        pattern.song_len  = song_name.size();
-                        memcpy(pattern.group_name, group_name.c_str(), group_name.size());
-                        memcpy(pattern.song_name,  song_name.c_str(),  song_name.size());
-                        
-                        finder.pattern[0].clear();
-                        finder.pattern[1].clear();
-                        
-                        char pattern_bytes[1 + sizeof(pattern)];
-                        pattern_bytes[0] = 0x11;
-                        memcpy(pattern_bytes + 1, &pattern, sizeof(pattern));
-                        
-                        if (to_write.empty())
-                            epoll.reg(fd, EPOLLIN | EPOLLOUT);
-                        to_write += std::string(pattern_bytes, sizeof(pattern_bytes));
-
-                        display_search(finder.pattern);
-                        return;
-                    }
-                }
-                else
-                {
-                    static const std::array <size_t, 2> max_sizes = {3 * sizeof(find_pattern::group_name), 3 * sizeof(find_pattern::song_name)};
-
-                    if (max_sizes[index] > finder.pattern[index].size())
-                        finder.pattern[index].push_back(cmd_from_stdin[i]);
-
-                    display_search(finder.pattern);
-                }
-            }
-
-            cmd_from_stdin.clear();
+            search_input();
             return;
         }
         
