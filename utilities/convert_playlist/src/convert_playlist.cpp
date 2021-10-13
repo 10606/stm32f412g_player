@@ -14,6 +14,7 @@
 #include "FAT.h"
 #include "LFN.h"
 #include "playlist_structures.h"
+#include "convert_custom.h"
 
 std::ifstream partition_with_FAT;
 uint32_t const start_partition_sector = 1;
@@ -63,26 +64,9 @@ get_group_song_names
     return {answer, ""}; // group_song_name.mp3
 }
 
-// utf8 -> ucs4 -> my_custom_code_table
-std::basic_string <uint8_t> convert_to_custom_char_table (std::string const & value)
-{
-    static std::map <uint32_t, uint8_t> rev_map = fill_rev_char_map();
-    std::basic_string <uint8_t> ans;
-    std::vector <uint32_t> ucs4 = utf8_to_ucs4(value);
-    for (uint32_t v : ucs4)
-    {
-        std::map <uint32_t, uint8_t> :: const_iterator it = rev_map.find(v);
-        if (it == rev_map.end())
-            ans += 0x20; // ' '
-        else
-            ans += it->second;
-    }
-    return ans;
-}
-
 void write (char * dst, std::string const & _src, uint32_t size, char fill = ' ')
 {
-    std::basic_string <uint8_t> src = convert_to_custom_char_table(_src);
+    std::basic_string <uint8_t> src = utf8_to_custom(_src);
     std::memcpy(dst, src.c_str(), std::min <uint32_t> (src.size(), size));
     if (src.size() < size)
         std::memset(dst + src.size(), fill, size - src.size());

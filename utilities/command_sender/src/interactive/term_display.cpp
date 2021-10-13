@@ -5,6 +5,7 @@
 #include "term_colors.h"
 #include <optional>
 #include <stdint.h>
+#include <array>
 #include <cstring>
 #include <vector>
 
@@ -14,7 +15,7 @@ inline void set_cursor (std::pair <size_t, size_t> pos)
 }
 
 
-inline std::pair <size_t, size_t> 
+constexpr inline std::pair <size_t, size_t> 
 operator +
 (
     std::pair <size_t, size_t> const & a, 
@@ -24,7 +25,7 @@ operator +
     return std::make_pair (a.first + b.first, a.second + b.second);
 }
 
-inline std::pair <size_t, size_t> 
+constexpr inline std::pair <size_t, size_t> 
 operator *
 (
     std::pair <size_t, size_t> const & a, 
@@ -34,7 +35,7 @@ operator *
     return std::make_pair (a.first * b, a.second * b);
 }
 
-inline std::pair <size_t, size_t> 
+constexpr inline std::pair <size_t, size_t> 
 operator *
 (
     size_t b,
@@ -61,6 +62,8 @@ struct base
     
     static const constexpr coord volume[] = {{left_col + 2 + 5, 1}, {left_col + 2 + 5, 2}};
 
+    static const constexpr coord search[] = {{pl_list[1] + 7 * pl_list_a}, {pl_list[0] + 8 * pl_list_a}};
+    
     static const constexpr coord * const addition[5] = 
     {
         fake,
@@ -69,6 +72,7 @@ struct base
         pl_list,
         volume,
     };
+
 };
 
 inline void set_color (size_t current, size_t cmd, size_t line, size_t s = 0)
@@ -123,6 +127,22 @@ std::optional <T> clone (std::deque <char> & data)
         *(reinterpret_cast <char *> (&my_data) + i) = data[i];
     data.erase(data.begin(), data.begin() + my_size);
     return my_data;
+}
+
+void display_search (std::array <std::string, 2> const & value)
+{
+    static size_t prev_size[2] = {0, 0};
+    
+    for (size_t i = 0; i != 2; ++i)
+    {
+        set_cursor(base::search[i]);
+        std::cout << color::yellow;
+        std::cout << value[i];
+        for (size_t j = value[i].size(); j < prev_size[i] + 5; ++j)
+            std::cout  << ' ';
+        prev_size[i] = value[i].size();
+    }
+    std::cout.flush();
 }
 
 void extract (std::deque <char> & data, state_t & state)

@@ -45,6 +45,7 @@ add_executable(player_send_command
     src/interactive/char_reconvert.cpp
     ../characters/fill_char_set.cpp
     ../characters/char_conversion.cpp
+    ../characters/convert_custom.cpp
     ../multiplex_server/src/epoll_wrapper.cpp
 )
 

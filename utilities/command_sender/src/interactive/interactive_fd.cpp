@@ -4,11 +4,13 @@
 #include "term_display.h"
 #include "epoll_wrapper.h"
 #include "playlist_structures.h"
+#include "convert_custom.h"
 
 #include <string_view>
 #include <vector>
 #include <string>
 #include <fstream>
+#include <map>
 #include <deque>
 #include <queue>
 #include <type_traits>
@@ -48,6 +50,7 @@ void cl_term ()
     tcsetattr(STDIN_FILENO, TCSANOW, &term_config);
 }
 
+
 struct escape_buffer
 {
     escape_buffer (int _fd) :
@@ -76,19 +79,35 @@ struct escape_buffer
         {
             for (size_t i = 0; i != cmd_from_stdin.size(); ++i)
             {
-                if (cmd_from_stdin[i] == '\n')
+                size_t index = finder.need_continue - 1;
+                if ((cmd_from_stdin[i] == 0x7f) || // linux / xfce
+                    (cmd_from_stdin[i] == 0x08))   // xterm
+                {
+                    if (!finder.pattern[index].empty())
+                        finder.pattern[index].pop_back();
+                    display_search(finder.pattern);
+                    continue;
+                }
+                else if (cmd_from_stdin[i] == '\n')
                 {
                     finder.need_continue++;
                     if (finder.need_continue == 3)
                     {
                         cmd_from_stdin.erase(cmd_from_stdin.begin(), cmd_from_stdin.begin() + i + 1);
                         
+                        std::basic_string <uint8_t> group_name = utf8_to_custom(finder.pattern[0]);
+                        std::basic_string <uint8_t> song_name = utf8_to_custom(finder.pattern[1]);
+                        if (group_name.size() > sizeof(find_pattern::group_name))
+                            group_name = group_name.substr(0, sizeof(find_pattern::group_name));
+                        if (song_name.size()  > sizeof(find_pattern::song_name))
+                            song_name = song_name.substr(0, sizeof(find_pattern::song_name));
+                    
                         finder.need_continue = 0;
                         find_pattern pattern;
-                        pattern.group_len = finder.pattern[0].size();
-                        pattern.song_len  = finder.pattern[1].size();
-                        memcpy(pattern.group_name, finder.pattern[0].c_str(), finder.pattern[0].size());
-                        memcpy(pattern.song_name,  finder.pattern[1].c_str(), finder.pattern[1].size());
+                        pattern.group_len = group_name.size();
+                        pattern.song_len  = song_name.size();
+                        memcpy(pattern.group_name, group_name.c_str(), group_name.size());
+                        memcpy(pattern.song_name,  song_name.c_str(),  song_name.size());
                         
                         finder.pattern[0].clear();
                         finder.pattern[1].clear();
@@ -100,16 +119,19 @@ struct escape_buffer
                         if (to_write.empty())
                             epoll.reg(fd, EPOLLIN | EPOLLOUT);
                         to_write += std::string(pattern_bytes, sizeof(pattern_bytes));
+
+                        display_search(finder.pattern);
                         return;
                     }
                 }
                 else
                 {
-                    static const std::array <size_t, 2> max_sizes = {sizeof(find_pattern::group_name), sizeof(find_pattern::song_name)};
+                    static const std::array <size_t, 2> max_sizes = {3 * sizeof(find_pattern::group_name), 3 * sizeof(find_pattern::song_name)};
 
-                    size_t index = finder.need_continue - 1;
                     if (max_sizes[index] > finder.pattern[index].size())
                         finder.pattern[index].push_back(cmd_from_stdin[i]);
+
+                    display_search(finder.pattern);
                 }
             }
 

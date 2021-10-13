@@ -53,6 +53,7 @@ add_executable(convert_playlist
     src/path_conversion.cpp
     ../characters/char_conversion.cpp
     ../characters/fill_char_set.cpp
+    ../characters/convert_custom.cpp
 )
 
 target_link_libraries(convert_playlist
