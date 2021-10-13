@@ -83,6 +83,8 @@ struct escape_buffer
             {
                 if (!finder.pattern[index].empty())
                     finder.pattern[index].pop_back();
+                else if (finder.need_continue == 2)
+                    finder.need_continue--;
             }
             else if (cmd_from_stdin[i] == '\n')
             {

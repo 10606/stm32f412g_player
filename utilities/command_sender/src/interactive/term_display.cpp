@@ -132,11 +132,12 @@ std::optional <T> clone (std::deque <char> & data)
 void display_search (std::array <std::string, 2> const & value)
 {
     static size_t prev_size[2] = {0, 0};
+    static std::string_view line_color[2] = {color::green, color::yellow};
     
     for (size_t i = 0; i != 2; ++i)
     {
         set_cursor(base::search[i]);
-        std::cout << color::yellow;
+        std::cout << line_color[i];
         std::cout << value[i];
         for (size_t j = value[i].size(); j < prev_size[i] + 5; ++j)
             std::cout  << ' ';

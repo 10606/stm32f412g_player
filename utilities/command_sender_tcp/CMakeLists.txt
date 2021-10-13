@@ -28,6 +28,7 @@ include_directories(
     ${player_path}/main
     ${player_path}/view
     ${player_path}/usb
+    ${player_path}/playlist
     ../multiplex_server/src
     ../command_sender/src
     ../packet_len_data
@@ -45,6 +46,7 @@ add_executable(command_sender_tcp
     ../command_sender/src/interactive/term_display.cpp
     ../characters/fill_char_set.cpp
     ../characters/char_conversion.cpp
+    ../characters/convert_custom.cpp
 )
 
 target_link_libraries(command_sender_tcp

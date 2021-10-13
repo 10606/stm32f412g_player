@@ -26,7 +26,7 @@ const char * const int_command_prev_song = "<";
 
 const char * const int_command_send_info = "R";
 
-const char * const int_command_find_next = ".";
+const char * const int_command_find_next = "n";
 const char * const int_command_find_set = "/";
 
 const char * const quit = "q";
