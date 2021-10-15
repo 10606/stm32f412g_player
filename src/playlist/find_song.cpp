@@ -3,19 +3,19 @@
 #include "audio.h"
 
 
-bool find_song::find_substr (uint32_t const * prefix_function, char const * substr, uint32_t str_size,
-                              char const * text, uint32_t text_size) noexcept
+bool find_song::find_substr (int32_t const * prefix_function, char const * substr, uint32_t str_size,
+                             char const * text, uint32_t text_size) noexcept
 {
     if (str_size == 0)
         return 1;
     
-    uint32_t pos = 0;
+    int32_t pos = 0;
     for (uint32_t i = 0; i != text_size; ++i)
     {
-        while ((pos != 0) && (substr[pos] != text[i]))
-            pos = prefix_function[pos - 1];
-        pos += (text[i] == substr[pos]);
-        if (pos == str_size) [[unlikely]]
+        while ((pos != -1) && (substr[pos] != text[i]))
+            pos = prefix_function[pos];
+        pos++;
+        if (static_cast <uint32_t> (pos) == str_size) [[unlikely]]
             return 1;
     }
     

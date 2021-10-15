@@ -44,27 +44,27 @@ struct find_song
     static const uint32_t not_found = 404;
     
 private:
-    static constexpr void calc_prefix_function (uint32_t * dst, char const * src, uint32_t length) noexcept
+    static constexpr void calc_prefix_function (int32_t * dst, char const * src, uint32_t length) noexcept
     {
         if (length == 0)
             return;
         
-        dst[0] = 0;
-        for (uint32_t i = 1; i != length; ++i)
+        dst[0] = -1;
+        int32_t j = -1;
+        for (uint32_t i = 0; i != length; ++i)
         {
-            uint32_t j = dst[i - 1];
-            while ((j != 0) && (src[j] != src[i]))
-                j = dst[j - 1];
-            dst[i] = j + (src[j] == src[i]);
+            while ((j != -1) && (src[j] != src[i]))
+                j = dst[j];
+            dst[i + 1] = ++j;
         }
     }
 
-    static bool find_substr (uint32_t const * prefix_function, char const * substr, uint32_t str_size,
+    static bool find_substr (int32_t const * prefix_function, char const * substr, uint32_t str_size,
                              char const * text, uint32_t text_size) noexcept;
     
     find_pattern pattern;
-    uint32_t song_pf[sz::song_name];
-    uint32_t group_pf[sz::group_name];
+    int32_t song_pf[sz::song_name + 1];
+    int32_t group_pf[sz::group_name + 1];
 };
 
 #endif

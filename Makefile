@@ -165,8 +165,16 @@ $(BUILD_DIR)/%.o: %.cpp $(make_files) | $(BUILD_DIR)
 $(BUILD_DIR)/display_picture.o: display_picture.cpp $(make_files) | $(BUILD_DIR) 
 	$(PP) -c $(CFLAGS) -O3 -std=c++20 -fno-rtti -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.cpp=.lst)) $< -o $@
 	
+$(BUILD_DIR)/find_song.o: find_song.cpp $(make_files) | $(BUILD_DIR) 
+	$(PP) -c $(CFLAGS) -O3 -std=c++20 -fno-rtti -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.cpp=.lst)) $< -o $@
+	
+	
 $(BUILD_DIR)/%.o: %.c $(make_files) | $(BUILD_DIR) 
 	$(CC) -c $(CFLAGS) -Os -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@
+	
+$(BUILD_DIR)/display_string.o: display_string.c $(make_files) | $(BUILD_DIR) 
+	$(CC) -c $(CFLAGS) -O3 -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@
+	
 
 $(BUILD_DIR)/%.o: %.s $(make_files) | $(BUILD_DIR)
 	$(AS) -c $(CFLAGS) $< -o $@
