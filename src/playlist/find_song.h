@@ -38,7 +38,7 @@ struct find_song
         return pattern;
     }
     
-    uint32_t next ();
+    uint32_t next (file_descriptor const & backup);
     
     light_playlist playlist;
     static const uint32_t not_found = 404;

@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <type_traits>
 
-uint32_t playlist_view::fill_names ()
+uint32_t playlist_view::fill_names (file_descriptor const & backup)
 {
     if (lpl.header.cnt_songs == 0)
         return 0;
@@ -18,7 +18,7 @@ uint32_t playlist_view::fill_names ()
         copy_from_lpl(i);
         if (i + 1 == lpl.header.cnt_songs)
             break;
-        uint32_t ret = lpl.next(); 
+        uint32_t ret = lpl.next(backup); 
         if (ret)
         {
             memcpy(name_group, name_group_backup, sizeof(name_group));
@@ -36,7 +36,7 @@ uint32_t playlist_view::init ()
     ret = lpl.open_file();
     if (ret)
         return ret;
-    ret = fill_names();
+    ret = fill_names(old_lpl.fd);
     if (ret)
     {
         lpl = old_lpl;
@@ -72,9 +72,9 @@ uint32_t playlist_view::seek (uint32_t pos)
 
     light_playlist old_lpl(lpl);
     uint32_t ret;
-    if ((ret = lpl.seek(seek_pos)))
+    if ((ret = lpl.seek(seek_pos, old_lpl.fd)))
         return ret;
-    if ((ret = fill_names()))
+    if ((ret = fill_names(old_lpl.fd)))
     {
         lpl = old_lpl;
         return ret;
@@ -89,9 +89,10 @@ uint32_t playlist_view::seek (uint32_t pos)
 uint32_t playlist_view::jump_over (uint32_t seek_pos, uint32_t new_pos)
 {
     uint32_t ret;
+    light_playlist old_lpl = lpl;
     if ((ret = lpl.seek(seek_pos)))
         return ret;
-    if ((ret = fill_names()))
+    if ((ret = fill_names(old_lpl.fd)))
         return ret;
     current_state.type = redraw_type_t::not_easy;
     current_state.pos = new_pos;

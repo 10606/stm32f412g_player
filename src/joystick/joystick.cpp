@@ -23,10 +23,11 @@ void joystick_state_t::check_buttons ()
         {joy_center_gpio_port, joy_center_pin},
     };
   
-    visited = 0;
-    for (uint32_t i = 0; i != 5; ++i)
+    for (uint32_t i = 0; i != joystick_states_cnt; ++i)
+    {
+        old_pressed[i] = pressed[i];
         pressed[i] = (HAL_GPIO_ReadPin(joy_pins[i].port, joy_pins[i].pin) == GPIO_PIN_SET);
-    visited = 1;
+    }
 }
 
 bool joystick_state_t::check_button_state (uint32_t joy_button)
@@ -34,13 +35,18 @@ bool joystick_state_t::check_button_state (uint32_t joy_button)
     static uint8_t const cost[] = {1, 8, 1}; // first second next
     static uint32_t const count = std::extent_v <decltype(cost)>; 
     
-    bool ans = process[joy_button] >= cost[prev_processed[joy_button]];
+    bool ans = pressed[joy_button] && 
+               (time[joy_button] >= cost[button_state[joy_button]]);
     if (ans)
     {
-        process[joy_button] = process[joy_button] - cost[prev_processed[joy_button]];
-        prev_processed[joy_button] = prev_processed[joy_button] + 1;
-        if (prev_processed[joy_button] >= count)
-            prev_processed[joy_button] = count - 1;
+        time[joy_button] = 0;
+        button_state[joy_button] = button_state[joy_button] + 1;
+        if (button_state[joy_button] >= count)
+            button_state[joy_button] = count - 1;
+    }
+    else if (!pressed[joy_button])
+    {
+        button_state[joy_button] = 0;
     }
     return ans;
 }
@@ -78,22 +84,10 @@ uint32_t joystick_state_t::joystick_check (view & vv)
 
 void joystick_state_t::on_timer ()
 {
-    if (visited)
+    for (uint32_t i = 0; i != joystick_states_cnt; ++i)
     {
-        visited = 0;
-        for (uint8_t i = 0; i != joystick_states_cnt; ++i)
-        {
-            if (pressed[i])
-            {
-                process[i] = process[i] + 1;
-                pressed[i] = 0;
-            }
-            else
-            {
-                prev_processed[i] = 0;
-                process[i] = 0;
-            }
-        }
+        if (time[i] < 8)
+            time[i] = time[i] + 1;
     }
 }
 

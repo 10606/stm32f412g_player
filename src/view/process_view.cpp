@@ -212,7 +212,11 @@ uint32_t view::play_new_playlist ()
 
     ret = plv.play(pl);
     if (ret)
+    {
+        pl = std::move(old_pl);
         return ret;
+    }
+    reuse_mad();
     ret = open_song_not_found();
     if (ret)
     {
@@ -221,7 +225,6 @@ uint32_t view::play_new_playlist ()
     }
 
     playing_playlist = selected_playlist;
-    reuse_mad();
     return 0;
 }
 

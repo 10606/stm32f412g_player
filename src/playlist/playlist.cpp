@@ -8,19 +8,31 @@ uint32_t playlist::realloc (light_playlist const & old_lpl)
     uint32_t new_size = lpl.song.path_len;
     if (new_size > path_sz)
     {
-        filename_t * tmp = static_cast <filename_t *> (malloc(new_size * sizeof(*path)));
-        if (!tmp)
+        filename_t * tmp_0 = static_cast <filename_t *> (malloc(new_size * sizeof(*path)));
+        if (!tmp_0)
         {
             lpl = old_lpl;
             return memory_limit;
         }
         
+        filename_t * tmp_1 = static_cast <filename_t *> (malloc(new_size * sizeof(*path)));
+        if (!tmp_1)
+        {
+            lpl = old_lpl;
+            free(tmp_0);
+            return memory_limit;
+        }
+        
         if (path)
         {
-            memmove(tmp, path, old_lpl.song.path_len * sizeof(*path));
+            memmove(tmp_0, path, old_lpl.song.path_len * sizeof(*path));
             free(path);
         }
-        path = tmp;
+        if (path_backup)
+            free(path_backup);
+        
+        path = tmp_0;
+        path_backup = tmp_1;
         path_sz = lpl.song.path_len;
     }
     return 0;
@@ -33,10 +45,14 @@ uint32_t playlist::seek (uint32_t new_pos)
 
     new_pos %= lpl.header.cnt_songs;
     uint32_t ret;
+    
     light_playlist old_lpl = lpl;
-    ret = lpl.seek(new_pos);
+    ret = lpl.seek(new_pos, lpl.fd);
     if (ret)
+    {
+        lpl = old_lpl;
         return ret;
+    }
 
     file_descriptor fd(lpl.fd, 0);
     ret = realloc(old_lpl);
@@ -45,9 +61,13 @@ uint32_t playlist::seek (uint32_t new_pos)
     ret = fd.seek(lpl.song.path_offset);
     if (ret)
         goto err;
+    memcpy(path_backup, path, old_lpl.song.path_len * sizeof(*path));
     ret = fd.read_all_fixed((char *)path, lpl.song.path_len * sizeof(*path));
     if (ret)
+    {
+        memcpy(path, path_backup, old_lpl.song.path_len * sizeof(*path));
         goto err;
+    }
     return 0;
 
 err:
@@ -75,11 +95,6 @@ uint32_t playlist::open (light_playlist const & other_lpl, uint32_t pos_selected
 {
     uint32_t ret;
     playlist old_pl(std::move(*this));
-    lpl.fd.copy_seek_0(other_lpl.fd);
-    lpl.init_base();
-    if (lpl.fd.is_fake())
-        return 0;
-    
     lpl = other_lpl;
     if ((ret = seek(pos_selected)) == 0)
         return 0;
@@ -90,10 +105,12 @@ uint32_t playlist::open (light_playlist const & other_lpl, uint32_t pos_selected
 
 playlist::playlist (playlist && src) : 
     path(src.path),
+    path_backup(src.path_backup),
     path_sz(src.path_sz),
     lpl(std::move(src.lpl))
 {
     src.path = nullptr;
+    src.path_backup = nullptr;
     src.path_sz = 0;
     src.lpl.fd.init_fake();
 }
@@ -108,8 +125,11 @@ playlist & playlist::operator = (playlist && src)
     src.path_sz = 0;
     
     free(path);
+    free(path_backup);
     path = src.path;
+    path_backup = src.path_backup;
     src.path = nullptr;
+    src.path_backup = nullptr;
     
     return *this;
 }

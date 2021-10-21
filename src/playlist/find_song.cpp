@@ -23,14 +23,14 @@ bool find_song::find_substr (int32_t const * prefix_function, char const * subst
 }
 
 
-uint32_t find_song::next ()
+uint32_t find_song::next (file_descriptor const & backup)
 {
     for (uint32_t i = 0; i != playlist.header.cnt_songs; ++i)
     {
         if (i % 100 == 0)
             audio_ctl.audio_process();
         
-        uint32_t ret = playlist.next();
+        uint32_t ret = playlist.next(backup);
         if (ret)
             return ret;
         

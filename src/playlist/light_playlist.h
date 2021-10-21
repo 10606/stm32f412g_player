@@ -24,7 +24,9 @@ struct light_playlist
     constexpr light_playlist & operator = (light_playlist &&) = default;
     
     uint32_t seek (uint32_t pos);
+    uint32_t seek (uint32_t pos, file_descriptor const & backup);
     uint32_t next ();
+    uint32_t next (file_descriptor const & backup);
     uint32_t open_file ();
 
     // don't reset file_descriptor
@@ -39,15 +41,30 @@ struct light_playlist
     
     uint32_t read_song ()
     {
-        return fd.read_all_fixed((char *)&song, sizeof(song_header));
+        song_header old_song = song;
+        uint32_t ret = fd.read_all_fixed((char *)&song, sizeof(song_header));
+        if (ret)
+            song = old_song;
+        return ret;
     }
 
-    static uint32_t read_header (playlist_header * song, file_descriptor & fd);
+    static uint32_t read_header (playlist_header * header, file_descriptor & fd)
+    {
+        playlist_header old_header = *header;
+        uint32_t ret = fd.read_all_fixed((char *)header, sizeof(playlist_header));
+        if (ret)
+            *header = old_header;
+        return ret;
+    }
+
     
     playlist_header header;
     song_header song;
     file_descriptor fd;
     uint32_t pos;
+
+private:
+    uint32_t next_simple ();
 };
 
 #endif

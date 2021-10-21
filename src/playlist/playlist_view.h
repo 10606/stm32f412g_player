@@ -85,7 +85,7 @@ struct playlist_view
     light_playlist lpl_with_wrong_pos () const;
 
 private:
-    uint32_t fill_names ();
+    uint32_t fill_names (file_descriptor const & backup);
     
     constexpr void pn_common (size_t ins_pos)
     {

@@ -108,7 +108,7 @@ uint32_t view::find_next ()
 uint32_t view::find_common (light_playlist const & backup)
 {
     uint32_t ret;
-    ret = finder.next();
+    ret = finder.next(backup.fd);
     if (ret)
         return (ret == find_song::not_found)? 0 : ret;
     ret = to_playing_pos(finder.playlist);

@@ -6,6 +6,16 @@
 
 struct joystick_state_t
 {
+    joystick_state_t ()
+    {
+        for (uint32_t i = 0; i != joystick_states_cnt; ++i)
+        {
+            pressed[i] = 0;
+            button_state[i] = 0;
+            time[i] = 0;
+        }
+    }
+
     enum joystick_buttons
     {
         joy_button_up = 0,
@@ -19,10 +29,10 @@ struct joystick_state_t
     uint32_t joystick_check (view & vv);
     void on_timer ();
 
-    volatile uint8_t pressed[joystick_states_cnt];
-    volatile uint8_t process[joystick_states_cnt];
-    volatile uint8_t prev_processed[joystick_states_cnt];
-    volatile bool visited;
+    uint8_t pressed[joystick_states_cnt];
+    uint8_t old_pressed[joystick_states_cnt];
+    uint8_t button_state[joystick_states_cnt];
+    volatile uint8_t time[joystick_states_cnt];
     
 private:
     void check_buttons ();

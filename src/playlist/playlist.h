@@ -11,6 +11,7 @@ struct playlist
 {
     constexpr playlist () :
         path(nullptr),
+        path_backup(nullptr),
         path_sz(0),
         lpl()
     {}
@@ -18,6 +19,7 @@ struct playlist
     ~playlist ()
     {
         free(path);
+        free(path_backup);
     }
     
     playlist (playlist && other);
@@ -43,6 +45,7 @@ struct playlist
 
 
     filename_t * path;
+    filename_t * path_backup;
     uint32_t path_sz;
     light_playlist lpl;
     
