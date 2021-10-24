@@ -8,7 +8,7 @@
 
 const uint32_t seek_value = (1024 * 32);
 
-uint32_t view::change_volume (int8_t value)
+ret_code view::change_volume (int8_t value) noexcept
 {
     if (value > 100)
         value = 100;
@@ -27,12 +27,12 @@ uint32_t view::change_volume (int8_t value)
     return 0;
 }
 
-uint32_t view::inc_volume ()
+ret_code view::inc_volume () noexcept
 {
     return change_volume(1);
 }
 
-uint32_t view::dec_volume ()
+ret_code view::dec_volume () noexcept
 {
     return change_volume(-1);
 }
@@ -55,12 +55,13 @@ inline uint32_t sub_in_bound (uint32_t value, uint32_t a, uint32_t b, uint32_t a
     return value - add;
 }
 
-uint32_t view::seek (uint32_t value, directions::fb::type direction)
+ret_code view::seek (uint32_t value, directions::fb::type direction)
 {
     uint32_t (* op_in_bound[2]) (uint32_t, uint32_t, uint32_t, uint32_t) = 
         {add_in_bound, sub_in_bound};
 
-    uint32_t ret, new_pos;
+    ret_code ret;
+    uint32_t new_pos;
     new_pos = audio_ctl->audio_file.current_position();
     new_pos = (op_in_bound[direction])(new_pos, audio_ctl->info.offset, audio_ctl->audio_file.size, value);
     audio_ctl->seeked = 1;
@@ -71,48 +72,55 @@ uint32_t view::seek (uint32_t value, directions::fb::type direction)
     return 0;
 }
 
-uint32_t view::seek_forward ()
+ret_code view::seek_forward ()
 {
     return seek(seek_value, directions::fb::forward);
 }
 
-uint32_t view::seek_backward ()
+ret_code view::seek_backward ()
 {
     return seek(seek_value, directions::fb::backward);
 }
 
-uint32_t view::change_song (directions::np::type direction)
+ret_code view::change_song (directions::np::type direction)
 {
-    static uint32_t (playlist::* const do_on_playlist[2]) () =
+    static uint32_t (playlist::* const do_on_playlist[2]) (light_playlist const & backup) =
     {
         &playlist::next,
         &playlist::prev
     };
-    uint32_t ret;
-    ret = (pl.*do_on_playlist[direction])();
+    ret_code ret;
+    playlist backup;
+    ret = backup.clone(pl);
+    if (ret)
+        return ret;
+    ret = (pl.*do_on_playlist[direction])(backup.lpl);
     if (ret)
         return ret;
     else
     {
         reuse_mad();
-        if ((ret = open_song_not_found(direction))) 
+        if ((ret = open_song_not_found(backup, direction))) 
+        {
+            pl = std::move(backup);
             return ret;
+        }
     }
     audio_ctl->need_redraw = 1;
     return 0;
 }
 
-uint32_t view::prev_song ()
+ret_code view::prev_song ()
 {
     return change_song(directions::np::prev);
 }
 
-uint32_t view::next_song ()
+ret_code view::next_song ()
 {
     return change_song(directions::np::next);
 }
 
-uint32_t view::process_next_prev (directions::np::type direction)
+ret_code view::process_next_prev (directions::np::type direction)
 {
     static void (pl_list::* const do_on_pl_list[2]) () = 
     {
@@ -152,17 +160,17 @@ uint32_t view::process_next_prev (directions::np::type direction)
     return 0;
 }
 
-uint32_t view::process_up ()
+ret_code view::process_up ()
 {
     return process_next_prev(directions::np::prev);
 }
 
-uint32_t view::process_down ()
+ret_code view::process_down ()
 {
     return process_next_prev(directions::np::next);
 }
 
-uint32_t view::play_pause ()
+ret_code view::play_pause () noexcept
 {
     if (audio_ctl->pause_status == pause_status_t::pause)
     {
@@ -178,7 +186,7 @@ uint32_t view::play_pause ()
     return 0;
 }
 
-uint32_t view::to_end_and_pause ()
+ret_code view::to_end_and_pause () noexcept
 {
     switch (audio_ctl->pause_status)
     {
@@ -195,7 +203,7 @@ uint32_t view::to_end_and_pause ()
     return 0;
 }
 
-uint32_t view::process_left ()
+ret_code view::process_left () noexcept
 {
     if (state != state_t::pl_list)
     {
@@ -205,19 +213,16 @@ uint32_t view::process_left ()
     return 0;
 }
 
-uint32_t view::play_new_playlist ()
+ret_code view::play_new_playlist ()
 {
-    uint32_t ret;
+    ret_code ret;
     playlist old_pl(std::move(pl));
 
-    ret = plv.play(pl);
+    ret = plv.play(pl, old_pl);
     if (ret)
-    {
-        pl = std::move(old_pl);
         return ret;
-    }
     reuse_mad();
-    ret = open_song_not_found();
+    ret = open_song_not_found(old_pl);
     if (ret)
     {
         pl = std::move(old_pl);
@@ -228,9 +233,9 @@ uint32_t view::play_new_playlist ()
     return 0;
 }
 
-uint32_t view::process_right ()
+ret_code view::process_right ()
 {
-    uint32_t ret;
+    ret_code ret;
     switch (state)
     {
     case state_t::pl_list:
@@ -255,21 +260,21 @@ uint32_t view::process_right ()
     return 0;
 }
 
-uint32_t view::toggle_repeat ()
+ret_code view::toggle_repeat () noexcept
 {
     audio_ctl->repeat_mode ^= 1;
     display::song_volume(*audio_ctl, state_song_view, (state == state_t::song));
     return 0;
 }
 
-uint32_t view::process_center ()
+ret_code view::process_center ()
 {
     switch (state)
     {
     case state_t::pl_list:
         if (pll.check_near(playing_playlist))
         {
-            uint32_t ret = pll.open_index(plv, playing_playlist, selected_playlist);
+            ret_code ret = pll.open_index(plv, playing_playlist, selected_playlist);
             if (ret)
                 return ret;
             state = state_t::playlist;

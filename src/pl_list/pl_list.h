@@ -39,11 +39,11 @@ struct pl_list
     pl_list (pl_list &&) = delete;
     pl_list & operator = (pl_list &&) = delete;
     
-    uint32_t init (filename_t * dir_name, size_t len_name);
+    ret_code init (filename_t * dir_name, size_t len_name);
     void next ();
     void prev ();
-    uint32_t open_index (playlist_view & plv, uint32_t index, uint32_t & selected_pl) const;
-    uint32_t open_selected (playlist_view & plv, uint32_t & selected_pl) const;
+    ret_code open_index (playlist_view & plv, uint32_t index, uint32_t & selected_pl) const;
+    ret_code open_selected (playlist_view & plv, uint32_t & selected_pl) const;
     bool check_near (uint32_t pos) const;
 
     constexpr void seek (uint32_t pos)

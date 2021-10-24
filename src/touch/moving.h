@@ -13,13 +13,13 @@ struct point
 
 struct touch_processing
 {
-    uint32_t touch_region (view * vv);
-    uint32_t move_left  (int32_t & ans, int32_t offset, char speed, view * vv);
-    uint32_t move_right (int32_t & ans, int32_t offset, char speed, view * vv);
-    uint32_t move_up    (int32_t & ans, int32_t offset, char speed, view * vv);
-    uint32_t move_down  (int32_t & ans, int32_t offset, char speed, view * vv);
+    ret_code touch_region (view * vv);
+    ret_code move_left  (int32_t & ans, int32_t offset, char speed, view * vv);
+    ret_code move_right (int32_t & ans, int32_t offset, char speed, view * vv);
+    ret_code move_up    (int32_t & ans, int32_t offset, char speed, view * vv);
+    ret_code move_down  (int32_t & ans, int32_t offset, char speed, view * vv);
 
-    uint32_t do_move 
+    ret_code do_move 
     (
         int32_t & ans,
         direction_n::type direction,
@@ -32,7 +32,7 @@ struct touch_processing
     uint32_t direction_mask;
     
 private:
-    uint32_t move_left_right
+    ret_code move_left_right
     (
         int32_t & ans,
         int32_t offset, 
@@ -41,7 +41,7 @@ private:
         directions::lr::type direction
     );
     
-    uint32_t move_up_down
+    ret_code move_up_down
     (
         int32_t & ans,
         int32_t offset, 

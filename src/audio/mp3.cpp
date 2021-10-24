@@ -35,7 +35,7 @@ void reuse_mad ()
 static uint32_t get_all_data (file_descriptor * _file, uint8_t * buffer, uint32_t size)
 {
     uint32_t total_read = 0;
-    uint32_t ret = _file->read_all(buffer, size, &total_read);
+    ret_code ret = _file->read_all(buffer, size, &total_read);
     if (!ret) [[likely]]
         return total_read;
     else if (ret == err::eof_file) [[unlikely]]

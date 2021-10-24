@@ -1,11 +1,11 @@
 #include "light_playlist.h"
 
-uint32_t light_playlist::seek (uint32_t _pos, file_descriptor const & backup)
+ret_code light_playlist::seek (uint32_t _pos, file_descriptor const & backup)
 {
     if (header.cnt_songs == 0)
         return 0;
     _pos %= header.cnt_songs;
-    uint32_t ret;
+    ret_code ret;
     if ((ret = fd.seek(sizeof(playlist_header) + _pos * sizeof(song_header))))
         return ret;
     if ((ret = read_song()))
@@ -17,22 +17,22 @@ uint32_t light_playlist::seek (uint32_t _pos, file_descriptor const & backup)
     return 0;
 }
 
-uint32_t light_playlist::seek (uint32_t _pos)
+ret_code light_playlist::seek (uint32_t _pos)
 {
     file_descriptor old_fd = fd;
     return seek(_pos, old_fd);
 }
 
-uint32_t light_playlist::next_simple ()
+ret_code light_playlist::next_simple ()
 {
-    uint32_t ret = read_song();
+    ret_code ret = read_song();
     if (ret)
         return ret;
     pos++;
     return 0;
 }
 
-uint32_t light_playlist::next ()
+ret_code light_playlist::next ()
 {
     if (header.cnt_songs == 0)
         return 0;
@@ -42,7 +42,7 @@ uint32_t light_playlist::next ()
         return next_simple();
 }
     
-uint32_t light_playlist::next (file_descriptor const & backup)
+ret_code light_playlist::next (file_descriptor const & backup)
 {
     if (header.cnt_songs == 0)
         return 0;
@@ -52,13 +52,13 @@ uint32_t light_playlist::next (file_descriptor const & backup)
         return next_simple();
 }
     
-uint32_t light_playlist::open_file ()
+ret_code light_playlist::open_file ()
 {
     init_base();
     if (fd.is_fake())
         return 0;
     
-    uint32_t ret;
+    ret_code ret;
     playlist_header old_header(header);
     if ((ret = fd.seek(0)))
         return ret;

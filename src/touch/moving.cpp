@@ -12,7 +12,7 @@ struct offsets
     static const int32_t add_speed = 10;
 };
 
-uint32_t touch_processing::touch_region (view * vv)
+ret_code touch_processing::touch_region (view * vv)
 {
     if (start.y < static_cast <int32_t> (display::offsets::list))
     {
@@ -25,7 +25,7 @@ uint32_t touch_processing::touch_region (view * vv)
         return vv->process_right();
 }
 
-uint32_t touch_processing::move_left_right
+ret_code touch_processing::move_left_right
 (
     int32_t & ans,
     int32_t offset, 
@@ -34,7 +34,7 @@ uint32_t touch_processing::move_left_right
     directions::lr::type direction
 )
 {
-    static uint32_t (view::* process_view_do[2]) () =
+    static ret_code (view::* process_view_do[2]) () =
     {
         &view::process_center,
         &view::process_left
@@ -48,23 +48,23 @@ uint32_t touch_processing::move_left_right
         return 0;
     }
     direction_mask = 1 << direction;
-    uint32_t ret = (vv->*process_view_do[direction])();
+    ret_code ret = (vv->*process_view_do[direction])();
     ans = speed? offsets::add_speed : offsets::add;
     ans = direction == directions::lr::right? ans : -ans;
     return ret;
 }
 
-uint32_t touch_processing::move_left (int32_t & ans, int32_t offset, char speed, view * vv)
+ret_code touch_processing::move_left (int32_t & ans, int32_t offset, char speed, view * vv)
 {
     return move_left_right(ans, offset, speed, vv, directions::lr::left);
 }
 
-uint32_t touch_processing::move_right (int32_t & ans, int32_t offset, char speed, view * vv)
+ret_code touch_processing::move_right (int32_t & ans, int32_t offset, char speed, view * vv)
 {
     return move_left_right(ans, offset, speed, vv, directions::lr::right);
 }
 
-uint32_t touch_processing::move_up_down
+ret_code touch_processing::move_up_down
 (
     int32_t & ans,
     int32_t offset, 
@@ -85,23 +85,23 @@ uint32_t touch_processing::move_up_down
     directions::du::type cmp = ((vv->state == state_t::song)? directions::du::down : directions::du::up);
     directions::np::type process_view_direction = (direction == cmp? directions::np::next : directions::np::prev);
     
-    uint32_t ret = vv->process_next_prev(process_view_direction);
+    ret_code ret = vv->process_next_prev(process_view_direction);
     ans = speed? offsets::add_speed : offsets::add;
     ans = direction == directions::du::up? -ans : ans;
     return ret;
 }
 
-uint32_t touch_processing::move_up (int32_t & ans, int32_t offset, char speed, view * vv)
+ret_code touch_processing::move_up (int32_t & ans, int32_t offset, char speed, view * vv)
 {
     return move_up_down(ans, offset, speed, vv, directions::du::up);
 }
 
-uint32_t touch_processing::move_down (int32_t & ans, int32_t offset, char speed, view * vv)
+ret_code touch_processing::move_down (int32_t & ans, int32_t offset, char speed, view * vv)
 {
     return move_up_down(ans, offset, speed, vv, directions::du::down);
 }
 
-uint32_t touch_processing::do_move 
+ret_code touch_processing::do_move 
 (
     int32_t & ans,
     direction_n::type direction,

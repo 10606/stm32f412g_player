@@ -51,7 +51,7 @@ bool joystick_state_t::check_button_state (uint32_t joy_button)
     return ans;
 }
 
-uint32_t joystick_state_t::joystick_check (view & vv)
+ret_code joystick_state_t::joystick_check (view & vv)
 {
     check_buttons();
     static constexpr uint32_t (view::* const process_view_do[joystick_states_cnt]) () = 
@@ -74,7 +74,7 @@ uint32_t joystick_state_t::joystick_check (view & vv)
     {
         if (check_button_state(buttons[i]))
         {
-            uint32_t ret = (vv.*process_view_do[i])();
+            ret_code ret = (vv.*process_view_do[i])();
             if (ret)
                 return ret;
         }

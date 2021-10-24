@@ -5,9 +5,9 @@
 #include "usb_send.h"
 #include <new>
 
-uint32_t view::init (filename_t * path, uint32_t len)
+ret_code view::init (filename_t * path, uint32_t len)
 {
-    uint32_t ret;
+    ret_code ret;
     ret = pll.init(path, len);
     if (ret)
         return ret;
@@ -25,7 +25,7 @@ void view::display ()
     old_state = state;
 }
 
-uint32_t view::open_song ()
+ret_code view::open_song_impl ()
 {
     if (pl.lpl.header.cnt_songs == 0)
     {
@@ -34,34 +34,54 @@ uint32_t view::open_song ()
         return 0;
     }
 
-    uint32_t ret;
+    ret_code ret;
+    file_descriptor old_audio_file = audio_ctl->audio_file;
     if ((ret = open(&FAT_info, &audio_ctl->audio_file, pl.path, pl.lpl.song.path_len)))
         return ret;
     audio_ctl->seeked = 1;
     get_length(&audio_ctl->audio_file, &audio_ctl->info);
     if ((ret = audio_ctl->audio_file.seek(audio_ctl->info.offset)))
+    {
+        audio_ctl->audio_file = old_audio_file;
         return ret;
+    }
     return 0;
 }
 
-uint32_t view::open_song_not_found (directions::np::type direction)
+ret_code view::open_song_not_found (playlist const & backup, directions::np::type direction)
 {
-    uint32_t (playlist::* np_playlist[2]) () = 
+    static uint32_t (playlist::* const np_playlist[2]) (light_playlist const & backup) = 
     {
         &playlist::next,
         &playlist::prev
     };
     
-    uint32_t ret = 0;
+    ret_code ret_song = 0;
+    ret_code ret_playlist = 0;
     for (uint32_t i = 0; i != pl.lpl.header.cnt_songs; ++i)
     {
-        if (!(ret = open_song()))
+        if (!(ret_song = open_song_impl()))
             return 0;
         
-        if ((ret = (pl.*np_playlist[direction])()))
-            return ret;
+        if ((ret_playlist = (pl.*np_playlist[direction])(backup.lpl)))
+            return ret_playlist;
     }
-    return ret;
+    return ret_song;
+}
+
+ret_code view::open_song ()
+{
+    playlist backup;
+    ret_code ret = backup.clone(pl);
+    if (ret)
+        return ret;
+    ret = open_song_not_found(backup);
+    if (ret)
+    {
+        pl = std::move(backup);
+        return ret;
+    }
+    return 0;
 }
 
 void view::fake_song_and_playlist ()
@@ -70,21 +90,21 @@ void view::fake_song_and_playlist ()
     audio_ctl->audio_file.init_fake();
 }
 
-uint32_t view::do_nothing ()
+ret_code view::do_nothing () noexcept
 {
     return 0;
 }
 
-uint32_t view::send_info ()
+ret_code view::send_info () noexcept
 {
     audio_ctl->need_redraw = 1;
     return 0;
 }
 
-uint32_t view::find (find_pattern const & pattern)
+ret_code view::find (find_pattern const & pattern)
 {
     light_playlist playing = plv.lpl_with_wrong_pos();
-    uint32_t ret;
+    ret_code ret;
     ret = playing.seek(plv.get_pos());
     if (ret)
         return ret;
@@ -92,22 +112,22 @@ uint32_t view::find (find_pattern const & pattern)
     return find_common(playing);
 }
 
-uint32_t view::find_next ()
+ret_code view::find_next ()
 {
     if (!plv.compare(finder.playlist))
         return find(finder.search_pattern());
     
     light_playlist playing = finder.playlist;
-    uint32_t ret;
+    ret_code ret;
     ret = finder.playlist.seek(plv.get_pos());
     if (ret)
         return ret;
     return find_common(playing);
 }
 
-uint32_t view::find_common (light_playlist const & backup)
+ret_code view::find_common (light_playlist const & backup)
 {
-    uint32_t ret;
+    ret_code ret;
     ret = finder.next(backup.fd);
     if (ret)
         return (ret == find_song::not_found)? 0 : ret;
@@ -121,12 +141,11 @@ uint32_t view::find_common (light_playlist const & backup)
     return 0;
 }
 
-uint32_t view::to_playing_pos (light_playlist const & lpl)
+ret_code view::to_playing_pos (light_playlist const & lpl)
 {
-    uint32_t ret;
-
     if (!plv.compare(lpl))
     {
+        ret_code ret;
         ret = plv.to_playing_playlist(lpl);
         if (ret)
             return ret;

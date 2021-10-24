@@ -23,7 +23,7 @@ audio_ctl_t::audio_ctl_t () :
     state(buffer_offset_none)
 {}
 
-uint32_t audio_ctl_t::audio_init ()
+ret_code audio_ctl_t::audio_init ()
 {
     need_redraw = 1;
     display::song_hint();
@@ -33,8 +33,8 @@ uint32_t audio_ctl_t::audio_init ()
         display::error("err init audio codec");
     
     init_mad();
-    uint32_t ret;
-    ret = viewer.open_song_not_found();
+    ret_code ret;
+    ret = viewer.open_song();
     if (ret)
     {
         deinit_mad();
@@ -129,7 +129,7 @@ void audio_ctl_t::display_time () const
     display_string_center_c(0, display::offsets::time, str, &font_12, lcd_color_blue, lcd_color_white);
 }
 
-uint32_t audio_ctl_t::new_song_or_repeat ()
+ret_code audio_ctl_t::new_song_or_repeat ()
 {
     if (!audio_file.is_fake())
     {
@@ -145,7 +145,7 @@ uint32_t audio_ctl_t::new_song_or_repeat ()
     // play song again
     if (repeat_mode)
     {
-        uint32_t ret;
+        ret_code ret;
         if ((ret = audio_file.seek(info.offset)))
         {
             display::error("err seek");
@@ -155,13 +155,13 @@ uint32_t audio_ctl_t::new_song_or_repeat ()
     }
     else //or next song
     {
-        uint32_t ret;
-        if ((ret = viewer.pl.next()))
+        ret_code ret;
+        if ((ret = viewer.next_song()))
         {
             display::error("err get next song");
             return ret;
         }
-        if ((ret = viewer.open_song_not_found()))
+        if ((ret = viewer.open_song()))
         {
             viewer.fake_song_and_playlist();
             memset(buff, 0, audio_buffer_size);
@@ -172,13 +172,13 @@ uint32_t audio_ctl_t::new_song_or_repeat ()
     return 0;
 }
 
-uint32_t audio_ctl_t::audio_process ()
+ret_code audio_ctl_t::audio_process ()
 {
     display_time();
     //end of song reached
     if (audio_file.current_position() >= audio_file.size)
     {
-        uint32_t ret;
+        ret_code ret;
         bool is_fake = audio_file.is_fake();
         if ((ret = new_song_or_repeat()))
             return ret;

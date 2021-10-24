@@ -6,6 +6,7 @@
 #include "FAT.h"
 #include "playlist_structures.h"
 #include "light_playlist.h"
+#include "util.h"
 
 struct playlist 
 {
@@ -27,10 +28,37 @@ struct playlist
     playlist (playlist const & other) = delete;
     playlist & operator = (playlist const & other) = delete;
     
-    uint32_t open (light_playlist const & other_lpl, uint32_t pos_selected);
-    uint32_t seek (uint32_t pos);
-    uint32_t next ();
-    uint32_t prev ();
+    // not operator = 
+    //  because need ret code
+    ret_code clone (playlist const & other) 
+    {
+        filename_t * new_path = static_cast <filename_t *> (malloc(other.path_sz * sizeof(*path)));
+        if (!new_path)
+            return memory_limit;
+        
+        filename_t * new_path_backup = static_cast <filename_t *> (malloc(other.path_sz * sizeof(*path)));
+        if (!new_path_backup)
+        {
+            free(new_path);
+            return memory_limit;
+        }
+        
+        free(path);
+        free(path_backup);
+        path_sz = other.path_sz;
+        path = new_path;
+        memcpy(path, other.path, other.lpl.song.path_len * sizeof(*path));
+        path_backup = new_path_backup;
+        lpl = other.lpl;
+        return 0;
+    }
+    
+    /// backup.song.path_len <= song.path_len
+    ret_code open (light_playlist const & other_lpl, uint32_t pos_selected, playlist const & backup);
+    
+    ret_code seek (uint32_t new_pos, light_playlist const & backup);
+    ret_code next (light_playlist const & backup);
+    ret_code prev (light_playlist const & backup);
     
     constexpr void make_fake ()
     {
@@ -50,10 +78,8 @@ struct playlist
     light_playlist lpl;
     
 private:
-    uint32_t realloc (light_playlist const & old_lpl);
+    ret_code realloc (light_playlist const & old_lpl);
 };
-
-extern uint32_t memory_limit;
 
 #endif
 

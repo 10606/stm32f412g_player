@@ -9,7 +9,7 @@
 #include "playlist_view.h"
 #include "playlist_structures.h"
 
-uint32_t pl_list::init (filename_t * dir_name, size_t len_name)
+ret_code pl_list::init (filename_t * dir_name, size_t len_name)
 {
     cnt = 0;
     current_state.pos = 0;
@@ -24,7 +24,7 @@ uint32_t pl_list::init (filename_t * dir_name, size_t len_name)
     file_descriptor file;
     file_descriptor dir;
     uint32_t index = 0;
-    uint32_t res;
+    ret_code res;
     
     // get paths, names and count of songs
     res = open(&FAT_info, &dir, dir_name, len_name);
@@ -89,7 +89,7 @@ void pl_list::prev ()
     current_state.direction = 1;
 }
 
-uint32_t pl_list::open_index (playlist_view & plv, uint32_t index, uint32_t & selected_pl) const
+ret_code pl_list::open_index (playlist_view & plv, uint32_t index, uint32_t & selected_pl) const
 {
     if (cnt == 0)
         return 0;
@@ -98,7 +98,7 @@ uint32_t pl_list::open_index (playlist_view & plv, uint32_t index, uint32_t & se
     filename_t old_path;
     memmove(old_path, root_path[path_len - 1], sizeof(filename_t));
     memcpy(root_path[path_len - 1], pl_path[index], sizeof(filename_t));
-    uint32_t ret = plv.open_playlist(root_path, path_len);
+    ret_code ret = plv.open_playlist(root_path, path_len);
     if (ret)
     {
         memcpy(root_path[path_len - 1], old_path, sizeof(filename_t));
@@ -108,7 +108,7 @@ uint32_t pl_list::open_index (playlist_view & plv, uint32_t index, uint32_t & se
     return 0;
 }
 
-uint32_t pl_list::open_selected (playlist_view & plv, uint32_t & selected_pl) const
+ret_code pl_list::open_selected (playlist_view & plv, uint32_t & selected_pl) const
 {
     return open_index(plv, current_state.pos, selected_pl);
 }

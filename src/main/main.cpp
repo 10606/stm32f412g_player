@@ -12,7 +12,7 @@
 
 FAT_info_t FAT_info(512, start_partition_sector, read_sector);
 
-uint32_t init_fs ()
+ret_code init_fs ()
 {
     while (BSP_SD_IsDetected() != SD_PRESENT);
     while (sd_card_init());
@@ -26,10 +26,10 @@ uint32_t init_fs ()
     return 0;
 }
 
-uint32_t init_audio (filename_t * path, uint32_t len)
+ret_code init_audio (filename_t * path, uint32_t len)
 {
     // get the .PLB file names from path directory 
-    uint32_t ret = viewer.init(path, len);
+    ret_code ret = viewer.init(path, len);
     if (ret)
     {
         display::error("err init view");
@@ -38,11 +38,11 @@ uint32_t init_audio (filename_t * path, uint32_t len)
     return 0;
 }
 
-uint32_t init (filename_t * path, uint32_t len)
+ret_code init (filename_t * path, uint32_t len)
 {
     display::start_image();
     
-    uint32_t ret;
+    ret_code ret;
     ret = init_fs();
     if (ret)
         return ret;

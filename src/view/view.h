@@ -45,33 +45,32 @@ struct view
     view (view &&) = delete;
     view & operator = (view &&) = delete;
 
-    uint32_t init (filename_t * path, uint32_t len);
+    ret_code init (filename_t * path, uint32_t len);
     void display ();
-    uint32_t open_song ();
-    uint32_t open_song_not_found (directions::np::type direction = directions::np::next);
+    ret_code open_song ();
     void fake_song_and_playlist ();
 
-    uint32_t process_up         ();
-    uint32_t process_down       ();
-    uint32_t process_next_prev  (directions::np::type direction);
-    uint32_t process_left       ();
-    uint32_t process_right      ();
-    uint32_t process_center     ();
+    ret_code process_up         ();
+    ret_code process_down       ();
+    ret_code process_next_prev  (directions::np::type direction);
+    ret_code process_left       () noexcept;
+    ret_code process_right      ();
+    ret_code process_center     ();
 
-    uint32_t find               (find_pattern const & pattern);
-    uint32_t find_next          ();
-    uint32_t play_pause         ();
-    uint32_t to_end_and_pause   ();
-    uint32_t toggle_repeat      ();
-    uint32_t inc_volume         ();
-    uint32_t dec_volume         ();
-    uint32_t seek_forward       ();
-    uint32_t seek_backward      ();
-    uint32_t prev_song          ();
-    uint32_t next_song          ();
+    ret_code find               (find_pattern const & pattern);
+    ret_code find_next          ();
+    ret_code play_pause         () noexcept;
+    ret_code to_end_and_pause   () noexcept;
+    ret_code toggle_repeat      () noexcept;
+    ret_code inc_volume         () noexcept;
+    ret_code dec_volume         () noexcept;
+    ret_code seek_forward       ();
+    ret_code seek_backward      ();
+    ret_code prev_song          ();
+    ret_code next_song          ();
 
-    uint32_t do_nothing         (); // can use in table of function
-    uint32_t send_info          ();
+    ret_code do_nothing         () noexcept; // can use in table of function
+    ret_code send_info          () noexcept;
     
 
     
@@ -89,12 +88,15 @@ struct view
     
     
 private:
-    uint32_t change_volume (int8_t value);
-    uint32_t seek (uint32_t value, directions::fb::type direction /* CHANGE 0 - backward, 1 - forward */);
-    uint32_t change_song (directions::np::type direction);
-    uint32_t play_new_playlist ();
-    uint32_t to_playing_pos (light_playlist const & lpl);
-    uint32_t find_common (light_playlist const & backup);
+    ret_code change_volume (int8_t value) noexcept;
+    ret_code seek (uint32_t value, directions::fb::type direction /* CHANGE 0 - backward, 1 - forward */);
+    ret_code change_song (directions::np::type direction);
+    ret_code play_new_playlist ();
+    ret_code to_playing_pos (light_playlist const & lpl);
+    ret_code find_common (light_playlist const & backup);
+
+    ret_code open_song_impl ();
+    ret_code open_song_not_found (playlist const & backup,  directions::np::type direction = directions::np::next);
 };
 
 

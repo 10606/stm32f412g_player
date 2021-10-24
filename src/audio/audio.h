@@ -3,6 +3,7 @@
 
 #include "FAT.h"
 #include "id3.h"
+#include "util.h"
 #include <stdint.h>
 #include <stddef.h>
 
@@ -23,9 +24,9 @@ enum class pause_status_t
 struct audio_ctl_t 
 {
     audio_ctl_t ();
-    uint32_t audio_init ();
+    ret_code audio_init ();
     void audio_destruct ();
-    uint32_t audio_process ();
+    ret_code audio_process ();
     
     static size_t const mp3_frames_in_buffer = 4;
     static size_t const decoded_mp3_frame_size = 4608;
@@ -54,7 +55,7 @@ private:
     void byte_to_time (tik_t * time, uint32_t value) const;
     void next_pcm_part ();
     void display_time () const;
-    uint32_t new_song_or_repeat ();
+    ret_code new_song_or_repeat ();
 };
 
 extern audio_ctl_t audio_ctl;

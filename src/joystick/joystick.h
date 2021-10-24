@@ -26,7 +26,7 @@ struct joystick_state_t
         joystick_states_cnt = 5
     };
 
-    uint32_t joystick_check (view & vv);
+    ret_code joystick_check (view & vv);
     void on_timer ();
 
     uint8_t pressed[joystick_states_cnt];

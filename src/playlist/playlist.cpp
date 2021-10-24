@@ -1,9 +1,8 @@
 #include "playlist.h"
 
 #include <utility>
-uint32_t memory_limit = 101;
 
-uint32_t playlist::realloc (light_playlist const & old_lpl)
+ret_code playlist::realloc (light_playlist const & old_lpl)
 {
     uint32_t new_size = lpl.song.path_len;
     if (new_size > path_sz)
@@ -38,68 +37,65 @@ uint32_t playlist::realloc (light_playlist const & old_lpl)
     return 0;
 }
 
-uint32_t playlist::seek (uint32_t new_pos)
+ret_code playlist::seek (uint32_t new_pos, light_playlist const & backup)
 {
     if (lpl.header.cnt_songs == 0)
         return 0;
 
     new_pos %= lpl.header.cnt_songs;
-    uint32_t ret;
+    ret_code ret;
     
-    light_playlist old_lpl = lpl;
     ret = lpl.seek(new_pos, lpl.fd);
     if (ret)
     {
-        lpl = old_lpl;
+        lpl = backup;
         return ret;
     }
 
     file_descriptor fd(lpl.fd, 0);
-    ret = realloc(old_lpl);
+    ret = realloc(backup);
     if (ret)
         goto err;
     ret = fd.seek(lpl.song.path_offset);
     if (ret)
         goto err;
-    memcpy(path_backup, path, old_lpl.song.path_len * sizeof(*path));
+    memcpy(path_backup, path, backup.song.path_len * sizeof(*path));
     ret = fd.read_all_fixed((char *)path, lpl.song.path_len * sizeof(*path));
     if (ret)
     {
-        memcpy(path, path_backup, old_lpl.song.path_len * sizeof(*path));
+        memcpy(path, path_backup, backup.song.path_len * sizeof(*path));
         goto err;
     }
     return 0;
 
 err:
-    lpl = old_lpl;
+    lpl = backup;
     return ret;
 }
 
-uint32_t playlist::next ()
+ret_code playlist::next (light_playlist const & backup)
 {
     if (lpl.pos + 1 == lpl.header.cnt_songs)
-        return seek(0);
+        return seek(0, backup);
     else
-        return seek(lpl.pos + 1);
+        return seek(lpl.pos + 1, backup);
 }
     
-uint32_t playlist::prev ()
+ret_code playlist::prev (light_playlist const & backup)
 {
     if (lpl.pos == 0)
-        return seek(lpl.header.cnt_songs - 1);
+        return seek(lpl.header.cnt_songs - 1, backup);
     else
-        return seek(lpl.pos - 1);
+        return seek(lpl.pos - 1, backup);
 }
     
-uint32_t playlist::open (light_playlist const & other_lpl, uint32_t pos_selected)
+ret_code playlist::open (light_playlist const & other_lpl, uint32_t pos_selected, playlist const & backup)
 {
-    uint32_t ret;
-    playlist old_pl(std::move(*this));
     lpl = other_lpl;
-    if ((ret = seek(pos_selected)) == 0)
+    ret_code ret = seek(pos_selected, backup.lpl);
+    if (!ret)
         return 0;
-
-    *this = std::move(old_pl);
+    memcpy(path, backup.path, backup.lpl.song.path_len * sizeof(*path));
     return ret;
 }
 

@@ -105,9 +105,9 @@ direction_n::type touch_state::get_direction (point p) const
 }
 
 
-uint32_t touch_state::unpressed (view * vv)
+ret_code touch_state::unpressed (view * vv)
 {
-    uint32_t ret = 0;
+    ret_code ret = 0;
     if (!press)
         return 0;
 
@@ -159,12 +159,12 @@ uint32_t touch_state::unpressed (view * vv)
     return ret;
 }
 
-uint32_t touch_state::pressed (point p, view * vv)
+ret_code touch_state::pressed (point p, view * vv)
 {
     if (press)
     {
         int32_t offset;
-        uint32_t ret = 0;
+        ret_code ret = 0;
         direction_n::type direction = get_direction(p);
         
         if (is_moved(p))
@@ -210,7 +210,7 @@ uint32_t touch_state::pressed (point p, view * vv)
     }
 }
 
-uint32_t touch_state::touch_check (view * vv)
+ret_code touch_state::touch_check (view * vv)
 {
     TS_StateTypeDef ts_state = {0};
     ts_ft6x06.ts_touch_detect(&ts_state);

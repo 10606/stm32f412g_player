@@ -7,7 +7,7 @@
 struct usb_process_t
 {
     usb_process_t ();
-    uint32_t usb_process (view * vv);
+    ret_code usb_process (view * vv);
     void receive_callback (volatile uint8_t * buf, uint32_t len); 
     
     void clear ();

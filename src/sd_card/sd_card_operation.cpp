@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 uint32_t start_partition_sector = 1;
-uint32_t read_sector (uint32_t sector_number, void * buffer)
+ret_code read_sector (uint32_t sector_number, void * buffer)
 {
     if (BSP_SD_ReadBlocks((uint32_t*)buffer,
                         (uint32_t) (sector_number),
@@ -22,7 +22,7 @@ uint32_t read_sector (uint32_t sector_number, void * buffer)
     return 1;
 }
 
-static inline uint32_t sd_status ()
+static inline ret_code sd_status ()
 {
     if (BSP_SD_GetCardState() == MSD_OK)
         return 0;
@@ -30,7 +30,7 @@ static inline uint32_t sd_status ()
         return sd_card_state_error;
 }
 
-uint32_t sd_card_init ()
+ret_code sd_card_init ()
 {
     if (BSP_SD_Init() == MSD_OK)
         return sd_status();

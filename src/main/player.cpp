@@ -17,7 +17,7 @@ void main_player ()
   
     while (1)
     {
-        uint32_t ret;
+        ret_code ret;
         if ((ret = audio_ctl.audio_process()))
             ;
         if ((ret = joystick_state.joystick_check(viewer)))

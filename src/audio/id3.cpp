@@ -1,6 +1,7 @@
 #include "id3.h"
 
 #include "FAT.h"
+#include "util.h"
 #include <stdint.h>
 #include <string.h>
 
@@ -17,7 +18,7 @@ static inline char is_eq (char const * a, char const * b, uint32_t length)
 
 static inline uint32_t id3_v1_size (file_descriptor * fd)
 {
-    uint32_t ret;
+    ret_code ret;
     if ((ret = fd->seek(0)))
         return 0;
     
@@ -39,7 +40,7 @@ static inline uint32_t id3_v1_size (file_descriptor * fd)
 
 static inline uint32_t id3_v2_size (file_descriptor * fd)
 {
-    uint32_t ret;
+    ret_code ret;
     if ((ret = fd->seek(0)))
         return 0;
     
@@ -74,7 +75,8 @@ static inline uint32_t id3_v2_size (file_descriptor * fd)
 //0xffffffff = not found
 uint32_t get_mp3_header (file_descriptor * fd, mp3_header * mp3_h, uint32_t id3_length)
 {
-    uint32_t ret, rb;
+    ret_code ret;
+    uint32_t rb;
     if ((ret = fd->seek(id3_length)))
         return 0xffffffff;
     
@@ -110,7 +112,7 @@ uint32_t get_xing_length (file_descriptor * fd, mp3_header * mp3_h, uint32_t mp3
         mp3_header_pos + 
         4 + 
         (((mp3_h->value[3] >> 6)/*24..25 -> channel_mode*/ == 3)? 17 : 32);
-    uint32_t ret;
+    ret_code ret;
 
     if ((ret = fd->seek(offset)))
         return 0;
@@ -147,7 +149,7 @@ uint32_t get_vbri_length (file_descriptor * fd, mp3_header * mp3_h, uint32_t mp3
         mp3_header_pos + 
         4 + 
         32;
-    uint32_t ret;
+    ret_code ret;
 
     if ((ret = fd->seek(offset)))
         return 0;

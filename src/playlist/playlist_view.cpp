@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <type_traits>
 
-uint32_t playlist_view::fill_names (file_descriptor const & backup)
+ret_code playlist_view::fill_names (file_descriptor const & backup)
 {
     if (lpl.header.cnt_songs == 0)
         return 0;
@@ -18,7 +18,7 @@ uint32_t playlist_view::fill_names (file_descriptor const & backup)
         copy_from_lpl(i);
         if (i + 1 == lpl.header.cnt_songs)
             break;
-        uint32_t ret = lpl.next(backup); 
+        ret_code ret = lpl.next(backup); 
         if (ret)
         {
             memcpy(name_group, name_group_backup, sizeof(name_group));
@@ -29,9 +29,9 @@ uint32_t playlist_view::fill_names (file_descriptor const & backup)
     return 0;
 }
 
-uint32_t playlist_view::init ()
+ret_code playlist_view::init ()
 {
-    uint32_t ret;
+    ret_code ret;
     light_playlist old_lpl(lpl);
     ret = lpl.open_file();
     if (ret)
@@ -48,7 +48,7 @@ uint32_t playlist_view::init ()
     return 0;
 }
 
-uint32_t playlist_view::seek (uint32_t pos)
+ret_code playlist_view::seek (uint32_t pos)
 {
     if (lpl.header.cnt_songs == 0)
         return 0;
@@ -71,7 +71,7 @@ uint32_t playlist_view::seek (uint32_t pos)
         seek_pos = pos - border_cnt;
 
     light_playlist old_lpl(lpl);
-    uint32_t ret;
+    ret_code ret;
     if ((ret = lpl.seek(seek_pos, old_lpl.fd)))
         return ret;
     if ((ret = fill_names(old_lpl.fd)))
@@ -86,9 +86,9 @@ uint32_t playlist_view::seek (uint32_t pos)
     return 0;
 }
 
-uint32_t playlist_view::jump_over (uint32_t seek_pos, uint32_t new_pos)
+ret_code playlist_view::jump_over (uint32_t seek_pos, uint32_t new_pos)
 {
-    uint32_t ret;
+    ret_code ret;
     light_playlist old_lpl = lpl;
     if ((ret = lpl.seek(seek_pos)))
         return ret;
@@ -100,7 +100,7 @@ uint32_t playlist_view::jump_over (uint32_t seek_pos, uint32_t new_pos)
     return 0;
 }
 
-uint32_t playlist_view::next ()
+ret_code playlist_view::next ()
 {
     current_state.direction = 0;
     if (lpl.header.cnt_songs == 0)
@@ -126,7 +126,7 @@ uint32_t playlist_view::next ()
     }
     else
     {
-        uint32_t ret;
+        ret_code ret;
         if ((ret = lpl.seek(current_state.pos + border_cnt + 1)))
             return ret;
         if (current_state.type == redraw_type_t::nothing)
@@ -139,7 +139,7 @@ uint32_t playlist_view::next ()
     return 0;
 }
 
-uint32_t playlist_view::prev ()
+ret_code playlist_view::prev ()
 {
     current_state.direction = 1;
     if (lpl.header.cnt_songs == 0)
@@ -165,7 +165,7 @@ uint32_t playlist_view::prev ()
     }
     else
     {
-        uint32_t ret;
+        ret_code ret;
         if ((ret = lpl.seek(current_state.pos - border_cnt - 1)))
             return ret;
         if (current_state.type == redraw_type_t::nothing)
@@ -178,9 +178,9 @@ uint32_t playlist_view::prev ()
     return 0;
 }
 
-uint32_t playlist_view::play (playlist & pl) const
+ret_code playlist_view::play (playlist & pl, playlist const & backup) const
 {
-    return pl.open(lpl, current_state.pos);
+    return pl.open(lpl, current_state.pos, backup);
 }
 
 bool playlist_view::check_near (playlist const & playing_pl) const
@@ -238,12 +238,12 @@ playlist_view::print_info playlist_view::print (playlist const & playing_pl) con
     return ans;
 }
 
-uint32_t playlist_view::to_playing_playlist (light_playlist const & pl)
+ret_code playlist_view::to_playing_playlist (light_playlist const & pl)
 {
     file_descriptor old_fd(lpl.fd);
     
     lpl.fd.copy_seek_0(pl.fd);
-    uint32_t ret;
+    ret_code ret;
     if ((ret = init()))
     {
         lpl.fd = old_fd;
@@ -252,13 +252,13 @@ uint32_t playlist_view::to_playing_playlist (light_playlist const & pl)
     return 0;
 }
 
-uint32_t playlist_view::open_playlist
+ret_code playlist_view::open_playlist
 (
     filename_t const * path,
     uint32_t path_len
 )
 {
-    uint32_t ret;
+    ret_code ret;
     file_descriptor fd(lpl.fd);
     if ((ret = open(&FAT_info, &lpl.fd, path, path_len)))
         return ret;

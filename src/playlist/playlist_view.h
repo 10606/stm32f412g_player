@@ -46,15 +46,15 @@ struct playlist_view
         lpl.init_base();
     }
     
-    uint32_t init (); //set fd and read playlist
-    uint32_t next ();
-    uint32_t prev ();
-    uint32_t seek (uint32_t pos);
-    uint32_t play (playlist & pl) const;
-    uint32_t to_playing_playlist (light_playlist const & pl);
+    ret_code init (); //set fd and read playlist
+    ret_code next ();
+    ret_code prev ();
+    ret_code seek (uint32_t pos);
+    ret_code play (playlist & pl, playlist const & backup) const;
+    ret_code to_playing_playlist (light_playlist const & pl);
     bool is_fake () const;
     bool check_near (playlist const & playing_pl) const;
-    uint32_t open_playlist (filename_t const * path, uint32_t path_len);
+    ret_code open_playlist (filename_t const * path, uint32_t path_len);
 
     constexpr bool compare (light_playlist const & b) const
     {
@@ -85,7 +85,7 @@ struct playlist_view
     light_playlist lpl_with_wrong_pos () const;
 
 private:
-    uint32_t fill_names (file_descriptor const & backup);
+    ret_code fill_names (file_descriptor const & backup);
     
     constexpr void pn_common (size_t ins_pos)
     {
@@ -112,7 +112,7 @@ private:
         current_state.pos = (current_state.pos + diff) % lpl.header.cnt_songs;
     }
 
-    uint32_t jump_over (uint32_t seek_pos, uint32_t new_pos);
+    ret_code jump_over (uint32_t seek_pos, uint32_t new_pos);
 
     uint32_t pos_begin;
     redraw_type_t current_state;
