@@ -68,9 +68,9 @@ std::basic_string <uint16_t> utf8_to_utf16 (std::string_view const & utf8)
 {
     std::vector <uint32_t> unicode = utf8_to_ucs4(utf8);
     std::basic_string <uint16_t> utf16;
-    for (size_t i = 0; i < unicode.size(); ++i)
+    utf16.reserve(unicode.size());
+    for (uint32_t uni : unicode)
     {
-        uint32_t uni = unicode[i];
         if (uni < 0x10000)
         {
             utf16 += (uint16_t)uni;
@@ -89,15 +89,13 @@ std::basic_string <uint16_t> utf8_to_ucs2 (std::string_view const & utf8)
 {
     std::vector <uint32_t> unicode = utf8_to_ucs4(utf8);
     std::basic_string <uint16_t> ucs2;
-    for (size_t i = 0; i < unicode.size(); ++i)
+    ucs2.reserve(utf8.size());
+    for (uint32_t uni : unicode)
     {
-        uint32_t uni = unicode[i];
         if (uni <= 0xffff)
             ucs2 += (uint16_t)uni;
         else
-        {
-            // skip
-        }
+            ; // skip
     }
     return ucs2;
 }

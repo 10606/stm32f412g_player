@@ -26,6 +26,7 @@
 # include "global.h"
 
 # include <stdlib.h>
+# include <string.h>
 
 # include "bit.h"
 # include "stream.h"
@@ -70,6 +71,16 @@ void mad_stream_finish(struct mad_stream *stream)
 
   mad_bit_finish(&stream->anc_ptr);
   mad_bit_finish(&stream->ptr);
+}
+
+void mad_stream_reuse (struct mad_stream * stream)
+{
+    unsigned char (*main_data)[MAD_BUFFER_MDLEN] = stream->main_data;
+    mad_bit_finish(&stream->anc_ptr);
+    mad_bit_finish(&stream->ptr);
+    mad_stream_init(stream);
+    stream->main_data = main_data;
+    memset(*main_data, 0, MAD_BUFFER_MDLEN);
 }
 
 /*

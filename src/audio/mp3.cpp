@@ -28,8 +28,10 @@ void deinit_mad ()
 
 void reuse_mad ()
 {
-    deinit_mad();
-    init_mad();
+    mad_stream_reuse(&mad_data.stream);
+    mad_frame_reuse(&mad_data.frame);
+    mad_synth_finish(&mad_data.synth);
+    mad_synth_init(&mad_data.synth);
 }
 
 static uint32_t get_all_data (file_descriptor * _file, uint8_t * buffer, uint32_t size)

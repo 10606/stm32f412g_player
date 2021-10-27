@@ -7,31 +7,22 @@ ret_code playlist::realloc (light_playlist const & old_lpl)
     uint32_t new_size = lpl.song.path_len;
     if (new_size > path_sz)
     {
-        filename_t * tmp_0 = static_cast <filename_t *> (malloc(new_size * sizeof(*path)));
+        filename_t * tmp_0 = static_cast <filename_t *> (::realloc(path, new_size * sizeof(*path)));
         if (!tmp_0)
         {
             lpl = old_lpl;
             return memory_limit;
         }
+        path = tmp_0;
         
-        filename_t * tmp_1 = static_cast <filename_t *> (malloc(new_size * sizeof(*path)));
+        filename_t * tmp_1 = static_cast <filename_t *> (::realloc(path_backup, new_size * sizeof(*path)));
         if (!tmp_1)
         {
             lpl = old_lpl;
-            free(tmp_0);
             return memory_limit;
         }
-        
-        if (path)
-        {
-            memmove(tmp_0, path, old_lpl.song.path_len * sizeof(*path));
-            free(path);
-        }
-        if (path_backup)
-            free(path_backup);
-        
-        path = tmp_0;
         path_backup = tmp_1;
+        
         path_sz = lpl.song.path_len;
     }
     return 0;

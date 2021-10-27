@@ -109,10 +109,11 @@ void clients_wrapper_t::reg (int fd)
         return;
     }
     
-    pointers.insert(std::pair <int, client_data_t> {
+    pointers.emplace
+    (
         fd, 
         client_data_t{std::make_unique <socket_wrap_t <Socket> > (fd), last_full_struct_ptr, std::string()}
-    });
+    );
     
     less_size.insert({last_full_struct_ptr, fd});
     if (last_full_struct_ptr != data.end())

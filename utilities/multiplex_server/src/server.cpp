@@ -125,9 +125,9 @@ int main (int argc, char ** argv)
                     }
                 }
 
-                check_all(auth, epoll_wrap, [&clients] (int fd) -> void {clients.reg <socket_t> (fd);});
-                check_all(web_init, epoll_wrap, [&web_auth] (int fd) -> void {web_auth.add(fd);});
-                check_all(web_auth, epoll_wrap, [&clients] (int fd) -> void {clients.reg <web_socket_t> (fd);});
+                check_all(auth, epoll_wrap, [&clients] (int fd) -> void { clients.reg <socket_t> (fd); });
+                check_all(web_init, epoll_wrap, [&web_auth] (int fd) -> void { web_auth.add(fd); });
+                check_all(web_auth, epoll_wrap, [&clients] (int fd) -> void { clients.reg <web_socket_t> (fd); });
             }
         }
         catch (std::exception const & e)
@@ -143,12 +143,13 @@ int main (int argc, char ** argv)
             {
                 flag = 0;
                 std::vector <epoll_wraper::e_event> events = epoll_wrap.wait(1000);
-                for (epoll_wraper::e_event const & event : events)
-                {
-                    flag |= accept_and_close(conn_sock, event);
-                    flag |= accept_and_close(tcp_server_sock, event);
-                    flag |= accept_and_close(web_server_sock, event);
-                }
+                std::for_each(events.begin(), events.end(), 
+                    [&conn_sock, &tcp_server_sock, &web_server_sock, &flag] (epoll_wraper::e_event const & event) -> void
+                    {
+                        flag |= accept_and_close(conn_sock, event);
+                        flag |= accept_and_close(tcp_server_sock, event);
+                        flag |= accept_and_close(web_server_sock, event);
+                    });
             }
             return 0;
         }

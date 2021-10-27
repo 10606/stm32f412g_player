@@ -93,6 +93,7 @@ enum {
 
 void mad_stream_init(struct mad_stream *);
 void mad_stream_finish(struct mad_stream *);
+void mad_stream_reuse (struct mad_stream *);
 
 # define mad_stream_options(stream, opts)  \
     ((void) ((stream)->options = (opts)))

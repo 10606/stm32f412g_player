@@ -90,12 +90,9 @@ inline void set_color (size_t current, size_t cmd, size_t line, size_t s = 0)
 
 bool is_spaces (std::string const & str) noexcept
 {
-    for (std::string::const_iterator it = str.begin(); it != str.end(); ++it)
-    {
-        if ((!std::isspace(*it)) && (*it != 0))
-            return 0;
-    }
-    return 1;
+    return std::all_of(str.begin(), str.end(), 
+        [] (char c) -> bool 
+        { return std::isspace(c) || (c == 0); });
 }
 
 template <typename T>

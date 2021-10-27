@@ -726,6 +726,7 @@ enum {
 
 void mad_stream_init(struct mad_stream *);
 void mad_stream_finish(struct mad_stream *);
+void mad_stream_reuse (struct mad_stream *);
 
 # define mad_stream_options(stream, opts)  \
     ((void) ((stream)->options = (opts)))
@@ -830,6 +831,7 @@ int mad_header_decode(struct mad_header *, struct mad_stream *);
 
 void mad_frame_init(struct mad_frame *);
 void mad_frame_finish(struct mad_frame *);
+void mad_frame_reuse (struct mad_frame *);
 
 int mad_frame_decode(struct mad_frame *, struct mad_stream *);
 

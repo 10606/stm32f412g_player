@@ -22,10 +22,9 @@ std::string char_reconvert (std::string_view const & value)
     
     std::vector <uint32_t> ucs4;
     ucs4.reserve(value.size());
-    for (char c : value)
-    {
-        ucs4.push_back(char_set.value[static_cast <uint8_t> (c)]);
-    }
+    std::transform(value.begin(), value.end(), std::back_inserter(ucs4),
+        [] (char c) -> uint32_t 
+        { return char_set.value[static_cast <uint8_t> (c)]; });
     
     return ucs4_to_utf8(ucs4);
 }

@@ -20,11 +20,12 @@ clients_wrapper_t::clients_wrapper_t (epoll_wraper & _epoll) :
 
 clients_wrapper_t::~clients_wrapper_t ()
 {
-    for (auto const & i : pointers)
-    {
-        epoll.unreg(i.first);
-        close(i.first);
-    }
+    std::for_each(pointers.begin(), pointers.end(),
+        [this] (decltype(pointers)::value_type const & i) -> void
+        {
+            epoll.unreg(i.first);
+            close(i.first);
+        });
 }
 
 size_t inc_struct_ptr (char c) noexcept
@@ -159,12 +160,15 @@ void clients_wrapper_t::append (std::string_view value)
     if (diff != 0)
     {
         std::set <client_pos> new_less_size;
-        for (auto const & v : less_size)
-            new_less_size.insert({v.offset - diff, v.fd});
+        std::transform(less_size.begin(), less_size.end(), 
+            std::inserter(new_less_size, new_less_size.end()),
+            [diff] (client_pos v) -> client_pos 
+            { return {v.offset - diff, v.fd}; });
         less_size.swap(new_less_size);
         
-        for (auto & v : pointers)
-            v.second.pointer -= diff;
+        std::for_each(pointers.begin(), pointers.end(), 
+            [diff] (decltype(pointers)::value_type & v) -> void
+            { v.second.pointer -= diff; });
         last_full_struct_ptr -= diff;
     }
     
@@ -178,17 +182,18 @@ void clients_wrapper_t::append (std::string_view value)
         last_full_struct_ptr = data.end();
     
     bool err = 0;
-    for (int const & i : not_registred)
-    {
-        try
+    std::for_each(not_registred.begin(), not_registred.end(),
+        [this, &err] (int i) -> void
         {
-            epoll.reg(i, EPOLLIN | EPOLLOUT);
-        }
-        catch (...) 
-        {
-            err = 1;
-        }
-    }
+            try
+            {
+                epoll.reg(i, EPOLLIN | EPOLLOUT);
+            }
+            catch (...) 
+            {
+                err = 1;
+            }
+        });
     not_registred.clear();
     
     if (err)

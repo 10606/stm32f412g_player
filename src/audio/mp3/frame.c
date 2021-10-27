@@ -26,6 +26,7 @@
 # include "global.h"
 
 # include <stdlib.h>
+# include <string.h>
 
 # include "bit.h"
 # include "stream.h"
@@ -110,6 +111,16 @@ void mad_frame_finish(struct mad_frame *frame)
     free(frame->overlap);
     frame->overlap = 0;
   }
+}
+
+void mad_frame_reuse (struct mad_frame * frame)
+{
+    mad_fixed_t (*overlap)[2][32][18] = frame->overlap;
+    mad_header_finish(&frame->header);
+    frame->overlap = 0;
+    mad_frame_init(frame);
+    frame->overlap = overlap;
+    memset(*overlap, 0, sizeof(mad_fixed_t) * 2 * 32 * 18);
 }
 
 /*

@@ -141,15 +141,12 @@ struct escape_buffer
         bool has_continue = 0;
         for (unsigned char i = 1; i != int_commands.size(); ++i)
         {
-            size_t j = 0;
-            for (; j != std::min(cmd_from_stdin.size(), int_commands[i].size()); ++j)
+            std::pair <std::deque <char> ::iterator, std::string_view::iterator> pos = 
+                std::mismatch(cmd_from_stdin.begin(), cmd_from_stdin.end(),
+                              int_commands[i].begin(), int_commands[i].end());
+            if (pos.second == int_commands[i].end())
             {
-                if (int_commands[i][j] != cmd_from_stdin[j])
-                    break;
-            }
-            if (j == int_commands[i].size())
-            {
-                cmd_from_stdin.erase(cmd_from_stdin.begin(), cmd_from_stdin.begin() + j);
+                cmd_from_stdin.erase(cmd_from_stdin.begin(), pos.first);
                 
                 if (int_commands[i] == quit) 
                 {
@@ -165,8 +162,9 @@ struct escape_buffer
                 if (to_write.empty())
                     epoll.reg(fd, EPOLLIN | EPOLLOUT);
                 to_write.push_back(i);
+                has_continue = 1;
             }
-            if (j == cmd_from_stdin.size())
+            if (pos.first == cmd_from_stdin.end())
                 has_continue = 1;
         }
         

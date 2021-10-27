@@ -81,23 +81,18 @@ void audio_ctl_t::byte_to_time (tik_t * time, uint32_t value) const
 void audio_ctl_t::next_pcm_part ()
 {
     uint8_t * buffer;
-    // 1st half buffer played; so fill it and continue playing from bottom
     if (state == buffer_offset_half)
         buffer = buff;
-    // 2nd half buffer played; so fill it and continue playing from top
     if (state == buffer_offset_full)
         buffer = buff + (audio_buffer_size / 2);
 
-    if ((state == buffer_offset_full) ||
-        (state == buffer_offset_half))
+    if (state != buffer_offset_none)
     {
         uint32_t rb = get_pcm_sound(&audio_file, buffer, audio_buffer_size / 2);
         if (rb > 0)
             state = buffer_offset_none;
         else
-        {
-            //ignore
-        }
+            ; //ignore
     }
 }
 

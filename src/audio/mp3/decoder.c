@@ -550,13 +550,16 @@ int mad_decoder_run(struct mad_decoder *decoder, enum mad_decoder_mode mode)
   if (run == 0)
     return -1;
 
-  decoder->sync = malloc(sizeof(*decoder->sync));
+  mad_decoder::sync_t sync;
+  memset(&sync, 0, sizeof(sync));
+  decoder->sync = &sync;
+  //decoder->sync = malloc(sizeof(*decoder->sync));
   if (decoder->sync == 0)
     return -1;
 
   result = run(decoder);
 
-  free(decoder->sync);
+  //free(decoder->sync);
   decoder->sync = 0;
 
   return result;

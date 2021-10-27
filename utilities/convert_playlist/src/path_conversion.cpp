@@ -41,8 +41,8 @@ converted_path::converted_path (std::vector <std::string> const & _path) :
 {
     wpath.reserve(_path.size());
     std::transform(_path.begin(), _path.end(), std::back_inserter(wpath), utf8_to_ucs2);
-    for (size_t i = 0; i != path.size(); ++i)
-        path[i] = wpath[i].data();
+    std::transform(wpath.begin(), wpath.end(), path.begin(), 
+        [] (std::basic_string <uint16_t> & v) -> uint16_t * { return v.data(); });
 }
 
 

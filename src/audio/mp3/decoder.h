@@ -49,11 +49,13 @@ struct mad_decoder {
     int out;
   } async;
 
-  struct {
+  typedef struct {
     struct mad_stream stream;
     struct mad_frame frame;
     struct mad_synth synth;
-  } *sync;
+  } sync_t;
+    
+  sync_t *sync;
 
   void *cb_data;
 

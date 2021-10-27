@@ -53,18 +53,20 @@ void check_all (authentificator_t <Init> & auth, epoll_wraper & epoll_wrap, std:
 {
     try
     {
-        for (int fd : auth.check())
-        {
-            try
+        std::vector <int> need_add = auth.check();
+        std::for_each(need_add.begin(), need_add.end(), 
+            [fn_add, &epoll_wrap] (int fd) -> void 
             {
-                fn_add(fd);
-            }
-            catch (...)
-            {
-                epoll_wrap.unreg(fd);
-                close(fd);
-            }
-        }
+                try
+                {
+                    fn_add(fd);
+                }
+                catch (...)
+                {
+                    epoll_wrap.unreg(fd);
+                    close(fd);
+                }
+            });
     }
     catch (...)
     {}

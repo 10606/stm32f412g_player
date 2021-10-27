@@ -2,7 +2,7 @@
 
 void fill_char_set (std::array <uint32_t, 256> & char_set) noexcept
 {
-    static uint32_t head [32] =
+    static std::array <uint32_t, 32> head =
     {
         0x0000, // 
         0x0009, // <tab>
@@ -40,8 +40,7 @@ void fill_char_set (std::array <uint32_t, 256> & char_set) noexcept
         0x2524, // ┤
         0x251c, // ├
     };
-    for (uint32_t i = 0; i != 32; ++i)
-        char_set[i] = head[i];
+    std::copy(head.begin(), head.end(), char_set.begin());
     
     // ascii
     for (uint32_t i = 32; i != 128; ++i)
@@ -55,7 +54,7 @@ void fill_char_set (std::array <uint32_t, 256> & char_set) noexcept
     for (uint32_t i = 0; i != 32; ++i)
         char_set[i + 128 + 32] = i + 0x430;
     
-    static uint32_t tail [64] =
+    static std::array <uint32_t, 64> tail =
     {
         0x201e, // „
         0x2026, // …
@@ -64,8 +63,7 @@ void fill_char_set (std::array <uint32_t, 256> & char_set) noexcept
         0x2500, // ─
         // 59 free symbols
     };
-    for (uint32_t i = 0; i != 64; ++i)
-        char_set[i + 192] = tail[i];
+    std::copy(tail.begin(), tail.end(), char_set.end() - tail.size());
 }
 
 std::map <uint32_t, uint8_t> rev_char_map (std::array <uint32_t, 256> const & char_set)

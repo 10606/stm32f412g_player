@@ -1577,7 +1577,7 @@ void III_imdct_l(mad_fixed_t const [18], mad_fixed_t [36], unsigned int);
 # else
 #  if 1
 static
-void fastsdct(mad_fixed_t const x[9], mad_fixed_t y[18])
+void fastsdct(mad_fixed_t const x[9], mad_fixed_t * y /*[18]*/)
 {
   mad_fixed_t a0,  a1,  a2,  a3,  a4,  a5,  a6,  a7,  a8,  a9,  a10, a11, a12;
   mad_fixed_t a13, a14, a15, a16, a17, a18, a19, a20, a21, a22, a23, a24, a25;
@@ -2528,6 +2528,8 @@ int mad_layer_III(struct mad_stream *stream, struct mad_frame *frame)
 
   if (stream->main_data == 0) {
     stream->main_data = malloc(MAD_BUFFER_MDLEN);
+    //stream->main_data = &stream->main_data_v;
+    //memset(stream->main_data_v, 0, MAD_BUFFER_MDLEN);
     if (stream->main_data == 0) {
       stream->error = MAD_ERROR_NOMEM;
       return -1;
@@ -2536,6 +2538,8 @@ int mad_layer_III(struct mad_stream *stream, struct mad_frame *frame)
 
   if (frame->overlap == 0) {
     frame->overlap = calloc(2 * 32 * 18, sizeof(mad_fixed_t));
+    //frame->overlap = &frame->overlap_v;
+    //memset(frame->overlap_v, 0, sizeof(mad_fixed_t) * 2 * 32 * 18);
     if (frame->overlap == 0) {
       stream->error = MAD_ERROR_NOMEM;
       return -1;
