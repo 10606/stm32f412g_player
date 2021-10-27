@@ -14,7 +14,6 @@ FAT_info_t FAT_info(512, start_partition_sector, read_sector);
 
 ret_code init_fs ()
 {
-    while (BSP_SD_IsDetected() != SD_PRESENT);
     while (sd_card_init());
 
     // mount filesystem

@@ -32,6 +32,8 @@ static inline ret_code sd_status ()
 
 ret_code sd_card_init ()
 {
+    if (BSP_SD_IsDetected() != SD_PRESENT)
+        return sd_card_init_error;
     if (BSP_SD_Init() == MSD_OK)
         return sd_status();
     return sd_card_init_error;
