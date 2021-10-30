@@ -41,7 +41,7 @@ static uint32_t get_all_data (file_descriptor * _file, uint8_t * buffer, uint32_
     if (!ret) [[likely]]
         return total_read;
     else if (ret == err::eof_file) [[unlikely]]
-        return total_read;
+        return 0;
     else
     {
         display::error("error read");
@@ -120,9 +120,7 @@ uint32_t get_pcm_sound (file_descriptor * _file, uint8_t * pbuf, uint32_t NbrOfD
     while (frames < NbrOfData)
     {
         uint32_t amount_safe_from_buffer = 0;
-        if ((mad_data.stream.error != MAD_ERROR_BUFLEN) && (mad_data.stream.error != MAD_ERROR_NONE))
-            amount_safe_from_buffer = 0;
-        else if (mad_data.stream.next_frame != NULL)
+        if (mad_data.stream.next_frame != NULL)
             amount_safe_from_buffer = mad_data.stream.bufend - mad_data.stream.next_frame;
         else if ((mad_data.stream.bufend - mad_data.stream.buffer) < (long)mp3_input_buffer_size)
             amount_safe_from_buffer = mad_data.stream.bufend - mad_data.stream.buffer;
@@ -155,7 +153,7 @@ uint32_t get_pcm_sound (file_descriptor * _file, uint8_t * pbuf, uint32_t NbrOfD
         mad_stream_buffer(&mad_data.stream, mp3_input_buffer.buffer, rb + amount_safe_from_buffer);
 
         uint32_t tries = 0;
-        while ((frames < NbrOfData) && (tries < 100))
+        while ((frames < NbrOfData) && (tries < 3))
         {
             if (mad_frame_decode(&mad_data.frame, &mad_data.stream)) 
             {

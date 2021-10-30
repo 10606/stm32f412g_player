@@ -138,6 +138,7 @@ ret_code audio_ctl_t::new_song_or_repeat ()
     }
     
     // play song again
+    seeked = 1;
     if (repeat_mode)
     {
         ret_code ret;
@@ -146,7 +147,6 @@ ret_code audio_ctl_t::new_song_or_repeat ()
             display::error("err seek");
             return ret;
         }
-        seeked = 1;
     }
     else //or next song
     {
