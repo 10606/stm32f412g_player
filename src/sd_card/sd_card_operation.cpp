@@ -11,13 +11,15 @@ ret_code read_sector (uint32_t sector_number, void * buffer)
                         1, SD_TIMEOUT) == MSD_OK)
     {
         /* wait until the read operation is finished */
-        uint32_t tried = 20;
+        uint32_t tried = 5;
         while ((BSP_SD_GetCardState() != MSD_OK) && tried)
         {
             --tried;
         }
         if (tried != 0)
+        {
             return 0;
+        }
     }
     return 1;
 }
