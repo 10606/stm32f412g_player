@@ -13,7 +13,7 @@ picture_info_t picture_info;
 
 typedef union 
 {
-    uint8_t symbol[2 * 240];
+    uint8_t symbol[2 * 240 + 4];
     uint16_t pixel[240];
 } symbol_pixel_t;
 
@@ -32,7 +32,6 @@ struct write_region_t
         
         uint32_t & _line_cnt,
         uint32_t & _p_old_size,
-        uint32_t & _in_line_ptr,
         symbol_pixel_t const & _line
     ) :
         x_pos(_x_pos),
@@ -44,7 +43,6 @@ struct write_region_t
         
         line_cnt(_line_cnt),
         p_old_size(_p_old_size),
-        in_line_ptr(_in_line_ptr),
         line(_line)
     {}
     
@@ -61,7 +59,6 @@ private:
     
     uint32_t & line_cnt;
     uint32_t & p_old_size;
-    uint32_t & in_line_ptr;
     symbol_pixel_t const & line;
 };
 
@@ -83,7 +80,6 @@ bool write_region_t::operator () ()
         lcd_io_write_data(line.pixel[k]);
     
     line_cnt++;
-    in_line_ptr = 0;
     if (line_cnt == y_size) [[unlikely]]
         return 1;
     return 0;
@@ -121,7 +117,7 @@ void display_picture
     uint32_t x_size_in_bytes = 2 * x_size;
     
     write_region_t write_region(x_pos, y_pos, x_size, y_size, p_size, need_audio,
-                                line_cnt, p_old_size, in_line_ptr, line);
+                                line_cnt, p_old_size, line);
     
     uint32_t ptr = 0;
     for (; ptr < tree.sz / 4; ++ptr)
@@ -134,10 +130,13 @@ void display_picture
             in_line_ptr += vertex.is_term;
             state = vertex.next;
             value = value >> 2;
-            
-            if (in_line_ptr == x_size_in_bytes) [[unlikely]]
-                if (write_region()) [[unlikely]]
-                    return;
+        }
+        if (in_line_ptr >= x_size_in_bytes) [[unlikely]]
+        {
+            if (write_region()) [[unlikely]]
+                return;
+            memmove(line.symbol, line.symbol + x_size_in_bytes, in_line_ptr - x_size_in_bytes);
+            in_line_ptr -= x_size_in_bytes;
         }
     }
 
@@ -151,8 +150,11 @@ void display_picture
         value = value >> 2;
         
         if (in_line_ptr == x_size_in_bytes)
+        {
             if (write_region()) [[likely]]
                 return;
+            in_line_ptr = 0;
+        }
     }
 }
 
