@@ -11,12 +11,6 @@ namespace display
 
 picture_info_t picture_info;
 
-typedef union 
-{
-    uint8_t symbol[2 * 240 + 4];
-    uint16_t pixel[240];
-} symbol_pixel_t;
-
 // it was lambda 
 //  but i don't want to inline it
 struct write_region_t
@@ -28,11 +22,7 @@ struct write_region_t
         uint16_t const _x_size,
         uint16_t const _y_size, 
         uint32_t const _p_size,
-        bool const _need_audio,
-        
-        uint32_t & _line_cnt,
-        uint32_t & _p_old_size,
-        symbol_pixel_t const & _line
+        bool const _need_audio
     ) :
         x_pos(_x_pos),
         y_pos(_y_pos),
@@ -41,13 +31,12 @@ struct write_region_t
         p_size(_p_size),
         need_audio(_need_audio),
         
-        line_cnt(_line_cnt),
-        p_old_size(_p_old_size),
-        line(_line)
+        line_cnt(0),
+        p_old_size(0)
     {}
     
     __attribute__((noinline))
-    bool operator () ();
+    bool operator () (uint16_t const * line);
     
 private:
     uint16_t const x_pos; 
@@ -57,12 +46,11 @@ private:
     uint32_t const p_size;
     bool const need_audio;
     
-    uint32_t & line_cnt;
-    uint32_t & p_old_size;
-    symbol_pixel_t const & line;
+    uint32_t line_cnt;
+    uint32_t p_old_size;
 };
 
-bool write_region_t::operator () ()
+bool write_region_t::operator () (uint16_t const * line)
 {
     if (line_cnt % p_size == 0) [[unlikely]]
     {
@@ -73,11 +61,11 @@ bool write_region_t::operator () ()
         lcd_io_write_reg(ST7789H2_WRITE_RAM);
         p_old_size += p_size;
     }
-    if (line_cnt == 6) [[unlikely]]
-        picture_info.color = line.pixel[208];
+    if (line_cnt == offsets::bg_color_on_picture.second) [[unlikely]]
+        picture_info.color = line[offsets::bg_color_on_picture.first];
     
     for (size_t k = 0; k != x_size; ++k)
-        lcd_io_write_data(line.pixel[k]);
+        lcd_io_write_data(line[k]);
     
     line_cnt++;
     if (line_cnt == y_size) [[unlikely]]
@@ -96,7 +84,6 @@ void display_picture
     scroller.reset();
     static constexpr uint32_t parts = 5;
     uint32_t const p_size = (y_size + parts - 1) / parts;
-    uint32_t p_old_size = 0;
     
     huffman_unp_header tree(static_cast <huffman_header const *> (addr));
     uint8_t const * picture = static_cast <uint8_t const *> (addr) + sizeof(huffman_header);
@@ -111,13 +98,17 @@ void display_picture
             tree.sz = (end_of_flash - picture) * 4;
     }
  
+    typedef union 
+    {
+        uint8_t symbol[2 * 240 + 4];
+        uint16_t pixel[240];
+    } symbol_pixel_t;
+    
     symbol_pixel_t line;
     uint32_t in_line_ptr = 0;
-    uint32_t line_cnt = 0;
     uint32_t x_size_in_bytes = 2 * x_size;
     
-    write_region_t write_region(x_pos, y_pos, x_size, y_size, p_size, need_audio,
-                                line_cnt, p_old_size, line);
+    write_region_t write_region(x_pos, y_pos, x_size, y_size, p_size, need_audio);
     
     uint32_t ptr = 0;
     for (; ptr < tree.sz / 4; ++ptr)
@@ -133,7 +124,7 @@ void display_picture
         }
         if (in_line_ptr >= x_size_in_bytes) [[unlikely]]
         {
-            if (write_region()) [[unlikely]]
+            if (write_region(line.pixel)) [[unlikely]]
                 return;
             memmove(line.symbol, line.symbol + x_size_in_bytes, in_line_ptr - x_size_in_bytes);
             in_line_ptr -= x_size_in_bytes;
@@ -151,7 +142,7 @@ void display_picture
         
         if (in_line_ptr == x_size_in_bytes)
         {
-            if (write_region()) [[likely]]
+            if (write_region(line.pixel)) [[likely]]
                 return;
             in_line_ptr = 0;
         }

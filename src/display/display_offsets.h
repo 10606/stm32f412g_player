@@ -2,6 +2,7 @@
 #define DISPLAY_OFFSETS_H
 
 #include <stdint.h>
+#include <utility>
 
 namespace display
 {
@@ -19,6 +20,8 @@ struct offsets
 
     static const uint32_t picture = 65;
     static const uint32_t headband = 65;
+
+    static const constexpr std::pair <uint32_t, uint32_t> bg_color_on_picture = {208, 6};
 };
 
 }
