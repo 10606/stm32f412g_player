@@ -23,6 +23,14 @@ struct light_playlist
     constexpr light_playlist & operator = (light_playlist const &) = default;
     constexpr light_playlist (light_playlist &&) = default;
     constexpr light_playlist & operator = (light_playlist &&) = default;
+
+    constexpr void swap (light_playlist & other)
+    {
+        std::swap(header, other.header);
+        std::swap(song, other.song);
+        fd.swap(other.fd);
+        std::swap(pos, other.pos);
+    }
     
     ret_code seek (uint32_t pos);
     ret_code seek (uint32_t pos, file_descriptor const & backup);
@@ -30,14 +38,10 @@ struct light_playlist
     ret_code next (file_descriptor const & backup);
     ret_code open_file ();
 
-    // don't reset file_descriptor
-    constexpr void init_base ()
+    constexpr void make_fake ()
     {
-        pos = 0;
-        std::fill(song.song_name, song.song_name + sizeof(song.song_name), ' ');
-        std::fill(song.group_name, song.group_name + sizeof(song.group_name), ' ');
-        header.cnt_songs = 0;
-        std::fill(header.playlist_name, header.playlist_name + sizeof(header.playlist_name),  ' ');
+        fd.init_fake();
+        init_base();
     }
     
     ret_code read_song ()
@@ -66,6 +70,17 @@ struct light_playlist
 
 private:
     ret_code next_simple ();
+
+    // don't reset file_descriptor
+    constexpr void init_base ()
+    {
+        pos = 0;
+        std::fill(song.song_name, song.song_name + sizeof(song.song_name), ' ');
+        std::fill(song.group_name, song.group_name + sizeof(song.group_name), ' ');
+        header.cnt_songs = 0;
+        std::fill(header.playlist_name, header.playlist_name + sizeof(header.playlist_name),  ' ');
+    }
+
 };
 
 #endif

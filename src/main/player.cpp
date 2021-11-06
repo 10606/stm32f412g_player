@@ -12,8 +12,7 @@
 
 void main_player ()
 { 
-    if (audio_ctl.audio_init())
-        return;
+    audio_ctl.audio_init();
   
     while (1)
     {

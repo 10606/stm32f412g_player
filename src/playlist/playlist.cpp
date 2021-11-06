@@ -99,13 +99,13 @@ playlist::playlist (playlist && src) :
     src.path = nullptr;
     src.path_backup = nullptr;
     src.path_sz = 0;
-    src.lpl.fd.init_fake();
+    src.lpl.make_fake();
 }
 
 playlist & playlist::operator = (playlist && src)
 {
     lpl = std::move(src.lpl);
-    src.lpl.fd.init_fake();
+    src.lpl.make_fake();
     src.lpl.pos = 0;
     
     path_sz = src.path_sz;

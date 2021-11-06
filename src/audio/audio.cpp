@@ -14,37 +14,19 @@ size_t const str_time_size = 100;
 
 audio_ctl_t  audio_ctl;
 
-audio_ctl_t::audio_ctl_t () :
-    audio_freq(44100),
-    volume(70),
-    pause_status(pause_status_t::play),
-    repeat_mode(0),
-    seeked(0),
-    state(buffer_offset_none)
-{}
-
-ret_code audio_ctl_t::audio_init ()
+void audio_ctl_t::audio_init ()
 {
     need_redraw = 1;
     display::song_hint();
     audio_file.init_fake();
+    info.offset = 0;
   
     if (BSP_AUDIO_OUT_Init(OUTPUT_DEVICE_HEADPHONE, volume, audio_freq) != 0)
         display::error("err init audio codec");
     
     init_mad();
-    ret_code ret;
-    ret = viewer.open_song();
-    if (ret)
-    {
-        deinit_mad();
-        display::error("err open song at start");
-        return ret;
-    }
-
     memset(buff, 0, audio_buffer_size);
     BSP_AUDIO_OUT_Play((uint16_t*)&buff[0], audio_buffer_size);
-    return 0;
 }
 
 void audio_ctl_t::audio_destruct ()
@@ -124,49 +106,6 @@ void audio_ctl_t::display_time () const
     display_string_center_c(0, display::offsets::time, str, &font_12, lcd_color_blue, lcd_color_white);
 }
 
-ret_code audio_ctl_t::new_song_or_repeat ()
-{
-    if (!audio_file.is_fake())
-    {
-        reuse_mad();
-    }
-    
-    if (pause_status == pause_status_t::soft_pause)
-    {
-        pause_status = pause_status_t::pause;
-        BSP_AUDIO_OUT_Pause();
-    }
-    
-    // play song again
-    seeked = 1;
-    if (repeat_mode)
-    {
-        ret_code ret;
-        if ((ret = audio_file.seek(info.offset)))
-        {
-            display::error("err seek");
-            return ret;
-        }
-    }
-    else //or next song
-    {
-        ret_code ret;
-        if ((ret = viewer.next_song()))
-        {
-            display::error("err get next song");
-            return ret;
-        }
-        if ((ret = viewer.open_song()))
-        {
-            viewer.fake_song_and_playlist();
-            memset(buff, 0, audio_buffer_size);
-            display::error("err open song");
-            return ret;
-        }
-    }
-    return 0;
-}
-
 ret_code audio_ctl_t::audio_process ()
 {
     display_time();
@@ -175,7 +114,7 @@ ret_code audio_ctl_t::audio_process ()
     {
         ret_code ret;
         bool is_fake = audio_file.is_fake();
-        if ((ret = new_song_or_repeat()))
+        if ((ret = viewer.new_song_or_repeat()))
             return ret;
         need_redraw |= !is_fake || !audio_file.is_fake();
     }

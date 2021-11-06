@@ -4,6 +4,7 @@
 #include "display_song.h"
 #include "joystick.h"
 #include "mp3.h"
+#include "display_error.h"
 #include <utility>
 
 const uint32_t seek_value = (1024 * 32);
@@ -90,23 +91,44 @@ ret_code view::change_song (directions::np::type direction)
         &playlist::prev
     };
     ret_code ret;
+    bool was_fake;
     playlist backup;
-    ret = backup.clone(pl);
-    if (ret)
-        return ret;
-    ret = (pl.*do_on_playlist[direction])(backup.lpl);
-    if (ret)
-        return ret;
+    
+    if (next_playlist.value.is_fake())
+    {
+        was_fake = 1;
+        ret = backup.clone(pl.value);
+        if (ret)
+            return ret;
+        ret = (pl.value.*do_on_playlist[direction])(backup.lpl);
+        if (ret)
+            return ret;
+    }
     else
     {
-        reuse_mad();
-        if ((ret = open_song_not_found(backup, direction))) 
-        {
-            pl = std::move(backup);
+        was_fake = 0;
+        ret = backup.clone(next_playlist.value);
+        if (ret)
             return ret;
+        next_playlist.value.swap(pl.value);
+        std::swap(pl.playlist_index, next_playlist.playlist_index);
+    }
+    reuse_mad();
+    ret = open_song_not_found(backup, direction);
+    if (ret) 
+    {
+        pl.value = std::move(backup);
+        next_playlist.value.make_fake();
+        if (was_fake)
+            return ret;
+        else
+        {
+            std::swap(pl.playlist_index, next_playlist.playlist_index);
+            return change_song(direction);
         }
     }
     audio_ctl->need_redraw = 1;
+    next_playlist.value.make_fake();
     return 0;
 }
 
@@ -118,6 +140,20 @@ ret_code view::prev_song ()
 ret_code view::next_song ()
 {
     return change_song(directions::np::next);
+}
+
+ret_code view::set_next_song ()
+{
+    if (state != state_t::playlist)
+        return 0;
+
+    playlist old_pl(std::move(next_playlist.value));
+    ret_code ret = plv.value.play(next_playlist.value, old_pl);
+    if (ret)
+        return ret;
+    
+    next_playlist.playlist_index = plv.playlist_index;
+    return 0;
 }
 
 ret_code view::process_next_prev (directions::np::type direction)
@@ -142,7 +178,7 @@ ret_code view::process_next_prev (directions::np::type direction)
 
     case state_t::playlist:
         audio_ctl->need_redraw = 1;
-        return (plv.*do_on_playlist_view[direction])();
+        return (plv.value.*do_on_playlist_view[direction])();
         
     case state_t::song:
         switch (state_song_view)
@@ -216,20 +252,21 @@ ret_code view::process_left () noexcept
 ret_code view::play_new_playlist ()
 {
     ret_code ret;
-    playlist old_pl(std::move(pl));
+    playlist old_pl(std::move(pl.value));
 
-    ret = plv.play(pl, old_pl);
+    ret = plv.value.play(pl.value, old_pl);
     if (ret)
         return ret;
     reuse_mad();
     ret = open_song_not_found(old_pl);
     if (ret)
     {
-        pl = std::move(old_pl);
+        pl.value = std::move(old_pl);
         return ret;
     }
 
-    playing_playlist = selected_playlist;
+    pl.playlist_index = plv.playlist_index;
+    next_playlist.value.make_fake();
     return 0;
 }
 
@@ -240,7 +277,7 @@ ret_code view::process_right ()
     {
     case state_t::pl_list:
         state = state_t::playlist;
-        ret = pll.open_selected(plv, selected_playlist);
+        ret = pll.open_selected(plv.value, plv.playlist_index);
         if (ret)
             return ret;
         audio_ctl->need_redraw = 1;
@@ -272,37 +309,74 @@ ret_code view::process_center ()
     switch (state)
     {
     case state_t::pl_list:
-        if (pll.check_near(playing_playlist))
+        if (pll.check_near(pl.playlist_index))
         {
-            ret_code ret = pll.open_index(plv, playing_playlist, selected_playlist);
+            ret_code ret = pll.open_index(plv.value, pl.playlist_index, plv.playlist_index);
             if (ret)
                 return ret;
             state = state_t::playlist;
         }
         else
         {
-            if (playing_playlist != pl_list::max_plb_files)
-                pll.seek(playing_playlist);
+            if (pl.playlist_index != pl_list::max_plb_files)
+                pll.seek(pl.playlist_index);
         }
         audio_ctl->need_redraw = 1;
         break;
         
     case state_t::playlist:
-        if (plv.check_near(pl))
+        if (plv.value.check_near(pl.value))
         {
             state = state_t::song;
             audio_ctl->need_redraw = 1;
         }
         else
         {
-            if (pl.lpl.header.cnt_songs != 0)
-                return to_playing_pos(pl.lpl);
+            if (pl.value.lpl.header.cnt_songs != 0)
+                return to_playing_pos(pl.value.lpl);
         }
         break;
         
     case state_t::song:
         toggle_repeat();
         break;
+    }
+    return 0;
+}
+
+ret_code view::new_song_or_repeat ()
+{
+    if (!audio_ctl->audio_file.is_fake())
+    {
+        reuse_mad();
+    }
+
+    if (audio_ctl->pause_status == pause_status_t::soft_pause)
+    {
+        audio_ctl->pause_status = pause_status_t::pause;
+        BSP_AUDIO_OUT_Pause();
+    }
+
+    // play song again
+    audio_ctl->seeked = 1;
+    if (audio_ctl->repeat_mode)
+    {
+        ret_code ret;
+        if ((ret = audio_ctl->audio_file.seek(audio_ctl->info.offset)))
+        {
+            display::error("err seek");
+            return ret;
+        }
+    }
+    else //or next song
+    {
+        ret_code ret;
+        if ((ret = next_song()))
+        {
+            display::error("err get next song");
+            memset(audio_ctl->buff, 0, audio_ctl->audio_buffer_size);
+            return ret;
+        }
     }
     return 0;
 }

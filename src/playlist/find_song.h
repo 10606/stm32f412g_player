@@ -29,8 +29,7 @@ struct find_song
     
     constexpr void reset ()
     {
-        playlist.fd.init_fake();
-        playlist.init_base();
+        playlist.make_fake();
     }
 
     constexpr find_pattern search_pattern () const

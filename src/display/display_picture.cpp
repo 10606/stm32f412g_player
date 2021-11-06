@@ -68,9 +68,7 @@ bool write_region_t::operator () (uint16_t const * line)
         lcd_io_write_data(line[k]);
     
     line_cnt++;
-    if (line_cnt == y_size) [[unlikely]]
-        return 1;
-    return 0;
+    return (line_cnt == y_size);
 }
 
 void display_picture 

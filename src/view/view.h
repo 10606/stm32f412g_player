@@ -13,28 +13,26 @@
 struct view
 {
     consteval view (audio_ctl_t * _audio_ctl) :
-        playing_playlist(pl_list::max_plb_files),
-        selected_playlist(pl_list::max_plb_files),
+        plv(),
+        pl(),
+        next_playlist(),
         state(state_t::pl_list),
         old_state(state),
         state_song_view(state_song_view_t::volume),
         audio_ctl(_audio_ctl),
         pll(),
-        pl(),
-        plv(),
         finder()
     {}
     
     constexpr void reset ()
     {
-        playing_playlist = pl_list::max_plb_files;
-        selected_playlist = pl_list::max_plb_files;
+        pl.reset();
+        plv.reset();
+        next_playlist.reset();
         state = state_t::pl_list;
         old_state = state;
         state_song_view = state_song_view_t::volume;
         pll.reset();
-        pl.make_fake();
-        plv.reset();
         finder.reset();
     }
 
@@ -47,8 +45,8 @@ struct view
 
     ret_code init (filename_t * path, uint32_t len);
     void display ();
-    ret_code open_song ();
     void fake_song_and_playlist ();
+    ret_code new_song_or_repeat ();
 
     ret_code process_up         ();
     ret_code process_down       ();
@@ -68,22 +66,56 @@ struct view
     ret_code seek_backward      ();
     ret_code prev_song          ();
     ret_code next_song          ();
+    ret_code set_next_song      ();
 
     ret_code do_nothing         () noexcept; // can use in table of function
     ret_code send_info          () noexcept;
     
 
+    struct viewing
+    {
+        uint32_t playlist_index;
+        playlist_view value;
+        
+        constexpr viewing () :
+            playlist_index(pl_list::max_plb_files),
+            value()
+        {}
+
+        constexpr void reset ()
+        {
+            playlist_index = pl_list::max_plb_files;
+            value.reset();
+        }
+    };
+
+    struct playing
+    {
+        uint32_t playlist_index;
+        playlist value;
+
+        constexpr playing () :
+            playlist_index(pl_list::max_plb_files),
+            value()
+        {}
+            
+        constexpr void reset ()
+        {
+            playlist_index = pl_list::max_plb_files;
+            value.make_fake();
+        }
+    };
     
-    uint32_t playing_playlist;
-    uint32_t selected_playlist;
+    viewing plv;
+    playing pl;
+    playing next_playlist;
+    
     state_t state;
     state_t old_state;
     state_song_view_t state_song_view;
 
     audio_ctl_t * audio_ctl;
     pl_list pll;
-    playlist pl;
-    playlist_view plv;
     find_song finder;
     
     

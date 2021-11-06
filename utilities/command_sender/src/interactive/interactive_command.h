@@ -29,9 +29,11 @@ const char * const int_command_send_info = "R";
 const char * const int_command_find_next = "n";
 const char * const int_command_find_set = "/";
 
+const char * const int_command_set_song = "s";
+
 const char * const quit = "q";
 
-std::array <std::string_view, 19> const int_commands =
+std::array <std::string_view, 20> const int_commands =
 {
     "",                     //0x00
 
@@ -61,6 +63,8 @@ std::array <std::string_view, 19> const int_commands =
     
     int_command_find_next,  //0x10
     int_command_find_set,   //0x11
+
+    int_command_set_song, //0x12
     
     quit                    //0x12
 };

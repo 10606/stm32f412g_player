@@ -42,8 +42,7 @@ struct playlist_view
     {
         pos_begin = 0;
         current_state = {0, 0, redraw_type_t::not_easy};
-        lpl.fd.init_fake();
-        lpl.init_base();
+        lpl.make_fake();
     }
     
     ret_code init (); //set fd and read playlist

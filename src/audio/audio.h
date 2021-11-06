@@ -23,8 +23,16 @@ enum class pause_status_t
 
 struct audio_ctl_t 
 {
-    audio_ctl_t ();
-    ret_code audio_init ();
+    constexpr audio_ctl_t () :
+        audio_freq(44100),
+        volume(70),
+        pause_status(pause_status_t::play),
+        repeat_mode(0),
+        seeked(0),
+        state(buffer_offset_none)
+    {}
+
+    void audio_init ();
     void audio_destruct ();
     ret_code audio_process ();
     
@@ -55,7 +63,6 @@ private:
     void byte_to_time (tik_t * time, uint32_t value) const;
     void next_pcm_part ();
     void display_time () const;
-    ret_code new_song_or_repeat ();
 };
 
 extern audio_ctl_t audio_ctl;

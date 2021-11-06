@@ -8,7 +8,7 @@
 
 ret_code usb_process_t::usb_process (view * vv)
 {
-    static ret_code (view::* process_view_do[17]) () =
+    static ret_code (view::* process_view_do[19]) () =
     {
         &view::do_nothing,
         &view::process_up,
@@ -26,7 +26,9 @@ ret_code usb_process_t::usb_process (view * vv)
         &view::prev_song,
         &view::send_info,
         &view::to_end_and_pause,
-        &view::find_next
+        &view::find_next,
+        &view::do_nothing, // cmd_find
+        &view::set_next_song
     };
     
     uint32_t same_commands = 0;
@@ -55,16 +57,19 @@ ret_code usb_process_t::usb_process (view * vv)
         }
         
         if (command < std::extent <decltype(process_view_do)> ::value) [[likely]]
-            ret = (vv->*process_view_do[command])();
-        else if (command == cmd_find)
         {
-            uint8_t cmd_data[sizeof(find_pattern)];
-            for (uint32_t i = 0; i != calc_need_rd(command) - 1; ++i)
-                cmd_data[i] = buffer[(start + i + 1) % mod];
-            
-            find_pattern value;
-            memmove(&value, cmd_data, sizeof(value));
-            ret = vv->find(value);
+            if (command != cmd_find)
+                ret = (vv->*process_view_do[command])();
+            else
+            {
+                uint8_t cmd_data[sizeof(find_pattern)];
+                for (uint32_t i = 0; i != calc_need_rd(command) - 1; ++i)
+                    cmd_data[i] = buffer[(start + i + 1) % mod];
+                
+                find_pattern value;
+                memmove(&value, cmd_data, sizeof(value));
+                ret = vv->find(value);
+            }
         }
         start = (start + calc_need_rd(command)) % mod;
     }

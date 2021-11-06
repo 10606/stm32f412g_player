@@ -27,28 +27,40 @@ struct playlist
     playlist & operator = (playlist && other);
     playlist (playlist const & other) = delete;
     playlist & operator = (playlist const & other) = delete;
+
+    constexpr void swap (playlist & other)
+    {
+        std::swap(path, other.path);
+        std::swap(path_backup, other.path_backup);
+        std::swap(path_sz, other.path_sz);
+        lpl.swap(other.lpl);
+    }
     
     // not operator = 
     //  because need ret code
     ret_code clone (playlist const & other) 
     {
-        filename_t * new_path = static_cast <filename_t *> (malloc(other.path_sz * sizeof(*path)));
-        if (!new_path)
-            return memory_limit;
-        
-        filename_t * new_path_backup = static_cast <filename_t *> (malloc(other.path_sz * sizeof(*path)));
-        if (!new_path_backup)
+        if (path_sz < other.path_sz)
         {
-            free(new_path);
-            return memory_limit;
+            filename_t * new_path = static_cast <filename_t *> (malloc(other.path_sz * sizeof(*path)));
+            if (!new_path)
+                return memory_limit;
+            
+            filename_t * new_path_backup = static_cast <filename_t *> (malloc(other.path_sz * sizeof(*path)));
+            if (!new_path_backup)
+            {
+                free(new_path);
+                return memory_limit;
+            }
+            
+            free(path);
+            free(path_backup);
+            path_sz = other.path_sz;
+            path = new_path;
+            path_backup = new_path_backup;
         }
         
-        free(path);
-        free(path_backup);
-        path_sz = other.path_sz;
-        path = new_path;
         memcpy(path, other.path, other.lpl.song.path_len * sizeof(*path));
-        path_backup = new_path_backup;
         lpl = other.lpl;
         return 0;
     }
@@ -62,8 +74,7 @@ struct playlist
     
     constexpr void make_fake ()
     {
-        lpl.fd.init_fake();
-        lpl.init_base();
+        lpl.make_fake();
     }
 
     constexpr bool is_fake () const
