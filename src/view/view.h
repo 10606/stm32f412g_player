@@ -104,6 +104,12 @@ struct view
             playlist_index = pl_list::max_plb_files;
             value.make_fake();
         }
+
+        constexpr void swap (playing & other)
+        {
+            value.swap(other.value);
+            std::swap(playlist_index, other.playlist_index);
+        }
     };
     
     viewing plv;

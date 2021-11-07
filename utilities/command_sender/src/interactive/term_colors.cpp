@@ -7,6 +7,7 @@ const std::string_view color::defaul_color = "00;00";
 
 const std::string_view color::black = "00;30";
 const std::string_view color::red = "00;31"; 
+const std::string_view color::dark_red = "01;30"; 
 const std::string_view color::green = "00;32";
 const std::string_view color::yellow = "00;33";
 const std::string_view color::orange = "01;33";
@@ -17,6 +18,7 @@ const std::string_view color::white = "00;37";
 const std::string_view bg_color::blue = "44";
 const std::string_view bg_color::cyan = "46";
 const std::string_view bg_color::black = "40"; 
+const std::string_view bg_color::green = "42"; 
 
 const std::array <std::function <std::string (size_t selected, size_t line)>, 2> main_columns = 
 {
@@ -34,14 +36,14 @@ const std::array <std::function <std::string (size_t selected, size_t line)>, 2>
     ),
     main_column_color // current
     (
-        {bg_color::black, bg_color::cyan},  // background
+        {bg_color::black, bg_color::green},  // background
         {{ 
-            {color::green, color::red},     // playing and next
+            {color::green, color::dark_red},     // playing and next
             {color::orange, color::blue}  // [line][selected]
         }},
         {{
             {color::white, color::green, color::orange}, // [selected][playing + next]
-            {color::black, color::red,   color::blue}
+            {color::black, color::dark_red,   color::blue}
         }}
     )
 };

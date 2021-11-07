@@ -72,6 +72,7 @@ struct color
 
     static const std::string_view white; 
     static const std::string_view red; 
+    static const std::string_view dark_red; 
     static const std::string_view cyan;
     static const std::string_view green;
     static const std::string_view yellow;
@@ -85,6 +86,7 @@ struct bg_color
     static const std::string_view black; 
     static const std::string_view blue; 
     static const std::string_view cyan; 
+    static const std::string_view green; 
 };
 
 void print_color (std::string_view);

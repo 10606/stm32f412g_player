@@ -111,20 +111,21 @@ ret_code view::change_song (directions::np::type direction)
         ret = backup.clone(next_playlist.value);
         if (ret)
             return ret;
-        next_playlist.value.swap(pl.value);
-        std::swap(pl.playlist_index, next_playlist.playlist_index);
+        next_playlist.swap(pl);
     }
     reuse_mad();
     ret = open_song_not_found(backup, direction);
     if (ret) 
     {
-        pl.value = std::move(backup);
-        next_playlist.reset();
         if (was_fake)
+        {
+            pl.value = std::move(backup);
             return ret;
+        }
         else
         {
-            std::swap(pl.playlist_index, next_playlist.playlist_index);
+            next_playlist.swap(pl);
+            next_playlist.reset();
             return change_song(direction);
         }
     }
