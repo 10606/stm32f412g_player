@@ -71,7 +71,24 @@ bool need_draw_line
              (redraw_type.type == redraw_type_t::middle));
     */
 }
-    
+
+constexpr uint8_t erase_bit (uint8_t value, uint8_t bit_index)
+{
+    uint8_t bit_mask = 1u << bit_index;
+    value &= ~bit_mask; 
+    bit_mask--;
+    value += value & bit_mask;
+    value >>= 1;
+    return value;
+}
+
+constexpr uint8_t get_bits (uint8_t value, std::pair <uint8_t, uint8_t> bit_index)
+{
+    uint8_t f_bit = (value >> bit_index.first) & 1;
+    uint8_t s_bit = (value >> bit_index.second) & 1;
+    return f_bit + 2 * s_bit;
+}
+
 void display_lines 
 (
     uint32_t i, 
@@ -81,37 +98,50 @@ void display_lines
     uint16_t l0_text_color
 )
 {
-    uint16_t back_color_line_0, text_color_line_0;
-    uint16_t back_color_line_1, text_color_line_1;
+    // 0
+    // 1 - selected
+    // 2 - playing
+    // 3 - playing and selected
     
-    switch (selected[i])
+    // 4 - next
+    // 5 - selected & next
+    // 6 - playing & next
+    // 7 - selected & playing & next
+
+    color_t c_line_0;
+    color_t c_line_1;
+    
+    auto & [text_color_line_0, back_color_line_0] = c_line_0;
+    auto & [text_color_line_1, back_color_line_1] = c_line_1;
+
+    if (get_bits(selected[i], {1, 2}) == 3) // playing & next
     {
-        // 0
-        // 1 - selected
-        // 2 - playing
-        // 3 - playing and selected
-        case 3:
-            back_color_line_0 = lcd_color_blue;
-            text_color_line_0 = l0_text_color;
-            back_color_line_1 = lcd_color_blue;
-            text_color_line_1 = lcd_color_green;
-            break;
-        case 2:
-            back_color_line_1 = back_color_line_0 = lcd_color_white;
-            text_color_line_1 = text_color_line_0 = lcd_color_red;
+        switch (selected[i] & 1)
+        {
+        case 0:
+            back_color_line_0 = back_color_line_1 = lcd_color_white;
+            text_color_line_0 = lcd_color_red;
+            text_color_line_1 = lcd_color_black;
             break;
         case 1:
-            back_color_line_1 = back_color_line_0 = lcd_color_blue;
-            text_color_line_1 = text_color_line_0 = lcd_color_white;
+            back_color_line_0 = back_color_line_1 = lcd_color_blue;
+            text_color_line_0 = lcd_color_green;
+            text_color_line_1 = lcd_color_yellow;
             break;
-        default:
-            back_color_line_1 = back_color_line_0 = lcd_color_white;
-            text_color_line_1 = text_color_line_0 = lcd_color_blue;
+        }
     }
+    else
+    {
+        static const uint16_t text_color_lines [2][3] =  // nothing, playing, next
+            {
+                {lcd_color_blue,  lcd_color_red,   lcd_color_black},
+                {lcd_color_white, lcd_color_green, lcd_color_yellow}
+            };
+        back_color_line_0 = back_color_line_1 = (selected[i] & 1)? lcd_color_blue : lcd_color_white;
+        text_color_line_0 = text_color_line_1 = text_color_lines[selected[i] & 1][get_bits(selected[i], {1, 2})];
+        
+    };
 
-    color_t c_line_0 = {text_color_line_0, back_color_line_0};
-    color_t c_line_1 = {text_color_line_1, back_color_line_1};
-    
     display_string(offsets::x_padding, scroller.recalc_y(display::offsets::list + display::offsets::line * i),
                 line_0, &font_12, &c_line_0);
     display_string(offsets::x_padding, scroller.recalc_y(display::offsets::list + display::offsets::line * i + display::offsets::in_line), 

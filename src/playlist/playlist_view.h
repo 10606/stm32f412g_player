@@ -78,7 +78,7 @@ struct playlist_view
         char selected[view_cnt];
     };
     
-    print_info print (playlist const & playing_pl_) const;
+    print_info print (playlist const & playing_pl_, playlist const & next_playlist) const;
     void reset_display ();
     redraw_type_t redraw_type () const;
     light_playlist lpl_with_wrong_pos () const;

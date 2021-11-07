@@ -198,7 +198,7 @@ bool playlist_view::check_near (playlist const & playing_pl) const
     );
 }
 
-playlist_view::print_info playlist_view::print (playlist const & playing_pl) const
+playlist_view::print_info playlist_view::print (playlist const & playing_pl, playlist const & next_playlist) const
 {
     print_info ans;
     uint32_t index = 0;
@@ -225,6 +225,8 @@ playlist_view::print_info playlist_view::print (playlist const & playing_pl) con
     
     if (check_near(playing_pl))
         ans.selected[playing_pl.lpl.pos - index] |= 2;
+    if (check_near(next_playlist))
+        ans.selected[next_playlist.lpl.pos - index] |= 4;
 
     for (size_t i = 0; i != print_cnt; ++i)
     {

@@ -1,133 +1,79 @@
 #include "term_colors.h"
 
-const std::string color::defaul_color = "\033[00;00m"; 
+#include <functional>
+#include <iostream>
 
-const std::string color::white = "\033[00;37m"; 
-const std::string color::red = "\033[00;31m"; 
-const std::string color::cyan = "\033[00;36m";
-const std::string color::green = "\033[00;32m";
-const std::string color::yellow = "\033[00;33m";
+const std::string_view color::defaul_color = "00;00"; 
 
+const std::string_view color::black = "00;30";
+const std::string_view color::red = "00;31"; 
+const std::string_view color::green = "00;32";
+const std::string_view color::yellow = "00;33";
+const std::string_view color::orange = "01;33";
+const std::string_view color::blue = "00;34";
+const std::string_view color::cyan = "00;36";
+const std::string_view color::white = "00;37"; 
+
+const std::string_view bg_color::blue = "44";
+const std::string_view bg_color::cyan = "46";
+const std::string_view bg_color::black = "40"; 
+
+const std::array <std::function <std::string (size_t selected, size_t line)>, 2> main_columns = 
+{
+    main_column_color // not current
+    (
+        {bg_color::black, bg_color::blue},  // background
+        {{ 
+            {color::green, color::green},   // playing and next
+            {color::orange, color::orange}  // [line][selected]
+        }},
+        {{
+            {color::white, color::green, color::orange}, // [selected][playing + next]
+            {color::white, color::green, color::orange}
+        }}
+    ),
+    main_column_color // current
+    (
+        {bg_color::black, bg_color::cyan},  // background
+        {{ 
+            {color::green, color::red},     // playing and next
+            {color::orange, color::blue}  // [line][selected]
+        }},
+        {{
+            {color::white, color::green, color::orange}, // [selected][playing + next]
+            {color::black, color::red,   color::blue}
+        }}
+    )
+};
 
 const std::vector  //cmd
 <
-    std::vector //line
+    std::vector //current
     <
-        std::vector //current
-        <
-            std::vector //s
-            <
-                std::string
-            >
-        >
+        std::string_view
     >
 > colors::table = 
 {
     {},
     
     { //cur_song_info
-        { //group
-            {{color::green}}
-        },
-        { //song
-            {{color::green}}
-        }
+        {color::green}
     },
     
-    { //displayed_song_info
-        { //group
-            { //not selected
-                {
-                    color::white, //0
-                    color::cyan, //selected
-                    color::red, //played
-                    color::cyan //selected and played
-                }
-            },
-            { //selected
-                {
-                    color::cyan, //0
-                    color::green, //selected
-                    color::yellow, //played
-                    color::green //selected and played
-                }
-            }
-        },
-        { //song
-            { //not selected
-                {
-                    color::white, //0
-                    color::cyan, //selected
-                    color::red, //played
-                    color::red //selected and played
-                }
-            },
-            { //selected
-                {
-                    color::cyan, //0
-                    color::green, //selected
-                    color::yellow, //played
-                    color::yellow //selected and played
-                }
-            }
-        }
-    },
-    
-    { //pl_list_info
-        { //first line
-            { //not selected
-                {
-                    color::white, //0
-                    color::cyan, //selected
-                    color::red, //played
-                    color::cyan //selected and played
-                }
-            },
-            { //selected
-                {
-                    color::cyan, //0
-                    color::green, //selected
-                    color::yellow, //played
-                    color::green //selected and played
-                }
-            }
-        },
-        { //second line
-            { //not selected
-                {
-                    color::white, //0
-                    color::cyan, //selected
-                    color::red, //played
-                    color::red //selected and played
-                }
-            },
-            { //selected
-                {
-                    color::cyan, //0
-                    color::green, //selected
-                    color::yellow, //played
-                    color::yellow //selected and played
-                }
-            }
-        }
-    },
-    
+    {},
+    {},
     { //volume_info
-        { //volume
-            { //not selected
-                {color::white}
-            },
-            { //selected
-                {color::cyan}
-            }
+        { //not current
+            color::white
         },
-        { //state
-            { //not selected
-                {color::white}
-            },
-            { //selected
-                {color::cyan}
-            }
+        { //current
+            color::cyan
         }
     }
 };
+
+void print_color (std::string_view value)
+{
+    std::cout << "\033[" << value << "m";
+}
+

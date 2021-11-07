@@ -14,6 +14,7 @@ void cur_pl_list
 (
     pl_list & pll, 
     uint32_t playing_pl, 
+    uint32_t next_playlist, 
     state_t cur_state, 
     state_t old_state
 )
@@ -22,7 +23,7 @@ void cur_pl_list
     if (to_screen)
         fill_borders <pl_list::view_cnt> ();
     
-    pl_list::print_info print = pll.print(playing_pl);
+    pl_list::print_info print = pll.print(playing_pl, next_playlist);
     redraw_type_t redraw_type = pll.redraw_type();
     pll.reset_display();
     

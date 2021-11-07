@@ -85,22 +85,23 @@ ret_code view::seek_backward ()
 
 ret_code view::change_song (directions::np::type direction)
 {
-    static uint32_t (playlist::* const do_on_playlist[2]) (light_playlist const & backup) =
+    static uint32_t (playlist::* const do_on_playlist[2]) (playlist const & backup) =
     {
         &playlist::next,
         &playlist::prev
     };
     ret_code ret;
     bool was_fake;
-    playlist backup;
+    static playlist backup;
     
-    if (next_playlist.value.is_fake())
+    if (next_playlist.value.is_fake() ||
+        direction == directions::np::prev)
     {
         was_fake = 1;
         ret = backup.clone(pl.value);
         if (ret)
             return ret;
-        ret = (pl.value.*do_on_playlist[direction])(backup.lpl);
+        ret = (pl.value.*do_on_playlist[direction])(backup);
         if (ret)
             return ret;
     }
@@ -118,7 +119,7 @@ ret_code view::change_song (directions::np::type direction)
     if (ret) 
     {
         pl.value = std::move(backup);
-        next_playlist.value.make_fake();
+        next_playlist.reset();
         if (was_fake)
             return ret;
         else
@@ -128,7 +129,7 @@ ret_code view::change_song (directions::np::type direction)
         }
     }
     audio_ctl->need_redraw = 1;
-    next_playlist.value.make_fake();
+    next_playlist.reset();
     return 0;
 }
 
@@ -153,6 +154,7 @@ ret_code view::set_next_song ()
         return ret;
     
     next_playlist.playlist_index = plv.playlist_index;
+    audio_ctl->need_redraw = 1;
     return 0;
 }
 
@@ -266,7 +268,7 @@ ret_code view::play_new_playlist ()
     }
 
     pl.playlist_index = plv.playlist_index;
-    next_playlist.value.make_fake();
+    next_playlist.reset();
     return 0;
 }
 

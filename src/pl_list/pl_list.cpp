@@ -130,7 +130,7 @@ bool pl_list::check_near (uint32_t pos) const
     );
 }
 
-pl_list::print_info pl_list::print (uint32_t playing_pl) const
+pl_list::print_info pl_list::print (uint32_t playing_pl, uint32_t next_playlist) const
 {
     print_info ans;
     uint32_t index = 0;
@@ -155,6 +155,8 @@ pl_list::print_info pl_list::print (uint32_t playing_pl) const
     
     if (check_near(playing_pl))
         ans.selected[playing_pl - index] |= 2;
+    if (check_near(next_playlist))
+        ans.selected[next_playlist - index] |= 4;
     
     for (uint32_t i = 0; i != print_cnt; ++i)
     {

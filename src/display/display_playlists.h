@@ -10,8 +10,8 @@
 namespace display
 {
 
-void cur_pl_list  (pl_list & pll,       uint32_t playing_pl, state_t cur_state, state_t old_state);
-void cur_playlist (playlist_view & plv, playlist const & pl, state_t cur_state, state_t old_state);
+void cur_pl_list  (pl_list & pll,       uint32_t playing_pl, uint32_t next_playlist,         state_t cur_state, state_t old_state);
+void cur_playlist (playlist_view & plv, playlist const & pl, playlist const & next_playlist, state_t cur_state, state_t old_state);
 
 }
 

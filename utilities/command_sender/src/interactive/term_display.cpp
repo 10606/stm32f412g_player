@@ -77,15 +77,22 @@ struct base
 
 inline void set_color (size_t current, size_t cmd, size_t line, size_t s = 0)
 {
+    if (cmd == displayed_song_info ||
+        cmd == pl_list_info)
+    {
+        if (current > main_columns.size())
+            return;
+        if (line > 1)
+            return;
+        print_color(main_columns[current](s, line));
+        return;
+    }
+    
     if (cmd >= colors::table.size())
         return;
-    if (line >= colors::table[cmd].size())
+    if (current >= colors::table[cmd].size())
         return;
-    if (current >= colors::table[cmd][line].size())
-        return;
-    if (s >= colors::table[cmd][line][current].size())
-        return;
-    std::cout << colors::table[cmd][line][current][s];
+    print_color(colors::table[cmd][current]);
 }
 
 bool is_spaces (std::string const & str) noexcept
@@ -110,7 +117,7 @@ void display_lines (T const & data, bool is_my_state, std::pair <size_t, size_t>
     set_color(is_my_state, data.cmd, 1, get_selected(data));
     std::cout << char_reconvert(std::string_view(data.line_1, std::extent <decltype(T::line_1)>::value));
     
-    std::cout << color::defaul_color;
+    print_color(color::defaul_color);
 }
 
 template <typename T>
@@ -134,7 +141,7 @@ void display_search (std::array <std::string, 2> const & value)
     for (size_t i = 0; i != 2; ++i)
     {
         set_cursor(base::search[i]);
-        std::cout << line_color[i];
+        print_color(line_color[i]);
         std::cout << value[i];
         for (size_t j = value[i].size(); j < prev_size[i] + 5; ++j)
             std::cout  << ' ';
@@ -180,10 +187,10 @@ void extract (std::deque <char> & data, state_t & state)
                     set_cursor(base::pl_list[1] + base_pos);
                     set_color(is_my_state, pl_list_data->cmd, 1, pl_list_data->selected);
                     if (!is_spaces(line_0))
-                        std::cout << "  -------------------------------  ";
+                        std::cout << "  -------------------------------";
                     else
-                        std::cout << "                                   ";
-                    std::cout << color::defaul_color;
+                        std::cout << "                                 ";
+                    print_color(color::defaul_color);
                 }
                 else
                     goto end_for;

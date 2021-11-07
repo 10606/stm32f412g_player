@@ -12,7 +12,6 @@ struct playlist
 {
     constexpr playlist () :
         path(nullptr),
-        path_backup(nullptr),
         path_sz(0),
         lpl()
     {}
@@ -20,7 +19,6 @@ struct playlist
     ~playlist ()
     {
         free(path);
-        free(path_backup);
     }
     
     playlist (playlist && other);
@@ -31,7 +29,6 @@ struct playlist
     constexpr void swap (playlist & other)
     {
         std::swap(path, other.path);
-        std::swap(path_backup, other.path_backup);
         std::swap(path_sz, other.path_sz);
         lpl.swap(other.lpl);
     }
@@ -46,18 +43,9 @@ struct playlist
             if (!new_path)
                 return memory_limit;
             
-            filename_t * new_path_backup = static_cast <filename_t *> (malloc(other.path_sz * sizeof(*path)));
-            if (!new_path_backup)
-            {
-                free(new_path);
-                return memory_limit;
-            }
-            
             free(path);
-            free(path_backup);
             path_sz = other.path_sz;
             path = new_path;
-            path_backup = new_path_backup;
         }
         
         memcpy(path, other.path, other.lpl.song.path_len * sizeof(*path));
@@ -65,12 +53,12 @@ struct playlist
         return 0;
     }
     
-    /// backup.song.path_len <= song.path_len
+    // backup.lpl.song.path_len <= song.path_len
     ret_code open (light_playlist const & other_lpl, uint32_t pos_selected, playlist const & backup);
     
-    ret_code seek (uint32_t new_pos, light_playlist const & backup);
-    ret_code next (light_playlist const & backup);
-    ret_code prev (light_playlist const & backup);
+    ret_code seek (uint32_t new_pos, playlist const & backup);
+    ret_code next (playlist const & backup);
+    ret_code prev (playlist const & backup);
     
     constexpr void make_fake ()
     {
@@ -84,7 +72,6 @@ struct playlist
 
 
     filename_t * path;
-    filename_t * path_backup;
     uint32_t path_sz;
     light_playlist lpl;
     

@@ -13,6 +13,7 @@ void cur_playlist
 (
     playlist_view & plv, 
     playlist const & pl, 
+    playlist const & next_playlist, 
     state_t cur_state,
     state_t old_state
 )
@@ -23,7 +24,7 @@ void cur_playlist
     HAL_Delay(1);
     audio_ctl.audio_process();
     
-    playlist_view::print_info print = plv.print(pl);
+    playlist_view::print_info print = plv.print(pl, next_playlist);
     redraw_type_t redraw_type = plv.redraw_type();
     plv.reset_display();
 

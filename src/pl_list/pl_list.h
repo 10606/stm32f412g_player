@@ -66,7 +66,7 @@ struct pl_list
         char selected[view_cnt];
     };
     
-    print_info print (uint32_t playing_pl) const;
+    print_info print (uint32_t playing_pl, uint32_t next_playlist) const;
     
     constexpr void reset_display ()
     {

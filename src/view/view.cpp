@@ -18,8 +18,8 @@ void view::display ()
 {
     sender.send_state(state);
     display::cur_song(*audio_ctl, pl.value);
-    display::cur_playlist(plv.value, pl.value, state, old_state);
-    display::cur_pl_list(pll, pl.playlist_index, state, old_state);
+    display::cur_playlist(plv.value, pl.value, next_playlist.value, state, old_state);
+    display::cur_pl_list(pll, pl.playlist_index, next_playlist.playlist_index, state, old_state);
     display::song(*audio_ctl, state_song_view, state, old_state);
     sender.flush();
     old_state = state;
@@ -52,7 +52,7 @@ ret_code view::open_song_impl ()
 
 ret_code view::open_song_not_found (playlist const & backup, directions::np::type direction)
 {
-    static uint32_t (playlist::* const np_playlist[2]) (light_playlist const & backup) = 
+    static uint32_t (playlist::* const np_playlist[2]) (playlist const & backup) = 
     {
         &playlist::next,
         &playlist::prev
@@ -65,7 +65,7 @@ ret_code view::open_song_not_found (playlist const & backup, directions::np::typ
         if (!(ret_song = open_song_impl()))
             return 0;
         
-        if ((ret_playlist = (pl.value.*np_playlist[direction])(backup.lpl)))
+        if ((ret_playlist = (pl.value.*np_playlist[direction])(backup)))
             return ret_playlist;
     }
     return ret_song;
