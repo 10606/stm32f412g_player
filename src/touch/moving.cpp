@@ -22,7 +22,13 @@ ret_code touch_processing::touch_region (view * vv)
             return vv->to_end_and_pause();
     }
     else
-        return vv->process_right();
+    {
+        if ((start.x < 120) ||
+            (vv->state != state_t::playlist))
+            return vv->process_right();
+        else
+            return vv->set_next_song();
+    }
 }
 
 ret_code touch_processing::move_left_right

@@ -24,9 +24,9 @@ const std::array <std::function <std::string (size_t selected, size_t line)>, 2>
 {
     main_column_color // not current
     (
-        {bg_color::black, bg_color::blue},  // background
+        {bg_color::black, bg_color::blue},  // [selected]
         {{ 
-            {color::green, color::green},   // playing and next
+            {color::green,  color::green},  // playing and next
             {color::orange, color::orange}  // [line][selected]
         }},
         {{
@@ -36,43 +36,38 @@ const std::array <std::function <std::string (size_t selected, size_t line)>, 2>
     ),
     main_column_color // current
     (
-        {bg_color::black, bg_color::green},  // background
+        {bg_color::black, bg_color::green},     // [selected]
         {{ 
-            {color::green, color::dark_red},     // playing and next
-            {color::orange, color::blue}  // [line][selected]
+            {color::green,  color::dark_red},   // playing and next
+            {color::orange, color::blue}        // [line][selected]
         }},
         {{
-            {color::white, color::green, color::orange}, // [selected][playing + next]
-            {color::black, color::dark_red,   color::blue}
+            {color::white, color::green,    color::orange}, // [selected][playing + next]
+            {color::black, color::dark_red, color::blue}
         }}
     )
 };
 
-const std::vector  //cmd
+const std::array  //cmd
 <
     std::vector //current
     <
         std::string_view
-    >
+    >,
+    5
 > colors::table = 
-{
+{{
     {},
     
-    { //cur_song_info
-        {color::green}
-    },
+    //cur_song_info
+    {color::green},
     
     {},
     {},
-    { //volume_info
-        { //not current
-            color::white
-        },
-        { //current
-            color::cyan
-        }
-    }
-};
+    
+    //volume_info
+    {color::white, color::cyan}
+}};
 
 void print_color (std::string_view value)
 {

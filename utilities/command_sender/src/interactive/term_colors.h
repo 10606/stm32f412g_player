@@ -57,12 +57,13 @@ extern const std::array <std::function <std::string (size_t selected, size_t lin
 
 struct colors
 {
-    static const std::vector  //cmd
+    static const std::array  //cmd
     <
         std::vector //current
         <
             std::string_view
-        >
+        >,
+        5
     > table;
 };
 
