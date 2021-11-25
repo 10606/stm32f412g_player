@@ -83,18 +83,19 @@ void display_picture
     static constexpr uint32_t parts = 5;
     uint32_t const p_size = (y_size + parts - 1) / parts;
     
-    huffman_unp_header tree(static_cast <huffman_header const *> (addr));
-    huffman_unp_pass_2 tree_p2 = tree;
+    huffman_header const * tree = static_cast <huffman_header const *> (addr);
+    huffman_unp_pass_2 tree_p2(tree);
     uint8_t const * picture = static_cast <uint8_t const *> (addr) + sizeof(huffman_header);
     
     uint8_t state = inner_cnt - 1;
+    uint32_t size = tree->sz;
     
     // wrong picture record
     {
         uint8_t * end_of_flash = reinterpret_cast <uint8_t *> (0x8100000);
-        uint32_t sz_in_bytes = (tree.sz + 3) / 4;
+        uint32_t sz_in_bytes = (size + 3) / 4;
         if ((picture + sz_in_bytes > end_of_flash) || (picture + sz_in_bytes < picture))
-            tree.sz = (end_of_flash - picture) * 4;
+            size = (end_of_flash - picture) * 4;
     }
  
     typedef union 
@@ -110,7 +111,7 @@ void display_picture
     write_region_t write_region(x_pos, y_pos, x_size, y_size, p_size, need_audio);
     
     uint32_t ptr = 0;
-    for (; ptr < tree.sz / 4; ++ptr)
+    for (; ptr < size / 4; ++ptr)
     {
         uint8_t value = picture[ptr];
         for (size_t j = 0; j != 2; ++j)
@@ -132,9 +133,9 @@ void display_picture
     }
 
     uint8_t value = picture[ptr];
-    for (size_t j = 0; j != (tree.sz % 4); ++j)
+    for (size_t j = 0; j != (size % 4); ++j)
     {
-        huffman_unp_header::state vertex = tree.vertex[state][value % 4];
+        huffman_unp_header::state vertex = tree->vertex[state][value % 4];
         line.symbol[in_line_ptr] = vertex.value;
         in_line_ptr += vertex.is_term;
         state = vertex.next;

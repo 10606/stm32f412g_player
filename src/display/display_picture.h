@@ -25,12 +25,12 @@ struct picture_info_t
         start_picture_number = (start_picture_number + 1) % std::extent_v <decltype(err)>;
     }
     
-    const uint16_t * song_pic ()
+    const void * song_pic ()
     {
         return song[song_picture_number];
     }
     
-    const uint16_t * start_pic ()
+    const void * start_pic ()
     {
         return err[start_picture_number];
     }
@@ -41,8 +41,8 @@ private:
     uint8_t song_picture_number;
     uint8_t start_picture_number;
     
-    static const uint16_t * const song[7];
-    static const uint16_t * const err[2];
+    static const void * const song[7];
+    static const void * const err[2];
 };
 
 extern picture_info_t picture_info;

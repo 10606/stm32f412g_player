@@ -4,7 +4,7 @@
 
 void print_addr (std::ostream & out, char * pic_ptr)
 {
-    out << "    reinterpret_cast <uint16_t const *> (" << static_cast <void *> (pic_ptr) << "),\n";
+    out << "    reinterpret_cast <void const *> (" << static_cast <void *> (pic_ptr) << "),\n";
 }
 
 int main (int argc, char ** argv)
@@ -15,7 +15,7 @@ int main (int argc, char ** argv)
         return 1;
     }
     
-    static const char type[] = "const uint16_t * const picture_info_t::";
+    static const char type[] = "const void * const picture_info_t::";
     
     char * pic_ptr = reinterpret_cast <char *> (0x08040000);
     std::ofstream out(argv[1]);
