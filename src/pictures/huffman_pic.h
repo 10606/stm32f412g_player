@@ -54,5 +54,46 @@ struct huffman_unp_header
     state vertex[inner_cnt][4];
 };
 
+struct huffman_unp_pass_2
+{
+
+    huffman_unp_pass_2 () = default;
+    
+    huffman_unp_pass_2 (huffman_unp_header const & hh) :
+        sz(hh.sz)
+    {
+        for (uint32_t i = 0; i != inner_cnt; ++i)
+        {
+            for (uint32_t j = 0; j != 16; ++j)
+            {
+                huffman_unp_header::state s0 = hh.vertex[i][j & 0b11];
+                huffman_unp_header::state s1 = hh.vertex[s0.next][j >> 2];
+                uint8_t values[2];
+                values[0] = s0.value;
+                values[s0.is_term] = s1.value;
+                vertex[i][j] = state(s1.next, values, s0.is_term + s1.is_term);
+            }
+        }
+    }
+
+    struct state
+    {
+        state () = default;
+        
+        state (uint8_t _next, uint8_t * _values, uint16_t _count) :
+            next(_next),
+            values{_values[0], _values[1]},
+            count(_count)
+        {}
+    
+        uint8_t next;
+        uint8_t values[2];
+        uint16_t count;
+    };
+    
+    uint32_t sz; // by 2 bits
+    state vertex[inner_cnt][16];
+};
+
 #endif
 

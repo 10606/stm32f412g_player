@@ -27,7 +27,7 @@ ssize_t web_socket_reader_t::read (char * buffer, size_t size)
                 
                 if (header.len < 126)
                 {
-                    data_len = reinterpret_cast <uint8_t> (header.len);
+                    data_len = header.len;
                     status = status_t::mask;
                     cur_size = sizeof(mask);
                 }

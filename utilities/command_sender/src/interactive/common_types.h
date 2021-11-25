@@ -27,7 +27,7 @@ size_t get_pos (T const & value)
 }
 
 template <typename T>
-size_t get_pos (T const &) requires (!has_pos <T>)
+size_t get_pos (T const &)
 {
     return 0;
 }
@@ -40,7 +40,7 @@ char get_selected (T const & value)
 }
 
 template <typename T>
-char get_selected (T const &) requires (!has_selected <T>)
+char get_selected (T const &)
 {
     return 0;
 }

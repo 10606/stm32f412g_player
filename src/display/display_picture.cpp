@@ -84,6 +84,7 @@ void display_picture
     uint32_t const p_size = (y_size + parts - 1) / parts;
     
     huffman_unp_header tree(static_cast <huffman_header const *> (addr));
+    huffman_unp_pass_2 tree_p2 = tree;
     uint8_t const * picture = static_cast <uint8_t const *> (addr) + sizeof(huffman_header);
     
     uint8_t state = inner_cnt - 1;
@@ -98,7 +99,7 @@ void display_picture
  
     typedef union 
     {
-        uint8_t symbol[2 * 240 + 4];
+        uint8_t symbol[2 * 240 + 8];
         uint16_t pixel[240];
     } symbol_pixel_t;
     
@@ -112,13 +113,14 @@ void display_picture
     for (; ptr < tree.sz / 4; ++ptr)
     {
         uint8_t value = picture[ptr];
-        for (size_t j = 0; j != 4; ++j)
+        for (size_t j = 0; j != 2; ++j)
         {
-            huffman_unp_header::state vertex = tree.vertex[state][value % 4];
-            line.symbol[in_line_ptr] = vertex.value;
-            in_line_ptr += vertex.is_term;
+            huffman_unp_pass_2::state vertex = tree_p2.vertex[state][value % 16];
+            line.symbol[in_line_ptr]     = vertex.values[0];
+            line.symbol[in_line_ptr + 1] = vertex.values[1];
+            in_line_ptr += vertex.count;
             state = vertex.next;
-            value = value >> 2;
+            value = value >> 4;
         }
         if (in_line_ptr >= x_size_in_bytes) [[unlikely]]
         {
