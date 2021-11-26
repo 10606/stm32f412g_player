@@ -230,7 +230,7 @@ pictures/%.rgb565: pictures/%.jpeg
 	magick $< -depth 8 rgb:- | bmp2rgb565 $@
 	
 
-pictures/%.ch565: pictures/%.rgb565
+pictures/%.ch565: pictures/%.rgb565 utilities/huffman_encode/huffman_encode
 	utilities/huffman_encode/huffman_encode $< $@
 
 ALL_PICTURES = pictures/song_0.ch565 pictures/song_1.ch565 pictures/song_2.ch565 pictures/song_3.ch565 pictures/song_4.ch565 pictures/song_5.ch565 pictures/song_6.ch565 pictures/start_0.ch565 pictures/start_1.ch565
@@ -238,7 +238,7 @@ ALL_PICTURES = pictures/song_0.ch565 pictures/song_1.ch565 pictures/song_2.ch565
 pictures/all: $(ALL_PICTURES)
 	cat $^ > $@
 
-src/display/display_picture_offset.cpp: $(ALL_PICTURES)
+src/display/display_picture_offset.cpp: $(ALL_PICTURES) utilities/huffman_encode/huffman_encode utilities/huffman_encode/offset_calculator
 	utilities/huffman_encode/offset_calculator $@ 7 $(ALL_PICTURES)
 
 load_pictures: pictures/all

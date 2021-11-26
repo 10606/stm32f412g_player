@@ -121,6 +121,9 @@ void compress (std::istream & in, std::ostream & out)
     }
     if (huffman_tree.sz % 4 != 0)
         out.put(cur);
+    size_t cur_align = ((huffman_tree.sz + 3) / 4 + alignof(huffman_header) - 1) % alignof(huffman_header) + 1;
+    for (size_t i = cur_align; i != alignof(huffman_header); ++i)
+        out.put(0);
     out.seekp(0);
     out.write(reinterpret_cast <char *> (&huffman_tree), sizeof(huffman_tree));
 }
