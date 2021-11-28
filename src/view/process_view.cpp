@@ -323,6 +323,11 @@ ret_code view::process_center ()
         {
             if (pl.playlist_index != pl_list::max_plb_files)
                 pll.seek(pl.playlist_index);
+            else if (plv.playlist_index != pl_list::max_plb_files)
+            {
+                pll.seek(plv.playlist_index);
+                state = state_t::playlist;
+            }
         }
         audio_ctl->need_redraw = 1;
         break;
