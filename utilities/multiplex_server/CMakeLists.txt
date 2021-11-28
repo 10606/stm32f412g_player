@@ -42,6 +42,7 @@ add_executable(multiplex_server
     src/unix_server_sock.cpp
     src/check_password.cpp
     src/tcp_server_sock.cpp
+    ${player_path}/usb/usb_commands.cpp
     ../ring_buffer/ring_buffer.cpp
     ../sockets/web_socket.cpp
 )

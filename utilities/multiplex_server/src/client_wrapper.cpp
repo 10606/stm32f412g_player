@@ -54,9 +54,7 @@ size_t inc_struct_ptr (char c) noexcept
 
 size_t inc_command_ptr (char c) noexcept
 {
-    if (c == 0x11) [[unlikely]]
-        return 1 + sizeof(find_pattern);
-    return 1;
+    return calc_need_rd(c);
 }
 
 void clients_wrapper_t::unreg (int fd) noexcept

@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include "view.h"
+#include "usb_commands.h"
 
 struct usb_process_t
 {
@@ -13,17 +14,14 @@ struct usb_process_t
     void clear ();
 
 private:
-    uint32_t calc_need_rd (uint8_t first_byte);
     
-    volatile uint8_t buffer[20 + sizeof(find_pattern)];
+    volatile uint8_t buffer[20 + std::max(sizeof(find_pattern), sizeof(position_t))];
     volatile uint32_t start;
     volatile uint32_t end;
     volatile uint32_t end_buf;
     volatile uint32_t need_skip;
     volatile uint32_t need_rd;
     volatile bool has_interrupted;
-    
-    static const uint8_t cmd_find = 0x11;
 };
 
 extern usb_process_t usb_process_v;

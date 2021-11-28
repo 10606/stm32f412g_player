@@ -52,5 +52,10 @@ struct state_info_t
     state_t state;
 };
 
+
+uint32_t calc_need_rd (uint8_t first_byte);
+
+typedef uint32_t position_t;
+
 #endif
 

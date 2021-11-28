@@ -384,3 +384,22 @@ ret_code view::new_song_or_repeat ()
     return 0;
 }
 
+ret_code view::jmp(uint32_t pos)
+{
+    switch (state)
+    {
+    case state_t::pl_list:
+        audio_ctl->need_redraw = 1;
+        pll.seek(pos);
+        return 0;
+        
+    case state_t::playlist:
+        audio_ctl->need_redraw = 1;
+        return plv.value.seek(pos);
+        
+    case state_t::song:
+        return 0;
+    }
+    return 0;
+}
+

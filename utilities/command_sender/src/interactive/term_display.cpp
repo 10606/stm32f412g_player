@@ -150,6 +150,19 @@ void display_search (std::array <std::string, 2> const & value)
     std::cout.flush();
 }
 
+void display_number (position_t value)
+{
+    set_cursor(base::search[0]);
+    if (value != 0)
+    {
+        print_color(color::green);
+        std::cout << value;
+    }
+    for (size_t i = 0; i != 10; ++i)
+        std::cout << ' ';
+    std::cout.flush();
+}
+
 void extract (std::deque <char> & data, state_t & state)
 {
     if (data.empty())

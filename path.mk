@@ -135,6 +135,7 @@ main_sources = $(addprefix src/main/, $(main_sources_))
 # USB
 USB_sources_ = \
 	usb_command_process.cpp \
+	usb_commands.cpp \
 	usbd_cdc_if.c \
 	usbd_conf.c \
 	usbd_desc.c \

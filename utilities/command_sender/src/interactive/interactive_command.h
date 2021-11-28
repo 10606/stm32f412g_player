@@ -31,9 +31,11 @@ const char * const int_command_find_set = "/";
 
 const char * const int_command_set_song = "s";
 
+const char * const int_command_jmp = "gg";
+
 const char * const quit = "q";
 
-std::array <std::string_view, 20> const int_commands =
+std::array <std::string_view, 21> const int_commands =
 {
     "",                     //0x00
 
@@ -62,11 +64,16 @@ std::array <std::string_view, 20> const int_commands =
     int_command_end_pause,  //0x0f
     
     int_command_find_next,  //0x10
-    int_command_find_set,   //0x11
 
-    int_command_set_song, //0x12
+    int_command_set_song, //0x11
+
+    // ---------------------------
     
-    quit                    //0x12
+    int_command_find_set,   //0x12
+    
+    int_command_jmp,        //0x13
+    
+    quit                    //0x14
 };
 
 #endif

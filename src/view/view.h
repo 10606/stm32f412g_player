@@ -67,6 +67,7 @@ struct view
     ret_code prev_song          ();
     ret_code next_song          ();
     ret_code set_next_song      ();
+    ret_code jmp                (uint32_t pos);
 
     ret_code do_nothing         () noexcept; // can use in table of function
     ret_code send_info          () noexcept;

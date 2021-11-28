@@ -105,7 +105,7 @@ BSZ = echo -n "   " && du -b
 # CFLAGS
 #######################################
 # cpu
-CPU = -mcpu=cortex-m4
+CPU = -march=armv7e-m
 
 # fpu
 FPU = -mfpu=fpv4-sp-d16
@@ -233,13 +233,27 @@ pictures/%.rgb565: pictures/%.jpeg
 pictures/%.ch565: pictures/%.rgb565 utilities/huffman_encode/huffman_encode
 	utilities/huffman_encode/huffman_encode $< $@
 
-ALL_PICTURES = pictures/song_0.ch565 pictures/song_1.ch565 pictures/song_2.ch565 pictures/song_3.ch565 pictures/song_4.ch565 pictures/song_5.ch565 pictures/song_6.ch565 pictures/start_0.ch565 pictures/start_1.ch565
+ALL_PICTURES = 	pictures/song_0.ch565 \
+		pictures/song_1.ch565 \
+		pictures/song_2.ch565 \
+		pictures/song_3.ch565 \
+		pictures/song_4.ch565 \
+		pictures/song_5.ch565 \
+		pictures/song_6.ch565 \
+		pictures/start_0.ch565 \
+		pictures/start_1.ch565
 
 pictures/all: $(ALL_PICTURES)
 	cat $^ > $@
 
-src/display/display_picture_offset.cpp: $(ALL_PICTURES) utilities/huffman_encode/huffman_encode utilities/huffman_encode/offset_calculator
+src/display/display_picture_offset.cpp: $(ALL_PICTURES) utilities/huffman_encode/offset_calculator
 	utilities/huffman_encode/offset_calculator $@ 7 $(ALL_PICTURES)
+
+utilities/huffman_encode/huffman_encode: utilities/huffman_encode/huffman_encode.cpp
+	$(MAKE) -C utilities/huffman_encode/
+	
+utilities/huffman_encode/offset_calculator: utilities/huffman_encode/offset_calculator.cpp
+	$(MAKE) -C utilities/huffman_encode/
 
 load_pictures: pictures/all
 	$(LOADER) $<  0x8040000

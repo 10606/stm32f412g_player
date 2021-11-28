@@ -71,7 +71,8 @@ std::vector <std::string> const bad_in_name =
     "(playvk.com)",
     "(44outdoors.com)",
     "(seehall.me)",
-    "(zoop.su)"
+    "(zoop.su)",
+    "(1)"
 };
 
 

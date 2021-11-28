@@ -101,7 +101,7 @@ struct escape_buffer
                     memcpy(pattern.song_name,  song_name.c_str(),  std::min(song_name.size(),  sizeof(find_pattern::song_name)));
                     
                     char pattern_bytes[1 + sizeof(pattern)];
-                    pattern_bytes[0] = 0x11;
+                    pattern_bytes[0] = static_cast <char> (128);
                     memcpy(pattern_bytes + 1, &pattern, sizeof(pattern));
                     
                     if (to_write.empty())
@@ -130,52 +130,88 @@ struct escape_buffer
         cmd_from_stdin.clear();
     }
 
-    void is_in_expected ()
+    bool is_in_expected ()
     {
         if (finder.need_continue)
         {
             search_input();
-            return;
+            return !finder.need_continue;
+        }
+        
+        
+        std::deque <char> ::iterator it = cmd_from_stdin.begin();
+        for (; it != cmd_from_stdin.end(); ++it)
+        {
+            if ((*it < '0') || (*it > '9'))
+                break;
+            number = (number * 10 + (*it - '0')) % 1000000000;
         }
         
         bool has_continue = 0;
         for (unsigned char i = 1; i != int_commands.size(); ++i)
         {
             std::pair <std::deque <char> ::iterator, std::string_view::iterator> pos = 
-                std::mismatch(cmd_from_stdin.begin(), cmd_from_stdin.end(),
+                std::mismatch(it, cmd_from_stdin.end(),
                               int_commands[i].begin(), int_commands[i].end());
             if (pos.second == int_commands[i].end())
             {
-                cmd_from_stdin.erase(cmd_from_stdin.begin(), pos.first);
+                it = pos.first;
                 
                 if (int_commands[i] == quit) 
                 {
                     cl_term();
                     std::exit(0);
                 }
-                else if (i == 0x11) // int_command_find_set
+                else if (i >= 0x12) // command with args
                 {
-                    finder.need_continue = 1;
-                    return;
+                    if (i == 0x12)
+                    {
+                        finder.need_continue = 1;
+                        number = 0;
+                        cmd_from_stdin.erase(cmd_from_stdin.begin(), it);
+                        search_input();
+                        return !finder.need_continue;
+                    }
+                    else if (i == 0x13)
+                    {
+                        char cmd_bytes[1 + sizeof(position_t)];
+                        cmd_bytes[0] = static_cast <char> (128 + i - 0x12);
+                        memcpy(cmd_bytes + 1, &number, sizeof(position_t));
+
+                        if (to_write.empty())
+                            epoll.reg(fd, EPOLLIN | EPOLLOUT);
+                        to_write += std::string(cmd_bytes, sizeof(cmd_bytes));
+
+                        number = 0;
+                        continue;
+                    }
                 }
                 
                 if (to_write.empty())
                     epoll.reg(fd, EPOLLIN | EPOLLOUT);
                 to_write.push_back(i);
-                has_continue = 1;
+                number = 0;
             }
             if (pos.first == cmd_from_stdin.end())
                 has_continue = 1;
         }
         
-        if (!has_continue)
+        cmd_from_stdin.erase(cmd_from_stdin.begin(), it);
+        if (!has_continue && !cmd_from_stdin.empty())
+        {
             cmd_from_stdin.pop_front();
+            number = 0;
+            display_number(number);
+            return 1;
+        }
+        display_number(number);
+        return 0;
     }
     
     void put (char c)
     {
         cmd_from_stdin.push_back(c);
-        is_in_expected();
+        while (is_in_expected());
     }
 
     void process ()
@@ -243,6 +279,7 @@ struct escape_buffer
     
     int fd;
     long_command finder;
+    position_t number = 0;
     epoll_wraper epoll;
     std::deque <char> cmd_from_stdin;
     std::deque <char> info_from_stm;
