@@ -73,6 +73,18 @@ struct escape_buffer
     escape_buffer & operator = (escape_buffer &&) = delete;
     escape_buffer & operator = (escape_buffer const &) = delete;
     
+    template <typename T>
+    void add_packet (uint8_t header, T value)
+    {
+        char cmd_bytes[sizeof(header) + sizeof(value)];
+        memcpy(cmd_bytes, &header, sizeof(header));
+        memcpy(cmd_bytes + sizeof(header), &value, sizeof(value));
+
+        if (to_write.empty())
+            epoll.reg(fd, EPOLLIN | EPOLLOUT);
+        to_write += std::string(cmd_bytes, sizeof(cmd_bytes));
+    }
+    
     void search_input ()
     {
         for (size_t i = 0; i != cmd_from_stdin.size(); ++i)
@@ -100,13 +112,7 @@ struct escape_buffer
                     memcpy(pattern.group_name, group_name.c_str(), std::min(group_name.size(), sizeof(find_pattern::group_name)));
                     memcpy(pattern.song_name,  song_name.c_str(),  std::min(song_name.size(),  sizeof(find_pattern::song_name)));
                     
-                    char pattern_bytes[1 + sizeof(pattern)];
-                    pattern_bytes[0] = static_cast <char> (128);
-                    memcpy(pattern_bytes + 1, &pattern, sizeof(pattern));
-                    
-                    if (to_write.empty())
-                        epoll.reg(fd, EPOLLIN | EPOLLOUT);
-                    to_write += std::string(pattern_bytes, sizeof(pattern_bytes));
+                    add_packet <find_pattern> (128, pattern);
 
                     finder.pattern[0].clear();
                     finder.pattern[1].clear();
@@ -138,18 +144,22 @@ struct escape_buffer
             return !finder.need_continue;
         }
         
-        
         std::deque <char> ::iterator it = cmd_from_stdin.begin();
         for (; it != cmd_from_stdin.end(); ++it)
         {
             if ((*it < '0') || (*it > '9'))
                 break;
-            number = (number * 10 + (*it - '0')) % 1000000000;
+            static const position_t mod = 100000000;
+            number %= mod;
+            number = number * 10 + (*it - '0');
         }
         
         bool has_continue = 0;
         for (unsigned char i = 1; i != int_commands.size(); ++i)
         {
+            if (it == cmd_from_stdin.end())
+                break;
+            
             std::pair <std::deque <char> ::iterator, std::string_view::iterator> pos = 
                 std::mismatch(it, cmd_from_stdin.end(),
                               int_commands[i].begin(), int_commands[i].end());
@@ -174,26 +184,24 @@ struct escape_buffer
                     }
                     else if (i == 0x13)
                     {
-                        char cmd_bytes[1 + sizeof(position_t)];
-                        cmd_bytes[0] = static_cast <char> (128 + i - 0x12);
-                        memcpy(cmd_bytes + 1, &number, sizeof(position_t));
-
-                        if (to_write.empty())
-                            epoll.reg(fd, EPOLLIN | EPOLLOUT);
-                        to_write += std::string(cmd_bytes, sizeof(cmd_bytes));
-
+                        add_packet <position_t> (128 + i - 0x12, number);
                         number = 0;
-                        continue;
                     }
                 }
-                
-                if (to_write.empty())
-                    epoll.reg(fd, EPOLLIN | EPOLLOUT);
-                to_write.push_back(i);
-                number = 0;
+                else
+                {
+                    if (to_write.empty())
+                        epoll.reg(fd, EPOLLIN | EPOLLOUT);
+                    to_write.push_back(i);
+                    number = 0;
+                    --i;
+                }
             }
             if (pos.first == cmd_from_stdin.end())
+            {
                 has_continue = 1;
+                break;
+            }
         }
         
         cmd_from_stdin.erase(cmd_from_stdin.begin(), it);
@@ -208,9 +216,9 @@ struct escape_buffer
         return 0;
     }
     
-    void put (char c)
+    void put (std::string_view c)
     {
-        cmd_from_stdin.push_back(c);
+        cmd_from_stdin.insert(cmd_from_stdin.end(), c.begin(), c.end());
         while (is_in_expected());
     }
 
@@ -257,10 +265,10 @@ struct escape_buffer
             }
             if ((event.mask & EPOLLIN) && event.fd == STDIN_FILENO)
             {
-                char ch;
-                ssize_t ret = read(STDIN_FILENO, &ch, 1);
-                if (ret == 1)
-                    put(ch);
+                char buffer[10];
+                ssize_t ret = read(STDIN_FILENO, &buffer, sizeof(buffer));
+                if (ret > 0)
+                    put(std::string_view (buffer, ret));
             }
             if ((event.mask & EPOLLHUP) || 
                 (event.mask & EPOLLRDHUP) || 

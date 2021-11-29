@@ -143,7 +143,7 @@ void display_search (std::array <std::string, 2> const & value)
         set_cursor(base::search[i]);
         print_color(line_color[i]);
         std::cout << value[i];
-        for (size_t j = value[i].size(); j < prev_size[i] + 5; ++j)
+        for (size_t j = value[i].size(); j < prev_size[i] + 10; ++j)
             std::cout  << ' ';
         prev_size[i] = value[i].size();
     }
