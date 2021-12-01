@@ -121,7 +121,7 @@ MCU = $(CPU) -mthumb $(FPU) $(FLOAT-ABI)
 # compile gcc flags
 ASFLAGS = $(MCU) $(AS_DEFS) $(AS_INCLUDES) $(OPT) -Os -Wall -fdata-sections -ffunction-sections
 
-CFLAGS = $(MCU) $(C_DEFS) $(C_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections -fno-exceptions
+CFLAGS = $(MCU) $(C_DEFS) $(C_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections -fno-exceptions --pedantic
 
 ifeq ($(DEBUG), 1)
 CFLAGS += -g -gdwarf-2

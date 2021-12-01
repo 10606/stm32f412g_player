@@ -92,19 +92,15 @@ void display_picture
     
     // wrong picture record
     {
-        uint8_t * end_of_flash = reinterpret_cast <uint8_t *> (0x8100000);
+        uint8_t const * end_of_flash = reinterpret_cast <uint8_t const *> (0x8100000);
         uint32_t sz_in_bytes = (size + 3) / 4;
         if ((picture + sz_in_bytes > end_of_flash) || (picture + sz_in_bytes < picture))
             size = (end_of_flash - picture) * 4;
     }
  
-    typedef union 
-    {
-        uint8_t symbol[2 * 240 + 8];
-        uint16_t pixel[240];
-    } symbol_pixel_t;
+    uint16_t pixel[240 + 4];
+    uint8_t * symbol = reinterpret_cast <uint8_t *> (pixel);
     
-    symbol_pixel_t line;
     uint32_t in_line_ptr = 0;
     uint32_t x_size_in_bytes = 2 * x_size;
     
@@ -117,17 +113,17 @@ void display_picture
         for (size_t j = 0; j != 2; ++j)
         {
             huffman_unp_pass_2::state vertex = tree_p2.vertex[state][value % 16];
-            line.symbol[in_line_ptr]     = vertex.values[0];
-            line.symbol[in_line_ptr + 1] = vertex.values[1];
+            symbol[in_line_ptr]     = vertex.values[0];
+            symbol[in_line_ptr + 1] = vertex.values[1];
             in_line_ptr += vertex.count;
             state = vertex.next;
             value = value >> 4;
         }
         if (in_line_ptr >= x_size_in_bytes) [[unlikely]]
         {
-            if (write_region(line.pixel)) [[unlikely]]
+            if (write_region(pixel)) [[unlikely]]
                 return;
-            memmove(line.symbol, line.symbol + x_size_in_bytes, in_line_ptr - x_size_in_bytes);
+            memmove(symbol, symbol + x_size_in_bytes, in_line_ptr - x_size_in_bytes);
             in_line_ptr -= x_size_in_bytes;
         }
     }
@@ -136,14 +132,14 @@ void display_picture
     for (size_t j = 0; j != (size % 4); ++j)
     {
         huffman_unp_header::state vertex = tree->vertex[state][value % 4];
-        line.symbol[in_line_ptr] = vertex.value;
+        symbol[in_line_ptr] = vertex.value;
         in_line_ptr += vertex.is_term;
         state = vertex.next;
         value = value >> 2;
         
         if (in_line_ptr == x_size_in_bytes)
         {
-            if (write_region(line.pixel)) [[likely]]
+            if (write_region(pixel)) [[likely]]
                 return;
             in_line_ptr = 0;
         }

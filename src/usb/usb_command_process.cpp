@@ -77,7 +77,7 @@ ret_code usb_process_t::usb_process (view * vv)
         else if (command >= 128 &&
                  static_cast <size_t> (command - 128) < std::extent_v <decltype(process_view_do_arg)>) [[likely]]
         {
-            uint8_t cmd_data[calc_need_rd(command) - 1];
+            uint8_t cmd_data[max_struct_size];
             for (uint32_t i = 0; i != calc_need_rd(command) - 1; ++i)
                 cmd_data[i] = buffer[(start + i + 1) % mod];
             

@@ -14,8 +14,9 @@ struct usb_process_t
     void clear ();
 
 private:
+    static uint32_t const constexpr max_struct_size = std::max(sizeof(find_pattern), sizeof(position_t)); 
     
-    volatile uint8_t buffer[20 + std::max(sizeof(find_pattern), sizeof(position_t))];
+    volatile uint8_t buffer[20 + max_struct_size];
     volatile uint32_t start;
     volatile uint32_t end;
     volatile uint32_t end_buf;

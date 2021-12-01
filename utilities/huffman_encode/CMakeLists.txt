@@ -3,12 +3,12 @@ cmake_minimum_required(VERSION 3.0)
 project(huffman_encode VERSION 1.0 LANGUAGES C CXX)
 
 set(release_flags
-    "-Os -flto -march=native -Wall -ftemplate-depth=10000 -std=c++20 -DNDEBUG"
+    "-Os --pedantic -flto -march=native -Wall -ftemplate-depth=10000 -std=c++20 -DNDEBUG"
 )
 
 set(compile_flags "-fsanitize=address -fsanitize=leak -fsanitize=undefined \
--fdiagnostics-color=always -fdiagnostics-generate-patch \
--g -Wall -ftemplate-depth=10000 -std=c++20"
+                    -fdiagnostics-color=always -fdiagnostics-generate-patch \
+                    --pedantic -g -Wall -ftemplate-depth=10000 -std=c++20"
 )
 
 set(root_code_path
