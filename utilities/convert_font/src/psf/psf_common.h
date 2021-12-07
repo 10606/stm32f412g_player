@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <map>
+#include <unordered_map>
 #include <vector>
 #include <sstream>
 
@@ -51,16 +52,16 @@ protected:
     virtual uint32_t font_width () const noexcept = 0;
     virtual uint32_t font_height () const noexcept = 0;
     
-    virtual std::map <uint32_t, uint32_t> read_map () = 0; /* symbol -> offset in file */
+    virtual std::unordered_map <uint32_t, uint32_t> read_map () = 0; /* symbol -> offset in file */
     
-    std::map <uint32_t, uint32_t> empty_map 
+    std::unordered_map <uint32_t, uint32_t> empty_map 
     (
         uint32_t header_size, 
         uint32_t bytes_per_symbol, 
         uint32_t font_size
     ) /* symbol -> offset in file */
     {
-        std::map <uint32_t, uint32_t> ans;
+        std::unordered_map <uint32_t, uint32_t> ans;
         for (uint32_t i = 0, offset = header_size; (i != font_size) && (i != 128); ++i, offset += bytes_per_symbol)
             ans.insert({i, offset});
         return ans;

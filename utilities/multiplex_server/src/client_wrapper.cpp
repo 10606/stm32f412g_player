@@ -61,7 +61,7 @@ void clients_wrapper_t::unreg (int fd) noexcept
 {
     try
     {
-        std::map <int, client_data_t> :: iterator it = pointers.find(fd);
+        pointers_it_t it = pointers.find(fd);
         if (it == pointers.end())
             return;
         less_size.erase({it->second.pointer, it->first});
@@ -102,7 +102,7 @@ void clients_wrapper_t::shrink_to_fit ()
 
 void clients_wrapper_t::write (int fd)
 {
-    std::map <int, client_data_t> :: iterator it = pointers.find(fd);
+    pointers_it_t it = pointers.find(fd);
     if (it == pointers.end())
         throw std::runtime_error("write unknown fd");
     size_t wb = data.write(*it->second.socket, it->second.pointer);
@@ -119,7 +119,7 @@ void clients_wrapper_t::write (int fd)
 
 std::string clients_wrapper_t::read (int fd)
 {
-    std::map <int, client_data_t> :: iterator it = pointers.find(fd);
+    pointers_it_t it = pointers.find(fd);
     if (it == pointers.end())
         throw std::runtime_error("read for unknown fd");
     

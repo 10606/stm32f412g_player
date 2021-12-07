@@ -59,7 +59,7 @@ private:
     };
     
     typedef typename std::list <pass_check_with_time> :: iterator list_it_t;
-    typedef typename std::map <int, list_it_t> :: iterator map_it_t;
+    typedef typename std::unordered_map <int, list_it_t> :: iterator map_it_t;
     
     void remove (map_it_t it) noexcept
     {
@@ -71,7 +71,7 @@ private:
     
     epoll_wraper & epoll;
     std::list <pass_check_with_time> clients;
-    std::map <int, list_it_t> pointers;
+    std::unordered_map <int, list_it_t> pointers;
     
     static const size_t max_clients = 100;
 };

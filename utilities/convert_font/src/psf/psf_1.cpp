@@ -13,13 +13,13 @@ psf_1_t::psf_1_t (std::ifstream && _psf_file, std::ofstream && _header_file) :
     has_table = (psf_1_header.file_mode & 2);
 }
 
-std::map <uint32_t, uint32_t> psf_1_t::read_map () /* symbol -> offset in file */
+std::unordered_map <uint32_t, uint32_t> psf_1_t::read_map () /* symbol -> offset in file */
 {
     uint32_t header_size = sizeof(psf_1_header_t) + 2;
     if (!has_table)
         return empty_map(header_size, height, font_size);
     
-    std::map <uint32_t, uint32_t> ans;
+    std::unordered_map <uint32_t, uint32_t> ans;
     psf_file.seekg(header_size + height * font_size);
     
     for (uint32_t index = header_size, i = 0; i != font_size; )

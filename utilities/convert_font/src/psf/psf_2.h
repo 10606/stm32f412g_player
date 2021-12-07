@@ -52,7 +52,7 @@ protected:
         return height;
     }
     
-    virtual std::map <uint32_t, uint32_t> read_map (); /* symbol -> offset in file */
+    virtual std::unordered_map <uint32_t, uint32_t> read_map (); /* symbol -> offset in file */
 };
 
 

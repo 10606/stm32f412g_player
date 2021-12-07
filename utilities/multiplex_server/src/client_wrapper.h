@@ -4,6 +4,7 @@
 #include <sys/epoll.h>
 #include <map>
 #include <set>
+#include <unordered_set>
 #include <string>
 #include <string_view>
 
@@ -31,7 +32,7 @@ struct clients_wrapper_t
     
     bool have (int fd) const noexcept
     {
-        std::map <int, client_data_t> :: const_iterator it = pointers.find(fd);
+        std::unordered_map <int, client_data_t> :: const_iterator it = pointers.find(fd);
         return (it != pointers.end());
     }
 
@@ -91,9 +92,11 @@ private:
         std::string readed_data;
     };
     
-    std::map <int, client_data_t> pointers; // fd -> socket, offset
+    std::unordered_map <int, client_data_t> pointers; // fd -> socket, offset
+    typedef std::unordered_map <int, client_data_t> :: iterator pointers_it_t;
+
     std::set <client_pos> less_size; // <offset, fd>
-    std::set <int> not_registred; // not registred fd on write in epoll
+    std::unordered_set <int> not_registred; // not registred fd on write in epoll
 };
 
 

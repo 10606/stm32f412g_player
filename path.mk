@@ -1,4 +1,6 @@
 
+include settings.mk
+
 #######################################
 # source paths
 root = ../../..
@@ -152,6 +154,13 @@ display_sources_ = \
 	display_picture.cpp \
 	display_picture_offset.cpp \
 	display_common.cpp
+
+ifeq ($(compress), huffman)
+display_sources_ += display_picture_huffman.cpp
+else
+display_sources_ += display_picture_lz4.cpp
+endif
+
 display_sources = $(addprefix src/display/, $(display_sources_))
 
 # playlist

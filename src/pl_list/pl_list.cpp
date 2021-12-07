@@ -96,7 +96,7 @@ ret_code pl_list::open_index (playlist_view & plv, uint32_t index, uint32_t & se
     if (selected_pl == index)
         return 0;
     filename_t old_path;
-    memmove(old_path, root_path[path_len - 1], sizeof(filename_t));
+    memcpy(old_path, root_path[path_len - 1], sizeof(filename_t));
     memcpy(root_path[path_len - 1], pl_path[index], sizeof(filename_t));
     ret_code ret = plv.open_playlist(root_path, path_len);
     if (ret)

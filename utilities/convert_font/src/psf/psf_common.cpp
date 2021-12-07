@@ -49,13 +49,13 @@ std::ostream & print_ascii_art (std::ostream & s, char c)
 
 void psf_t::write_font (std::array <uint32_t, 256> const & symbols)
 {
-    std::map <uint32_t, uint32_t> char_map = read_map();
+    std::unordered_map <uint32_t, uint32_t> char_map = read_map();
     print_header(header_file, fonst_name());
 
     for (uint32_t symbol : symbols)
     {
         header_file << "// 0x" << std::hex << symbol << std::dec;
-        std::map <uint32_t, uint32_t> :: iterator it = char_map.find(symbol);
+        std::unordered_map <uint32_t, uint32_t> :: iterator it = char_map.find(symbol);
         if (it == char_map.end())
         {
             header_file << "  ((\n";

@@ -46,12 +46,12 @@ void ring_buffer::realloc (size_t size_diff)
     size_t head = capacity - begin_v;
     if (size_v > head)
     {
-        memmove(new_data, data.get() + begin_v, head);
-        memmove(new_data + head, data.get(), size_v - head);
+        memcpy(new_data, data.get() + begin_v, head);
+        memcpy(new_data + head, data.get(), size_v - head);
     }
     else
     {
-        memmove(new_data, data.get() + begin_v, size_v);
+        memcpy(new_data, data.get() + begin_v, size_v);
     }
     
     begin_v = 0;

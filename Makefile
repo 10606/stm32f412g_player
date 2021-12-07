@@ -10,6 +10,8 @@
 #   2015-07-22 - first version
 # ------------------------------------------------
 
+include settings.mk
+
 ######################################
 # target
 ######################################
@@ -20,7 +22,8 @@ TARGET = f412g_2
 # make sources
 make_files = \
 	Makefile \
-	path.mk
+	path.mk \
+	settings.mk
 
 ######################################
 # building variables
@@ -162,7 +165,10 @@ vpath %.s $(sort $(dir $(ASM_SOURCES)))
 $(BUILD_DIR)/%.o: %.cpp $(make_files) | $(BUILD_DIR) 
 	$(PP) -c $(CFLAGS) -Os -std=c++20 -fno-rtti -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.cpp=.lst)) $< -o $@
 
-$(BUILD_DIR)/display_picture.o: display_picture.cpp $(make_files) | $(BUILD_DIR) 
+$(BUILD_DIR)/display_picture_huffman.o: display_picture_huffman.cpp $(make_files) | $(BUILD_DIR) 
+	$(PP) -c $(CFLAGS) -O3 -std=c++20 -fno-rtti -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.cpp=.lst)) $< -o $@
+	
+$(BUILD_DIR)/display_picture_lz4.o: display_picture_lz4.cpp $(make_files) | $(BUILD_DIR) 
 	$(PP) -c $(CFLAGS) -O3 -std=c++20 -fno-rtti -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.cpp=.lst)) $< -o $@
 	
 $(BUILD_DIR)/find_song.o: find_song.cpp $(make_files) | $(BUILD_DIR) 
@@ -228,10 +234,15 @@ pictures/%.rgb565: pictures/%.jpg
 	
 pictures/%.rgb565: pictures/%.jpeg
 	magick $< -depth 8 rgb:- | bmp2rgb565 $@
-	
 
-pictures/%.ch565: pictures/%.rgb565 utilities/huffman_encode/huffman_encode
-	utilities/huffman_encode/huffman_encode $< $@
+ifeq ($(compress), huffman)
+COMPRESSING = huffman_encode
+else
+COMPRESSING = lz4_encode
+endif
+
+pictures/%.ch565: pictures/%.rgb565 utilities/huffman_encode/$(COMPRESSING) $(make_files)
+	utilities/huffman_encode/$(COMPRESSING) $< $@
 
 ALL_PICTURES = 	pictures/song_0.ch565 \
 		pictures/song_1.ch565 \
@@ -240,16 +251,21 @@ ALL_PICTURES = 	pictures/song_0.ch565 \
 		pictures/song_4.ch565 \
 		pictures/song_5.ch565 \
 		pictures/song_6.ch565 \
+		pictures/song_7.ch565 \
+		pictures/song_8.ch565 \
 		pictures/start_0.ch565 \
 		pictures/start_1.ch565
 
 pictures/all: $(ALL_PICTURES)
 	cat $^ > $@
 
-src/display/display_picture_offset.cpp: $(ALL_PICTURES) utilities/huffman_encode/offset_calculator
-	utilities/huffman_encode/offset_calculator $@ 7 $(ALL_PICTURES)
+src/display/display_picture_offset.cpp: $(ALL_PICTURES) utilities/huffman_encode/offset_calculator $(make_files)
+	utilities/huffman_encode/offset_calculator $@ 9 $(ALL_PICTURES)
 
 utilities/huffman_encode/huffman_encode: utilities/huffman_encode/huffman_encode.cpp
+	$(MAKE) -C utilities/huffman_encode/
+	
+utilities/huffman_encode/lz4_encode: utilities/huffman_encode/lz4_encode.cpp
 	$(MAKE) -C utilities/huffman_encode/
 	
 utilities/huffman_encode/offset_calculator: utilities/huffman_encode/offset_calculator.cpp

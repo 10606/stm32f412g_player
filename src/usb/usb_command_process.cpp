@@ -11,7 +11,7 @@ template <typename T, ret_code (view::* func) (T)>
 ret_code just_do_this (view * vv, uint8_t * data)
 {
     std::decay_t <T> value;
-    memmove(&value, data, sizeof(value));
+    memcpy(&value, data, sizeof(value));
     return (vv->*func)(value);
 };
 

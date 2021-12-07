@@ -21,14 +21,14 @@ psf_2_t::psf_2_t (std::ifstream && _psf_file, std::ofstream && _header_file) :
     header_size = psf_2_header.header_size;
 }
 
-std::map <uint32_t, uint32_t> psf_2_t::read_map () /* symbol -> offset in file */
+std::unordered_map <uint32_t, uint32_t> psf_2_t::read_map () /* symbol -> offset in file */
 {
     if (!has_table)
         return empty_map(header_size, bytes_per_symbol, font_size);
     
     psf_file.seekg(header_size + bytes_per_symbol * font_size);
     
-    std::map <uint32_t, uint32_t> ans;
+    std::unordered_map <uint32_t, uint32_t> ans;
     utf8_automat aut;
     
     for (uint32_t index = header_size, i = 0; i != font_size; )

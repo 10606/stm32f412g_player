@@ -66,9 +66,9 @@ void fill_char_set (std::array <uint32_t, 256> & char_set) noexcept
     std::copy(tail.begin(), tail.end(), char_set.end() - tail.size());
 }
 
-std::map <uint32_t, uint8_t> rev_char_map (std::array <uint32_t, 256> const & char_set)
+std::unordered_map <uint32_t, uint8_t> rev_char_map (std::array <uint32_t, 256> const & char_set)
 {
-    std::map <uint32_t, uint8_t> ans;
+    std::unordered_map <uint32_t, uint8_t> ans;
     uint8_t index = 0;
     do
     {
@@ -79,7 +79,7 @@ std::map <uint32_t, uint8_t> rev_char_map (std::array <uint32_t, 256> const & ch
     return ans;
 }
 
-std::map <uint32_t, uint8_t> fill_rev_char_map ()
+std::unordered_map <uint32_t, uint8_t> fill_rev_char_map ()
 {
     std::array <uint32_t, 256> char_set;
     fill_char_set(char_set);

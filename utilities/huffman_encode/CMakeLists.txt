@@ -18,7 +18,7 @@ set(player_path
     ${root_code_path}/stm32/stm32cubemx/f412g_player/src/
 )
 
-set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${compile_flags}")
+set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${release_flags}")
 
 message("CMAKE_CXX_FLAGS" ${CMAKE_CXX_FLAGS})
 
@@ -26,6 +26,7 @@ include_directories(
     ./
     ${player_path}/pictures
 )
+
 
 add_executable(huffman_encode
     huffman_encode.cpp
@@ -36,6 +37,11 @@ add_executable(huffman_encode
 #    -static-libstdc++    
 #    -static-libgcc
 #)
+
+
+add_executable(lz4_encode
+    lz4_encode.cpp
+)
 
 
 add_executable(offset_calculator
