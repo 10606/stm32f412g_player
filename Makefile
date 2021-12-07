@@ -169,7 +169,7 @@ $(BUILD_DIR)/display_picture_huffman.o: display_picture_huffman.cpp $(make_files
 	$(PP) -c $(CFLAGS) -O3 -std=c++20 -fno-rtti -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.cpp=.lst)) $< -o $@
 	
 $(BUILD_DIR)/display_picture_lz4.o: display_picture_lz4.cpp $(make_files) | $(BUILD_DIR) 
-	$(PP) -c $(CFLAGS) -O3 -std=c++20 -fno-rtti -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.cpp=.lst)) $< -o $@
+	$(PP) -c $(CFLAGS) -O2 -std=c++20 -fno-rtti -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.cpp=.lst)) $< -o $@
 	
 $(BUILD_DIR)/find_song.o: find_song.cpp $(make_files) | $(BUILD_DIR) 
 	$(PP) -c $(CFLAGS) -O3 -std=c++20 -fno-rtti -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.cpp=.lst)) $< -o $@

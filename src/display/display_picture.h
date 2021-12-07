@@ -48,8 +48,6 @@ private:
 
 extern picture_info_t picture_info;
 
-// it was lambda 
-//  but i don't want to inline it
 struct write_region_t
 {
     write_region_t 
@@ -68,6 +66,7 @@ struct write_region_t
         p_old_size(0)
     {}
     
+    // i don't want to inline it
     __attribute__((noinline))
     bool operator () (uint16_t const * line);
     
