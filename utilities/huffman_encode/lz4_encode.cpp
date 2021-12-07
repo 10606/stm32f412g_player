@@ -8,6 +8,7 @@ struct lz4_header
 
 void compress (std::istream & in, std::ostream & out)
 {
+    size_t cnt = 0;
     while (in)
     {
         char buff[240 * sizeof(uint16_t) * 5];
@@ -15,12 +16,12 @@ void compress (std::istream & in, std::ostream & out)
         in.read(buff, sizeof(buff));
         size_t rb = in.gcount();
         
-        std::pair <lz4_header, size_t> best[std::extent_v <decltype(buff)> + 1];
-        best[rb] = {{1, 0}, 0};
+        std::pair <lz4_header, std::pair <size_t, size_t> > best[std::extent_v <decltype(buff)> + 1];
+        best[rb] = {{1, 0}, {0, 0}};
         
         for (size_t pos = rb; pos--; )
         {
-            best[pos] = {{1, 1}, 2 + best[pos + 1].second};
+            best[pos] = {{1, 1}, {2 + best[pos + 1].second.first, 1 + best[pos + 1].second.second}};
             for (uint8_t size = 1; (size != 16) && (pos + size < rb); ++size)
             {
                 uint8_t repeat;
@@ -41,9 +42,11 @@ void compress (std::istream & in, std::ostream & out)
                         break;
                 }
             
-                size_t cur_size = 1 + size + best[pos + size * repeat].second;
-                if (best[pos].second > cur_size)
-                    best[pos] = {{repeat, size}, cur_size};
+                std::pair <size_t, size_t> ans = 
+                    {1 + size + best[pos + size * repeat].second.first,
+                     1 + best[pos + size * repeat].second.second};
+                if (best[pos].second >= ans)
+                    best[pos] = {{repeat, size}, ans};
             }
         }
         
@@ -53,8 +56,10 @@ void compress (std::istream & in, std::ostream & out)
             out.write(reinterpret_cast <char *> (&cur), sizeof(cur));
             out.write(buff + pos, cur.size);
             pos += cur.size * cur.repeat;
+            cnt++;
         }
     }
+    std::cout << "block count: " << cnt << '\n';
 }
 
 void decompress (std::istream & in, std::ostream & out)
