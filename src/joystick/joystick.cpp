@@ -32,7 +32,7 @@ void joystick_state_t::check_buttons ()
 
 bool joystick_state_t::check_button_state (uint32_t joy_button)
 {
-    static uint8_t const cost[] = {1, 12, 1}; // first second next
+    static uint8_t const cost[] = {1, 16, 1}; // first second next
     static uint32_t const count = std::extent_v <decltype(cost)>; 
     
     bool ans = pressed[joy_button] && 
@@ -86,7 +86,7 @@ void joystick_state_t::on_timer ()
 {
     for (uint32_t i = 0; i != joystick_states_cnt; ++i)
     {
-        if (time[i] < 12)
+        if (time[i] < 16)
             time[i] = time[i] + 1;
     }
 }

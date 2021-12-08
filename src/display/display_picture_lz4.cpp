@@ -23,7 +23,7 @@ void display_picture
     static constexpr uint32_t parts = 5;
     uint32_t const p_size = (size.second + parts - 1) / parts;
     
-    uint16_t pixel[240 * 5];
+    uint16_t pixel[240 * 5 + 16];
     char * buff = reinterpret_cast <char *> (pixel);
     uint16_t old_line[240];
     uint32_t tail = 0;
@@ -41,22 +41,22 @@ void display_picture
         uint32_t cur_size = cur.size;
         uint32_t cur_repeat = cur.repeat;
         picture++;
-    
-        for (uint32_t j = 0; j != cur_size; ++j)
-            buff[position + j] = *(picture++);
+ 
+        memcpy(buff + position, picture, 16);
+        picture += cur_size;
         
         for (uint32_t i = 1; i < cur_repeat; ++i)
-            for (uint32_t j = 0; j != cur_size; ++j)
-                buff[position + i * cur_size + j] = buff[position + j];
+            memcpy(buff + position + i * cur_size, buff + position, 16);
         position += cur_size * cur_repeat;
         
-        if ((position == sizeof(pixel)) ||
+        if ((position == sizeof(pixel) - 16 * sizeof(uint16_t)) ||
             (position == picture_size_in_bytes)) [[unlikely]]
         {
             uint32_t pixel_end = position / sizeof(uint16_t);
             
             uint32_t index;
-            if (tail) 
+            if ((size.first != 240) &&
+                (tail)) [[unlikely]]
             {
                 index = size.first - tail;
                 memcpy(old_line + tail, pixel, index);
@@ -70,7 +70,8 @@ void display_picture
                 if (write_region(pixel + index)) [[unlikely]]
                     return;
             
-            if (index + size.first != pixel_end)
+            if ((size.first != 240) && 
+                (index != pixel_end)) [[unlikely]]
             {
                 tail = pixel_end - index;
                 memcpy(old_line, pixel + index, tail);
@@ -81,7 +82,7 @@ void display_picture
             picture_size_in_bytes -= position;
             position = 0;
 
-            if (picture_size_in_bytes == 0)
+            if (picture_size_in_bytes == 0) [[unlikely]]
                 return;
         }
     }

@@ -146,7 +146,7 @@ ret_code view::next_song ()
 
 ret_code view::set_next_song ()
 {
-    if (state != state_t::playlist)
+    if (state == state_t::pl_list)
         return 0;
 
     playlist old_pl(std::move(next_playlist.value));
