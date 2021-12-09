@@ -42,11 +42,24 @@ void display_picture
         uint32_t cur_repeat = cur.repeat;
         picture++;
  
-        memcpy(buff + position, picture, 16);
+        memcpy(buff + position, picture, 4);
+        if (cur_size > 4)
+            memcpy(buff + position + 4, picture + 4, 12);
         picture += cur_size;
         
-        for (uint32_t i = 1; i < cur_repeat; ++i)
-            memcpy(buff + position + i * cur_size, buff + position, 16);
+        if (cur_size <= 4) 
+        {
+            memcpy(buff + position + cur_size, buff + position, 4);
+            memcpy(buff + position + 2 * cur_size, buff + position, 8);
+            for (uint32_t i = 4; i < cur_repeat; i += 4)
+                memcpy(buff + position + i * cur_size, buff + position, 16);
+        }
+        else
+        {
+            for (uint32_t i = 1; i < cur_repeat; ++i)
+                memcpy(buff + position + i * cur_size, buff + position, 16);
+        }
+        
         position += cur_size * cur_repeat;
         
         if ((position == sizeof(pixel) - 16 * sizeof(uint16_t)) ||

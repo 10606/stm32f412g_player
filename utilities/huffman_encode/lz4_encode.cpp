@@ -9,6 +9,9 @@ struct lz4_header
 void compress (std::istream & in, std::ostream & out)
 {
     size_t cnt = 0;
+    size_t cnt_size[3] = {};
+    size_t rep_size[3] = {};
+    
     while (in)
     {
         char buff[240 * sizeof(uint16_t) * 5];
@@ -56,10 +59,28 @@ void compress (std::istream & in, std::ostream & out)
             out.write(reinterpret_cast <char *> (&cur), sizeof(cur));
             out.write(buff + pos, cur.size);
             pos += cur.size * cur.repeat;
+            
             cnt++;
+            if (cur.size <= 4)
+            {
+                cnt_size[0]++;
+                rep_size[0] += cur.repeat;
+            }
+            else if (cur.size <= 8)
+            {
+                cnt_size[1]++;
+                rep_size[1] += cur.repeat;
+            }
+            else 
+            {
+                cnt_size[2]++;
+                rep_size[2] += cur.repeat;
+            }
         }
     }
-    std::cout << "block count: " << cnt << '\n';
+    std::cout << "block  count: " << cnt << '\n';
+    std::cout << "sizes  (4 8): " << cnt_size[0] << ' ' << cnt_size[1] << ' ' << cnt_size[2] << '\n';
+    std::cout << "repeat (4 8): " << rep_size[0] << ' ' << rep_size[1] << ' ' << rep_size[2] << '\n';
 }
 
 void decompress (std::istream & in, std::ostream & out)
