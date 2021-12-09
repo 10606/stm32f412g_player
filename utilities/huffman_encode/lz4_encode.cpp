@@ -1,5 +1,7 @@
 #include <iostream>
 #include <fstream>
+#include <iterator>
+#include <bit>
 
 struct lz4_header
 {
@@ -9,8 +11,8 @@ struct lz4_header
 void compress (std::istream & in, std::ostream & out)
 {
     size_t cnt = 0;
-    size_t cnt_size[3] = {};
-    size_t rep_size[3] = {};
+    size_t cnt_size[5] = {};
+    size_t rep_size[5] = {};
     
     while (in)
     {
@@ -61,26 +63,18 @@ void compress (std::istream & in, std::ostream & out)
             pos += cur.size * cur.repeat;
             
             cnt++;
-            if (cur.size <= 4)
-            {
-                cnt_size[0]++;
-                rep_size[0] += cur.repeat;
-            }
-            else if (cur.size <= 8)
-            {
-                cnt_size[1]++;
-                rep_size[1] += cur.repeat;
-            }
-            else 
-            {
-                cnt_size[2]++;
-                rep_size[2] += cur.repeat;
-            }
+            size_t index = std::bit_width(static_cast <size_t> (cur.size - 1));
+            cnt_size[index]++;
+            rep_size[index] += cur.repeat;
         }
     }
     std::cout << "block  count: " << cnt << '\n';
-    std::cout << "sizes  (4 8): " << cnt_size[0] << ' ' << cnt_size[1] << ' ' << cnt_size[2] << '\n';
-    std::cout << "repeat (4 8): " << rep_size[0] << ' ' << rep_size[1] << ' ' << rep_size[2] << '\n';
+    std::cout << "sizes  (1 2 4 8): ";
+    std::copy(cnt_size, cnt_size + 5, std::ostream_iterator <size_t> (std::cout, " "));
+    std::cout << '\n';
+    std::cout << "repeat (1 2 4 8): ";
+    std::copy(rep_size, rep_size + 5, std::ostream_iterator <size_t> (std::cout, " "));
+    std::cout << '\n';
 }
 
 void decompress (std::istream & in, std::ostream & out)

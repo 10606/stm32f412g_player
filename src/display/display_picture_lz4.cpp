@@ -47,17 +47,21 @@ void display_picture
             memcpy(buff + position + 4, picture + 4, 12);
         picture += cur_size;
         
-        if (cur_size <= 4) 
+        if (cur_size <= 2) 
         {
-            memcpy(buff + position + cur_size, buff + position, 4);
-            memcpy(buff + position + 2 * cur_size, buff + position, 8);
-            for (uint32_t i = 4; i < cur_repeat; i += 4)
+            memcpy(buff + position + cur_size, buff + position, 2);
+            for (uint32_t i = 2; i < cur_repeat; i += 2)
+                memcpy(buff + position + i * cur_size, buff + position, 4);
+        }
+        else if (cur_size > 8) [[likely]]
+        {
+            for (uint32_t i = 1; i < cur_repeat; ++i)
                 memcpy(buff + position + i * cur_size, buff + position, 16);
         }
         else
         {
             for (uint32_t i = 1; i < cur_repeat; ++i)
-                memcpy(buff + position + i * cur_size, buff + position, 16);
+                memcpy(buff + position + i * cur_size, buff + position, 8);
         }
         
         position += cur_size * cur_repeat;
