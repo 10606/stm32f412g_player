@@ -19,12 +19,16 @@ int main (int argc, char ** argv)
         }
         
         std::string psf_name = argv[1];
-        std::string header_name = argv[2];
+        std::string header_name;
         
         if (argc == 2)
         {
+            header_name = psf_name + ".c";
             psf_name += ".psf";
-            header_name += ".c";
+        }
+        else
+        {
+            header_name = argv[2];
         }
         
         std::ifstream psf_file(psf_name);
