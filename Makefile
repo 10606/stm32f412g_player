@@ -260,7 +260,7 @@ pictures/all: $(ALL_PICTURES)
 	cat $^ > $@
 	echo "WARNING: need 16 bytes free space at end of pictures"
 
-src/display/display_picture_offset.cpp: $(ALL_PICTURES) utilities/huffman_encode/offset_calculator $(make_files)
+src/pictures/display_picture_offset.cpp: $(ALL_PICTURES) utilities/huffman_encode/offset_calculator $(make_files)
 	utilities/huffman_encode/offset_calculator $@ 9 $(ALL_PICTURES)
 
 utilities/huffman_encode/huffman_encode: utilities/huffman_encode/huffman_encode.cpp

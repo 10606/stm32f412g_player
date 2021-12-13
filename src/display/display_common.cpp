@@ -150,9 +150,9 @@ void display_lines
         
     };
 
-    display_string(offsets::x_padding, scroller.recalc_y(display::offsets::list + display::offsets::line * i),
+    display_string({offsets::x_padding, scroller.recalc_y(display::offsets::list + display::offsets::line * i)},
                 line_0, &font_12, c_line_0);
-    display_string(offsets::x_padding, scroller.recalc_y(display::offsets::list + display::offsets::line * i + display::offsets::in_line), 
+    display_string({offsets::x_padding, scroller.recalc_y(display::offsets::list + display::offsets::line * i + display::offsets::in_line)}, 
                 line_1, &font_12, c_line_1);
 }
 

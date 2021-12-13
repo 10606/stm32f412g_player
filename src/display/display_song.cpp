@@ -45,9 +45,9 @@ void cur_song
         repeat_status[7] = display::print_p_state(actl.pause_status);
     }
     
-    display_string(10, display::offsets::song_name, cur_group_name, &font_16, yb);
-    display_string(10, display::offsets::song_name + display::offsets::in_song_name, cur_song_name, &font_16, yb);
-    display_string(display::offsets::x_status, display::offsets::time, repeat_status, &font_12, {lcd_color_white, lcd_color_blue});
+    display_string({10, display::offsets::song_name}, cur_group_name, &font_16, yb);
+    display_string({10, display::offsets::song_name + display::offsets::in_song_name}, cur_song_name, &font_16, yb);
+    display_string({display::offsets::x_status, display::offsets::time}, repeat_status, &font_12, {lcd_color_white, lcd_color_blue});
     audio_ctl.audio_process();
 
     sender.send_cur_song(cur_group_name, cur_song_name);
@@ -55,8 +55,8 @@ void cur_song
 
 void song_hint ()
 {
-    fill_rect(0, display::offsets::headband, 240, 240 - display::offsets::headband, lcd_color_white);
-    fill_rect(0, 0, 240, display::offsets::headband, lcd_color_blue);
+    fill_rect({0, display::offsets::headband}, {240, 240 - display::offsets::headband}, lcd_color_white);
+    fill_rect({0, 0}, {240, display::offsets::headband}, lcd_color_blue);
 }
 
 void song_volume 
@@ -80,10 +80,10 @@ void song_volume
     if (to_screen)
     {
         // adapvite background color 
-        display_string(208, display::offsets::list - 2, 
+        display_string({display::offsets::bg_color_on_picture.first, display::offsets::list - 2}, 
                        s_volume + 1, &font_12, 
                        {lcd_color_blue, picture_info.color});
-        display_string(208, display::offsets::list - 2+ display::offsets::in_line, 
+        display_string({display::offsets::bg_color_on_picture.first, display::offsets::list - 2 + display::offsets::in_line}, 
                        s_state + 1, &font_12, 
                        {lcd_color_blue, picture_info.color});
         audio_ctl.audio_process();

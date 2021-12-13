@@ -100,7 +100,7 @@ void audio_ctl_t::display_time () const
         total_time.sec,
         total_time.ms
     );
-    display_string_e(display::offsets::x_time, display::offsets::time, str, &font_12, {lcd_color_white, lcd_color_blue}, 0);
+    display_string_e({display::offsets::x_time, display::offsets::time}, str, &font_12, {lcd_color_white, lcd_color_blue}, 0);
 }
 
 ret_code audio_ctl_t::audio_process ()

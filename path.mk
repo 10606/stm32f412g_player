@@ -151,17 +151,22 @@ display_sources_ = \
 	display_pl_list.cpp \
 	display_song.cpp \
 	display_error.cpp \
+	display_common.cpp
+display_sources = $(addprefix src/display/, $(display_sources_))
+
+# pictures
+pictures_sources_ = \
 	display_picture.cpp \
 	display_picture_offset.cpp \
-	display_common.cpp
-
+	
 ifeq ($(compress), huffman)
-display_sources_ += display_picture_huffman.cpp
+pictures_sources_ += display_picture_huffman.cpp
 else
-display_sources_ += display_picture_lz4.cpp
+pictures_sources_ += display_picture_lz4.cpp
 endif
 
-display_sources = $(addprefix src/display/, $(display_sources_))
+pictures_sources = $(addprefix src/pictures/, $(pictures_sources_))
+
 
 # playlist
 playlist_sources_ = \
@@ -197,7 +202,8 @@ local_sources =  \
 	$(playlist_sources) \
 	$(user_input_sources) \
 	$(USB_sources) \
-	$(display_sources)
+	$(display_sources) \
+	$(pictures_sources)
 
 
 
