@@ -7,6 +7,7 @@
 #include "FAT.h"
 
 #include <algorithm>
+#include <array>
 
 extern FAT_info_t FAT_info;
 
@@ -55,9 +56,19 @@ struct playlist_view
     bool check_near (playlist const & playing_pl) const;
     ret_code open_playlist (filename_t const * path, uint32_t path_len);
 
-    constexpr bool compare (light_playlist const & b) const
+    constexpr bool operator == (playlist const & other) const
     {
-        return lpl.fd == b.fd;
+        return (lpl.fd == other.lpl.fd) && (current_state.pos == other.lpl.pos);
+    }
+
+    constexpr bool operator != (playlist const & other) const
+    {
+        return !operator == (other);
+    }
+    
+    constexpr bool compare (light_playlist const & other) const
+    {
+        return lpl.fd == other.fd;
     }
 
     constexpr uint32_t get_pos () const
@@ -78,7 +89,9 @@ struct playlist_view
         char selected[view_cnt];
     };
     
-    print_info print (playlist const & playing_pl_, playlist const & next_playlist) const;
+    template <size_t count>
+    print_info print (std::array <playlist const *, count> plalists) const;
+    
     void reset_display ();
     redraw_type_t redraw_type () const;
     light_playlist lpl_with_wrong_pos () const;
@@ -120,5 +133,50 @@ private:
     char name_song[view_cnt][sizeof(song_header::song_name) + 1];
 };
 
+
+template <size_t count>
+playlist_view::print_info playlist_view::print (std::array <playlist const *, count> playlists) const
+{
+    print_info ans;
+    uint32_t index = 0;
+    uint32_t print_cnt = view_cnt;
+    
+    if (lpl.header.cnt_songs <= view_cnt)
+    {
+        print_cnt = lpl.header.cnt_songs;
+        
+        if (lpl.header.cnt_songs != 0)
+            ans.selected[current_state.pos] |= 1;
+        for (size_t i = lpl.header.cnt_songs; i != view_cnt; ++i)
+        {
+            memset(ans.song_name[i], ' ', sizeof(ans.song_name[i]));
+            memset(ans.group_name[i], ' ', sizeof(ans.group_name[i]));
+            ans.song_name[i][sizeof(ans.song_name[i]) - 1] = 0;
+            ans.group_name[i][sizeof(ans.group_name[i]) - 1] = 0;
+        }
+    }
+    else
+    {
+        index = calc_index_set_selected <border_cnt, view_cnt> (current_state.pos, lpl.header.cnt_songs, ans.selected);
+    }
+    
+    for (size_t i = 0; i != count; ++i)
+    {
+        if (check_near(*playlists[i]))
+            ans.selected[playlists[i]->lpl.pos - index] |= 2 << i;
+    }
+
+    for (size_t i = 0; i != print_cnt; ++i)
+    {
+        uint32_t name_id = (i + pos_begin) % view_cnt;
+        memcpy(ans.song_name[i] + sz::number, name_song[name_id], sz::song_name + 1);
+        memcpy(ans.group_name[i] + sz::number, name_group[name_id], sz::group_name + 1);
+        sprint_mod_1000(ans.group_name[i], sz::number, index + i);
+        memset(ans.song_name[i], ' ', sz::number);
+    }
+    
+    return ans;
+}
+    
 #endif
 

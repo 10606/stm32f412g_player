@@ -21,8 +21,7 @@ uint8_t sender_t::send_cur_song
     std::decay_t <decltype(cur_song_info_t::line_1)> cur_song_name
 )
 {
-    cur_song_info_t answer;
-    answer.cmd = cur_song_info;
+    cur_song_info_t answer{cur_song_info, {}, {}};
     memcpy(answer.line_0, cur_group_name, sizeof(answer.line_0));
     memcpy(answer.line_1, cur_song_name, sizeof(answer.line_1));
     return add_to_buff((uint8_t *)&answer, sizeof(answer));
@@ -36,10 +35,7 @@ uint8_t sender_t::send_displayed_song
     uint32_t pos
 )
 {
-    displayed_song_info_t answer;
-    answer.cmd = displayed_song_info;
-    answer.selected = selected;
-    answer.pos = pos;
+    displayed_song_info_t answer{displayed_song_info, selected, static_cast <uint8_t> (pos), {}, {}};
     memcpy(answer.line_0, s_group, sizeof(answer.line_0));
     memcpy(answer.line_1, s_song, sizeof(answer.line_1));
     return add_to_buff((uint8_t *)&answer, sizeof(answer));
@@ -52,10 +48,7 @@ uint8_t sender_t::send_pl_list
     uint32_t pos
 )
 {
-    pl_list_info_t answer;
-    answer.cmd = pl_list_info;
-    answer.selected = selected;
-    answer.pos = pos;
+    pl_list_info_t answer{pl_list_info, selected, static_cast <uint8_t> (pos), {}};
     memcpy(answer.name, s_playlist, sizeof(answer.name));
     return add_to_buff((uint8_t *)&answer, sizeof(answer));
 }
@@ -63,11 +56,11 @@ uint8_t sender_t::send_pl_list
 uint8_t sender_t::send_volume
 (
     std::decay_t <decltype(volume_info_t::line_0)> s_volume,
-    std::decay_t <decltype(volume_info_t::line_1)> s_state
+    std::decay_t <decltype(volume_info_t::line_1)> s_state,
+    uint32_t repeat_counter
 )
 {
-    volume_info_t answer;
-    answer.cmd = volume_info;
+    volume_info_t answer{volume_info, {}, {}, repeat_counter};
     memcpy(answer.line_0, s_volume, sizeof(answer.line_0));
     memcpy(answer.line_1, s_state, sizeof(answer.line_1));
     return add_to_buff((uint8_t *)&answer, sizeof(answer));
@@ -78,9 +71,7 @@ uint8_t sender_t::send_state
     state_t state
 )
 {
-    state_info_t answer;
-    answer.cmd = state_info;
-    answer.state = state;
+    state_info_t answer{state_info, state};
     return add_to_buff((uint8_t *)&answer, sizeof(answer));
 }
 
@@ -93,7 +84,7 @@ uint8_t sender_t::send_empty ()
         memset(s_volume, ' ', sizeof(s_volume));
         memset(s_state, ' ', sizeof(s_state));
         HAL_Delay(1);
-        ret |= send_volume(s_volume, s_state);
+        ret |= send_volume(s_volume, s_state, 0);
     }
     {
         decltype(cur_song_info_t::line_0) cur_group_name;

@@ -47,7 +47,7 @@ bool need_draw_line
 (
     uint32_t i, 
     uint32_t old_pos_playing,
-    char * selected, 
+    char const * selected, 
     redraw_type_t const & redraw_type,
     uint32_t view_cnt,
     bool force_redraw
@@ -63,7 +63,7 @@ bool need_draw_line
             (redraw_type.type == redraw_type_t::not_easy) ||
             
             (i == old_pos_playing) || // playing
-            (selected[i] & 2) ||
+            (selected[i] >> 1) ||
             
             (i == redraw_type.pos) ||
             (i == old_pos) ||
@@ -92,9 +92,9 @@ constexpr uint8_t get_bits (uint8_t value, std::pair <uint8_t, uint8_t> bit_inde
 void display_lines 
 (
     uint32_t i, 
-    char * line_0, 
-    char * line_1, 
-    char * selected, 
+    char const * line_0, 
+    char const * line_1, 
+    char const * selected, 
     uint16_t l0_text_color
 )
 {
@@ -114,9 +114,17 @@ void display_lines
     auto & [text_color_line_0, back_color_line_0] = c_line_0;
     auto & [text_color_line_1, back_color_line_1] = c_line_1;
 
-    if (get_bits(selected[i], {1, 2}) == 3) // playing & next
+    char cur_selected = selected[i];
+    
+    if (cur_selected & (1 << 3)) // next == jump
     {
-        switch (selected[i] & 1)
+        cur_selected |= (1 << 2);
+        cur_selected &= ~(1 << 3);
+    }
+    
+    if (get_bits(cur_selected, {1, 2}) == 3) // playing & next
+    {
+        switch (cur_selected & 1)
         {
         case 0:
             back_color_line_0 = back_color_line_1 = lcd_color_white;
@@ -137,15 +145,15 @@ void display_lines
                 {lcd_color_blue,  lcd_color_red,   lcd_color_black},
                 {lcd_color_white, lcd_color_green, lcd_color_yellow}
             };
-        back_color_line_0 = back_color_line_1 = (selected[i] & 1)? lcd_color_blue : lcd_color_white;
-        text_color_line_0 = text_color_line_1 = text_color_lines[selected[i] & 1][get_bits(selected[i], {1, 2})];
+        back_color_line_0 = back_color_line_1 = (cur_selected & 1)? lcd_color_blue : lcd_color_white;
+        text_color_line_0 = text_color_line_1 = text_color_lines[cur_selected & 1][get_bits(cur_selected, {1, 2})];
         
     };
 
     display_string(offsets::x_padding, scroller.recalc_y(display::offsets::list + display::offsets::line * i),
-                line_0, &font_12, &c_line_0);
+                line_0, &font_12, c_line_0);
     display_string(offsets::x_padding, scroller.recalc_y(display::offsets::list + display::offsets::line * i + display::offsets::in_line), 
-                line_1, &font_12, &c_line_1);
+                line_1, &font_12, c_line_1);
 }
 
 }

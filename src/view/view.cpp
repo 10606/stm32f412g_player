@@ -17,10 +17,10 @@ ret_code view::init (filename_t * path, uint32_t len)
 void view::display ()
 {
     sender.send_state(state);
-    display::cur_song(*audio_ctl, pl.value);
-    display::cur_playlist(plv.value, pl.value, next_playlist.value, state, old_state);
-    display::cur_pl_list(pll, pl.playlist_index, next_playlist.playlist_index, state, old_state);
-    display::song(*audio_ctl, state_song_view, state, old_state);
+    display::cur_song(*audio_ctl, pl.value, repeat_counter);
+    display_playlist.cur_playlist(plv.value, state, old_state);
+    display_playlist.cur_pl_list(pll, state, old_state);
+    display::song(*audio_ctl, state_song_view, repeat_counter, state, old_state);
     sender.flush();
     old_state = state;
 }

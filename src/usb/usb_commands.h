@@ -44,6 +44,7 @@ struct volume_info_t
     uint8_t cmd;
     char line_0[sz::volume];
     char line_1[sz::volume];
+    uint32_t repeat_counter;
 };
 
 struct state_info_t

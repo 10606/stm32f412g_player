@@ -91,19 +91,16 @@ void audio_ctl_t::display_time () const
     (
         str, 
         str_time_size, 
-        " %4u:%02u.%03u / %u:%02u.%03u    %c %c ", 
+        " %4u:%02u.%03u / %u:%02u.%03u   ", 
         cur_time.min,
         cur_time.sec,
         cur_time.ms,
         
         total_time.min,
         total_time.sec,
-        total_time.ms,
-        
-        display::print_r_state(repeat_mode),
-        display::print_p_state(pause_status)
+        total_time.ms
     );
-    display_string_center_c(0, display::offsets::time, str, &font_12, lcd_color_blue, lcd_color_white);
+    display_string_e(display::offsets::x_time, display::offsets::time, str, &font_12, {lcd_color_white, lcd_color_blue}, 0);
 }
 
 ret_code audio_ctl_t::audio_process ()

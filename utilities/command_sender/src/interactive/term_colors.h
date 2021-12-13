@@ -30,7 +30,13 @@ struct main_column_color
         // 5 - selected & next
         // 6 - playing & next
         // 7 - selected & playing & next
-        
+    
+        if (selected & (1 << 3)) // next == jump
+        {
+            selected |= (1 << 2);
+            selected &= ~(1 << 3);
+        }
+    
         std::string bc = std::string(back_color[selected & 1]);
         
         size_t playing_next = get_bits(selected, {1, 2});

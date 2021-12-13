@@ -198,48 +198,6 @@ bool playlist_view::check_near (playlist const & playing_pl) const
     );
 }
 
-playlist_view::print_info playlist_view::print (playlist const & playing_pl, playlist const & next_playlist) const
-{
-    print_info ans;
-    uint32_t index = 0;
-    uint32_t print_cnt = view_cnt;
-    
-    if (lpl.header.cnt_songs <= view_cnt)
-    {
-        print_cnt = lpl.header.cnt_songs;
-        
-        if (lpl.header.cnt_songs != 0)
-            ans.selected[current_state.pos] |= 1;
-        for (size_t i = lpl.header.cnt_songs; i != view_cnt; ++i)
-        {
-            memset(ans.song_name[i], ' ', sizeof(ans.song_name[i]));
-            memset(ans.group_name[i], ' ', sizeof(ans.group_name[i]));
-            ans.song_name[i][sizeof(ans.song_name[i]) - 1] = 0;
-            ans.group_name[i][sizeof(ans.group_name[i]) - 1] = 0;
-        }
-    }
-    else
-    {
-        index = calc_index_set_selected <border_cnt, view_cnt> (current_state.pos, lpl.header.cnt_songs, ans.selected);
-    }
-    
-    if (check_near(playing_pl))
-        ans.selected[playing_pl.lpl.pos - index] |= 2;
-    if (check_near(next_playlist))
-        ans.selected[next_playlist.lpl.pos - index] |= 4;
-
-    for (size_t i = 0; i != print_cnt; ++i)
-    {
-        uint32_t name_id = (i + pos_begin) % view_cnt;
-        memcpy(ans.song_name[i] + sz::number, name_song[name_id], sz::song_name + 1);
-        memcpy(ans.group_name[i] + sz::number, name_group[name_id], sz::group_name + 1);
-        sprint_mod_1000(ans.group_name[i], sz::number, index + i);
-        memset(ans.song_name[i], ' ', sz::number);
-    }
-    
-    return ans;
-}
-
 ret_code playlist_view::to_playing_playlist (light_playlist const & pl)
 {
     file_descriptor old_fd(lpl.fd);

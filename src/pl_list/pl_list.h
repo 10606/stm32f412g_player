@@ -66,7 +66,8 @@ struct pl_list
         char selected[view_cnt];
     };
     
-    print_info print (uint32_t playing_pl, uint32_t next_playlist) const;
+    template <size_t count>
+    print_info print (std::array <uint32_t const *, count> playlists) const;
     
     constexpr void reset_display ()
     {
@@ -105,6 +106,76 @@ private:
     
     filename_t pl_path[max_plb_files];
     playlist_header headers[max_plb_files];
+};
+
+
+template <size_t count>
+pl_list::print_info pl_list::print (std::array <uint32_t const *, count> playlists) const
+{
+    print_info ans;
+    uint32_t index = 0;
+    uint32_t print_cnt = view_cnt;
+    
+    if (cnt <= view_cnt)
+    {
+        print_cnt = cnt;
+        
+        if (cnt != 0)
+            ans.selected[current_state.pos] |= 1;
+        for (uint32_t i = cnt; i != view_cnt; ++i)
+        {
+            memset(ans.playlist_name[i], ' ', sizeof(ans.playlist_name[i]));
+            ans.playlist_name[i][sizeof(ans.playlist_name[i]) - 1] = 0;
+        }
+    }
+    else
+    {
+        index = calc_index_set_selected <border_cnt, view_cnt> (current_state.pos, cnt, ans.selected);
+    }
+    
+    for (size_t i = 0; i != count; ++i)
+    {
+        if (check_near(*playlists[i]))
+            ans.selected[*playlists[i] - index] |= 2 << i;
+    }
+    
+    for (uint32_t i = 0; i != print_cnt; ++i)
+    {
+        uint32_t songs_cnt = (headers[index + i].cnt_songs > 999)? 999 : headers[index + i].cnt_songs;
+        sprint_mod_1000(ans.playlist_name[i], sz::number, index + i);
+        sprint(ans.playlist_name[i] + sz::count_offset, sz::count, "%3lu", songs_cnt);
+        
+        memcpy(ans.playlist_name[i] + sz::number, headers[index + i].playlist_name, sz::pl_name);
+        const uint32_t sz_num_pl = sz::number + sz::pl_name;
+        memset(ans.playlist_name[i] + sz_num_pl, ' ', sz::count_offset - sz_num_pl);
+        ans.playlist_name[i][sizeof(ans.playlist_name[i]) - 1] = 0;
+    }
+    
+    return ans;
+}
+    
+
+struct playing
+{
+    uint32_t playlist_index;
+    playlist value;
+
+    constexpr playing () :
+        playlist_index(pl_list::max_plb_files),
+        value()
+    {}
+        
+    constexpr void reset ()
+    {
+        playlist_index = pl_list::max_plb_files;
+        value.make_fake();
+    }
+
+    constexpr void swap (playing & other)
+    {
+        value.swap(other.value);
+        std::swap(playlist_index, other.playlist_index);
+    }
 };
 
 #endif

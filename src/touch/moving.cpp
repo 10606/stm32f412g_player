@@ -23,9 +23,13 @@ ret_code touch_processing::touch_region (view * vv)
     }
     else
     {
-        if ((start.x < 120) ||
-            (vv->state != state_t::playlist))
+        if (vv->state != state_t::playlist)
             return vv->process_right();
+        
+        if (start.x < 80)
+            return vv->process_right();
+        else if (start.x < 160)
+            return vv->set_jmp_pos();
         else
             return vv->set_next_song();
     }

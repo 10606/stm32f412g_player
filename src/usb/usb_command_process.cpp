@@ -17,7 +17,7 @@ ret_code just_do_this (view * vv, uint8_t * data)
 
 ret_code usb_process_t::usb_process (view * vv)
 {
-    static ret_code (view::* process_view_do[18]) () =
+    static ret_code (view::* process_view_do[19]) () =
     {
         &view::do_nothing,
         &view::process_up,
@@ -36,7 +36,8 @@ ret_code usb_process_t::usb_process (view * vv)
         &view::send_info,
         &view::to_end_and_pause,
         &view::find_next,
-        &view::set_next_song
+        &view::set_next_song,
+        &view::set_jmp_pos,
     };
     
     static ret_code (* process_view_do_arg[2]) (view *, uint8_t * data)

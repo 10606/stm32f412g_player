@@ -73,6 +73,7 @@ struct base
         volume,
     };
 
+    static const constexpr coord repeat_counter = {left_col + 20, 2};
 };
 
 inline void set_color (size_t current, size_t cmd, size_t line, size_t s = 0)
@@ -211,7 +212,16 @@ void extract (std::deque <char> & data, state_t & state)
 
             case volume_info:
                 if (std::optional <volume_info_t> volume_data = clone <volume_info_t> (data))
+                {
                     display_lines(volume_data.value(), state == state_t::song);
+                    
+                    set_cursor(base::repeat_counter);
+                    print_color(color::defaul_color);
+                    if (volume_data.value().repeat_counter)
+                        std::cout << volume_data.value().repeat_counter << "   ";
+                    else
+                        std::cout << "    ";
+                }
                 else
                     goto end_for;
                 break;

@@ -44,9 +44,9 @@ inline char print_r_state (bool repeat_mode) noexcept
     return repeat_mode? 'r' : ' ';
 }
 
-void song        (audio_ctl_t const & actl, state_song_view_t state, state_t cur_state, state_t old_state);
-void song_volume (audio_ctl_t const & actl, state_song_view_t state, bool to_screen);
-void cur_song    (audio_ctl_t const & actl, playlist const & pl);
+void song        (audio_ctl_t const & actl, state_song_view_t state, uint32_t repeat_counter, state_t cur_state, state_t old_state);
+void song_volume (audio_ctl_t const & actl, state_song_view_t state, uint32_t repeat_counter, bool to_screen);
+void cur_song    (audio_ctl_t const & actl, playlist const & pl, uint32_t repeat_counter);
 void song_hint ();
 
 }

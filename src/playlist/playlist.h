@@ -32,6 +32,16 @@ struct playlist
         std::swap(path_sz, other.path_sz);
         lpl.swap(other.lpl);
     }
+
+    constexpr bool operator == (playlist const & other) const
+    {
+        return (lpl.fd == other.lpl.fd) && (lpl.pos == other.lpl.pos);
+    }
+    
+    constexpr bool operator != (playlist const & other) const
+    {
+        return !operator == (other);
+    }
     
     // not operator = 
     //  because need ret code

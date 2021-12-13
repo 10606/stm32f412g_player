@@ -12,7 +12,7 @@ bool need_draw_line
 (
     uint32_t i, 
     uint32_t old_pos_playing,
-    char * selected, 
+    char const * selected, 
     redraw_type_t const & redraw_type,
     uint32_t view_cnt,
     bool force_redraw
@@ -21,9 +21,9 @@ bool need_draw_line
 void display_lines 
 (
     uint32_t i, 
-    char * line_0, 
-    char * line_1, 
-    char * selected, 
+    char const * line_0, 
+    char const * line_1, 
+    char const * selected, 
     uint16_t l0_text_color
 );
 

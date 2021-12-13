@@ -24,7 +24,7 @@ ret_code view::change_volume (int8_t value) noexcept
     BSP_AUDIO_OUT_SetVolume(audio_ctl->volume);
     if (audio_ctl->pause_status == pause_status_t::pause)
         BSP_AUDIO_OUT_Pause();
-    display::song_volume(*audio_ctl, state_song_view, (state == state_t::song));
+    display::song_volume(*audio_ctl, state_song_view, repeat_counter, (state == state_t::song));
     return 0;
 }
 
@@ -93,9 +93,12 @@ ret_code view::change_song (directions::np::type direction)
     ret_code ret;
     bool was_fake;
     static playlist backup;
+    uint32_t next_pl_index;
     
-    if (next_playlist.value.is_fake() ||
-        direction == directions::np::prev)
+    if ((next_playlist.value.is_fake() ||
+         direction == directions::np::prev) ||
+        (!jmp_index.value.is_fake() &&
+         jmp_index.value != pl.value))
     {
         was_fake = 1;
         ret = backup.clone(pl.value);
@@ -111,6 +114,7 @@ ret_code view::change_song (directions::np::type direction)
         ret = backup.clone(next_playlist.value);
         if (ret)
             return ret;
+        next_pl_index = next_playlist.playlist_index;
         next_playlist.swap(pl);
     }
     reuse_mad();
@@ -126,11 +130,27 @@ ret_code view::change_song (directions::np::type direction)
         {
             next_playlist.swap(pl);
             next_playlist.reset();
+            jmp_index.reset();
+            repeat_counter = 0;
             return change_song(direction);
         }
     }
     audio_ctl->need_redraw = 1;
-    next_playlist.reset();
+
+    if (!was_fake)
+    {
+        if (repeat_counter)
+        {
+            next_playlist.value.swap(backup);
+            next_playlist.playlist_index = next_pl_index;
+            repeat_counter--;
+        }
+        else
+        {
+            next_playlist.reset();
+            jmp_index.reset();
+        }
+    }
     return 0;
 }
 
@@ -144,19 +164,40 @@ ret_code view::next_song ()
     return change_song(directions::np::next);
 }
 
-ret_code view::set_next_song ()
+ret_code view::set_playing (playing & value, uint32_t & inc_value)
 {
     if (state == state_t::pl_list)
         return 0;
 
-    playlist old_pl(std::move(next_playlist.value));
-    ret_code ret = plv.value.play(next_playlist.value, old_pl);
+    if (plv.value == value.value)
+    {
+        if (inc_value < 999)
+            ++inc_value;
+        audio_ctl->need_redraw = 1;
+        return 0;
+    }
+    else
+        inc_value = 0;
+
+    playlist old_pl(std::move(value.value));
+    ret_code ret = plv.value.play(value.value, old_pl);
     if (ret)
         return ret;
     
-    next_playlist.playlist_index = plv.playlist_index;
+    value.playlist_index = plv.playlist_index;
     audio_ctl->need_redraw = 1;
     return 0;
+}
+
+ret_code view::set_next_song ()
+{
+    return set_playing(next_playlist, repeat_counter);
+}
+
+ret_code view::set_jmp_pos ()
+{
+    uint32_t unused = 0;
+    return set_playing(jmp_index, unused);
 }
 
 ret_code view::process_next_prev (directions::np::type direction)
@@ -270,6 +311,8 @@ ret_code view::play_new_playlist ()
 
     pl.playlist_index = plv.playlist_index;
     next_playlist.reset();
+    jmp_index.reset();
+    repeat_counter = 0;
     return 0;
 }
 
@@ -294,7 +337,7 @@ ret_code view::process_right ()
         
     case state_t::song:
         state_song_view = roll(state_song_view);
-        display::song_volume(*audio_ctl, state_song_view, 1);
+        display::song_volume(*audio_ctl, state_song_view, repeat_counter, 1);
         break;
     }
     return 0;
@@ -303,7 +346,8 @@ ret_code view::process_right ()
 ret_code view::toggle_repeat () noexcept
 {
     audio_ctl->repeat_mode ^= 1;
-    display::song_volume(*audio_ctl, state_song_view, (state == state_t::song));
+    audio_ctl->need_redraw = 1;
+    display::song_volume(*audio_ctl, state_song_view, repeat_counter, (state == state_t::song));
     return 0;
 }
 
@@ -389,7 +433,7 @@ ret_code view::new_song_or_repeat ()
     return 0;
 }
 
-ret_code view::jmp(uint32_t pos)
+ret_code view::jmp (uint32_t pos)
 {
     switch (state)
     {

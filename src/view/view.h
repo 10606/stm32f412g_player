@@ -9,6 +9,7 @@
 #include "view_states.h"
 #include "direction_t.h"
 #include "find_song.h"
+#include "display_playlists.h"
 
 struct view
 {
@@ -16,6 +17,9 @@ struct view
         plv(),
         pl(),
         next_playlist(),
+        jmp_index(),
+        repeat_counter(0),
+        display_playlist(pl, next_playlist, jmp_index),
         state(state_t::pl_list),
         old_state(state),
         state_song_view(state_song_view_t::volume),
@@ -29,6 +33,8 @@ struct view
         pl.reset();
         plv.reset();
         next_playlist.reset();
+        jmp_index.reset(),
+        repeat_counter = 0;
         state = state_t::pl_list;
         old_state = state;
         state_song_view = state_song_view_t::volume;
@@ -67,6 +73,7 @@ struct view
     ret_code prev_song          ();
     ret_code next_song          ();
     ret_code set_next_song      ();
+    ret_code set_jmp_pos        ();
     ret_code jmp                (uint32_t pos);
 
     ret_code do_nothing         () noexcept; // can use in table of function
@@ -90,32 +97,13 @@ struct view
         }
     };
 
-    struct playing
-    {
-        uint32_t playlist_index;
-        playlist value;
-
-        constexpr playing () :
-            playlist_index(pl_list::max_plb_files),
-            value()
-        {}
-            
-        constexpr void reset ()
-        {
-            playlist_index = pl_list::max_plb_files;
-            value.make_fake();
-        }
-
-        constexpr void swap (playing & other)
-        {
-            value.swap(other.value);
-            std::swap(playlist_index, other.playlist_index);
-        }
-    };
-    
     viewing plv;
     playing pl;
     playing next_playlist;
+    playing jmp_index;
+    uint32_t repeat_counter;
+
+    display::playlists <3> display_playlist;
     
     state_t state;
     state_t old_state;
@@ -133,6 +121,7 @@ private:
     ret_code play_new_playlist ();
     ret_code to_playing_pos (light_playlist const & lpl);
     ret_code find_common (light_playlist const & backup);
+    ret_code set_playing (playing & value, uint32_t & inc_value);
 
     ret_code open_song_impl ();
     ret_code open_song_not_found (playlist const & backup,  directions::np::type direction = directions::np::next);

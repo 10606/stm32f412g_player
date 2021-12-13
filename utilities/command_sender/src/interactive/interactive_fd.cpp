@@ -172,20 +172,20 @@ struct escape_buffer
                     cl_term();
                     std::exit(0);
                 }
-                else if (i >= 0x12) // command with args
+                else if (i >= long_commands_separator) // command with args
                 {
-                    if (i == 0x12)
+                    switch (i - long_commands_separator)
                     {
+                    case 0:
                         finder.need_continue = 1;
                         number = 0;
                         cmd_from_stdin.erase(cmd_from_stdin.begin(), it);
                         search_input();
                         return !finder.need_continue;
-                    }
-                    else if (i == 0x13)
-                    {
-                        add_packet <position_t> (128 + i - 0x12, number);
+                    case 1:
+                        add_packet <position_t> (128 + i - long_commands_separator, number);
                         number = 0;
+                        break;
                     }
                 }
                 else

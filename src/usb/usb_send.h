@@ -39,7 +39,8 @@ struct sender_t
     uint8_t send_volume
     (
         std::decay_t <decltype(volume_info_t::line_0)> s_volume,
-        std::decay_t <decltype(volume_info_t::line_1)> s_state
+        std::decay_t <decltype(volume_info_t::line_1)> s_state,
+        uint32_t repeat_counter
     );
 
     uint8_t send_state

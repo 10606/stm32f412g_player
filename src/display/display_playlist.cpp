@@ -9,11 +9,10 @@
 namespace display
 {
 
-void cur_playlist 
+template <typename ... T>
+void playlists_variadic <T ...> ::cur_playlist 
 (
     playlist_view & plv, 
-    playlist const & pl, 
-    playlist const & next_playlist, 
     state_t cur_state,
     state_t old_state
 )
@@ -24,7 +23,7 @@ void cur_playlist
     HAL_Delay(1);
     audio_ctl.audio_process();
     
-    playlist_view::print_info print = plv.print(pl, next_playlist);
+    playlist_view::print_info print = plv.print(playlists_value);
     redraw_type_t redraw_type = plv.redraw_type();
     plv.reset_display();
 
@@ -45,6 +44,22 @@ void cur_playlist
     }
     old_pos_playing = pos_playing;
 }
+
+template 
+void playlists_variadic <playing const &, playing const &> ::cur_playlist
+(
+    playlist_view & plv, 
+    state_t cur_state,
+    state_t old_state
+);
+
+template 
+void playlists_variadic <playing const &, playing const &, playing const &> ::cur_playlist
+(
+    playlist_view & plv, 
+    state_t cur_state,
+    state_t old_state
+);
 
 }
 
