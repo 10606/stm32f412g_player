@@ -47,6 +47,7 @@ add_executable(command_sender_tcp
     ../characters/fill_char_set.cpp
     ../characters/char_conversion.cpp
     ../characters/convert_custom.cpp
+    ../characters/calc_utf8_len.cpp
 )
 
 target_link_libraries(command_sender_tcp

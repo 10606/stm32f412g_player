@@ -46,6 +46,7 @@ add_executable(player_send_command
     ../characters/fill_char_set.cpp
     ../characters/char_conversion.cpp
     ../characters/convert_custom.cpp
+    ../characters/calc_utf8_len.cpp
     ../multiplex_server/src/epoll_wrapper.cpp
 )
 

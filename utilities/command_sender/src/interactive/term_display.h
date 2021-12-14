@@ -11,6 +11,7 @@
 
 void extract (std::deque <char> & data, state_t & state);
 void display_search (std::array <std::string, 2> const & value);
+void set_cursor_pos_search (std::array <std::string, 2> const & value, size_t index);
 void display_number (position_t value);
 
 #endif

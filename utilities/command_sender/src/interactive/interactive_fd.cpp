@@ -85,16 +85,56 @@ struct escape_buffer
         to_write += std::string(cmd_bytes, sizeof(cmd_bytes));
     }
     
+    bool check_escape_sequence (uint8_t cmd)
+    {
+        if (cmd == 0x1b) // esc
+        {
+            finder.status = long_command::escape;
+            return 1;
+        }
+        if (cmd == 0x9b) // csi
+        {
+            finder.status = long_command::open_sb;
+            return 1;
+        }
+        if (finder.status == long_command::escape)
+        {
+            if (cmd == '[')
+                finder.status = long_command::open_sb;
+            else 
+                finder.status = long_command::none;
+            return 1;
+        }
+        if ((finder.status == long_command::open_sb) &&
+            (cmd >= 64) &&
+            (cmd <= 126))
+        {
+            finder.status = long_command::none;
+            return 1;
+        }
+
+        return finder.status != long_command::none;
+    }
+    
     void search_input ()
     {
         for (size_t i = 0; i != cmd_from_stdin.size(); ++i)
         {
+            if (check_escape_sequence(cmd_from_stdin[i]))
+                continue;
+            
             size_t index = finder.need_continue - 1;
             if ((cmd_from_stdin[i] == 0x7f)  || // linux / xfce
                 (cmd_from_stdin[i] == 0x08))    // xterm
             {
                 if (!finder.pattern[index].empty())
-                    finder.pattern[index].pop_back();
+                {
+                    while (!finder.pattern[index].empty() &&
+                            static_cast <uint8_t> (finder.pattern[index].back()) >> 6 == 0b10)
+                        finder.pattern[index].pop_back();
+                    if (!finder.pattern[index].empty())
+                        finder.pattern[index].pop_back();
+                }
                 else if (finder.need_continue == 2)
                     finder.need_continue--;
             }
@@ -107,16 +147,17 @@ struct escape_buffer
                     std::basic_string <uint8_t> song_name = utf8_to_custom(finder.pattern[1]);
                 
                     find_pattern pattern;
-                    pattern.group_len = group_name.size();
-                    pattern.song_len  = song_name.size();
-                    memcpy(pattern.group_name, group_name.c_str(), std::min(group_name.size(), sizeof(find_pattern::group_name)));
-                    memcpy(pattern.song_name,  song_name.c_str(),  std::min(song_name.size(),  sizeof(find_pattern::song_name)));
+                    pattern.group_len = std::min(group_name.size(), sizeof(find_pattern::group_name));
+                    pattern.song_len  = std::min(song_name.size(),  sizeof(find_pattern::song_name));
+                    memcpy(pattern.group_name, group_name.c_str(), pattern.group_len);
+                    memcpy(pattern.song_name,  song_name.c_str(),  pattern.song_len);
                     
                     add_packet <find_pattern> (128, pattern);
 
                     finder.pattern[0].clear();
                     finder.pattern[1].clear();
                     finder.need_continue = 0;
+                    std::cout << "\033[?25l";
                     cmd_from_stdin.erase(cmd_from_stdin.begin(), cmd_from_stdin.begin() + i + 1);
                     
                     display_search(finder.pattern);
@@ -180,6 +221,7 @@ struct escape_buffer
                         finder.need_continue = 1;
                         number = 0;
                         cmd_from_stdin.erase(cmd_from_stdin.begin(), it);
+                        std::cout << "\033[?25h";
                         search_input();
                         return !finder.need_continue;
                     case 1:
@@ -276,11 +318,24 @@ struct escape_buffer
             {
                 throw std::runtime_error("closed");
             }
+            
+            if (finder.need_continue)
+            {
+                set_cursor_pos_search(finder.pattern, finder.need_continue - 1);
+            }
         }
     }
 
     struct long_command
     {
+        enum escape_status
+        {
+            none,
+            escape,
+            open_sb,
+        };
+        
+        escape_status status = none;
         uint8_t need_continue = 0;
         std::array <std::string, 2> pattern;
     };

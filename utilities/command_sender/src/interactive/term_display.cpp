@@ -3,6 +3,7 @@
 #include "char_reconvert.h"
 #include "common_types.h"
 #include "term_colors.h"
+#include "calc_utf8_len.h"
 #include <optional>
 #include <stdint.h>
 #include <array>
@@ -132,6 +133,14 @@ std::optional <T> clone (std::deque <char> & data)
         *(reinterpret_cast <char *> (&my_data) + i) = data[i];
     data.erase(data.begin(), data.begin() + my_size);
     return my_data;
+}
+
+void set_cursor_pos_search (std::array <std::string, 2> const & value, size_t index)
+{
+    std::pair <size_t, size_t> pos = base::search[index];
+    pos.first += calc_utf8_len(value[index]) + 1;
+    set_cursor(pos);
+    std::cout.flush();
 }
 
 void display_search (std::array <std::string, 2> const & value)

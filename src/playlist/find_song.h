@@ -18,6 +18,10 @@ struct find_song
         song_pf{},
         group_pf{}
     {
+        pattern.song_len  = std::min(pattern.song_len, 
+                                     static_cast <uint32_t> (std::extent_v <decltype(pattern.song_name)>));
+        pattern.group_len = std::min(pattern.group_len, 
+                                     static_cast <uint32_t> (std::extent_v <decltype(pattern.group_name)>));
         calc_prefix_function(song_pf, pattern.song_name, pattern.song_len);
         calc_prefix_function(group_pf, pattern.group_name, pattern.group_len);
     }
