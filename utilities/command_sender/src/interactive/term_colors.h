@@ -11,8 +11,8 @@ struct main_column_color
     main_column_color 
     (
         std::array <std::string_view, 2> const & _back_color,
-        std::array <std::array <std::string_view, 2>, 2> const & _playing_and_next,
-        std::array <std::array <std::string_view, 3>, 2> const & _playing_or_next
+        std::array <std::array <std::string_view, 4>, 2> const & _playing_and_next,
+        std::array <std::array <std::string_view, 5>, 2> const & _playing_or_next
     ) :
         back_color(_back_color),
         playing_and_next(_playing_and_next),
@@ -21,42 +21,34 @@ struct main_column_color
 
     std::string operator () (size_t selected, size_t line)
     {
-        // 0
-        // 1 - selected
-        // 2 - playing
-        // 3 - playing and selected
-        
-        // 4 - next
-        // 5 - selected & next
-        // 6 - playing & next
-        // 7 - selected & playing & next
-    
-        if (selected & (1 << 3)) // next == jump
-        {
-            selected |= (1 << 2);
-            selected &= ~(1 << 3);
-        }
+        //bits of selected:
+        // jmp  next  playing  selected
     
         std::string bc = std::string(back_color[selected & 1]);
         
-        size_t playing_next = get_bits(selected, {1, 2});
-        if (playing_next == 3) // playing & next
-            return std::string(playing_and_next[line][selected & 1]) + ';' + bc;
+        size_t playing_next_jmp = get_bits(selected, {3, 2, 1});
+        if ((playing_next_jmp & 4) && (playing_next_jmp ^ 4)) // playing & (next | jmp)
+            return std::string(playing_and_next[line][get_bits(selected, {0, 2})]) + ';' + bc;
         else
-            return std::string(playing_or_next[selected & 1][playing_next]) + ';' + bc;
+            return std::string(playing_or_next[selected & 1][playing_next_jmp]) + ';' + bc;
     };
 
 private:
-    constexpr size_t get_bits (size_t value, std::pair <size_t, size_t> bit_index)
+    constexpr size_t get_bits (size_t value, std::initializer_list <size_t> const & bit_index)
     {
-        size_t f_bit = (value >> bit_index.first) & 1;
-        size_t s_bit = (value >> bit_index.second) & 1;
-        return f_bit + 2 * s_bit;
+        size_t ans = 0;
+        size_t i = 0;
+        for (size_t index : bit_index)
+        {
+            ans += ((value >> index) & 1) << i;
+            ++i;
+        }
+        return ans;
     }
 
     std::array <std::string_view, 2> const back_color;
-    std::array <std::array <std::string_view, 2>, 2> const playing_and_next; // [line][selected]
-    std::array <std::array <std::string_view, 3>, 2> const playing_or_next;  // [selected][playing + next]
+    std::array <std::array <std::string_view, 4>, 2> const playing_and_next; // [line][selected]
+    std::array <std::array <std::string_view, 5>, 2> const playing_or_next;  // [selected][playing + next]
 };
 
 extern const std::array <std::function <std::string (size_t selected, size_t line)>, 2> main_columns;

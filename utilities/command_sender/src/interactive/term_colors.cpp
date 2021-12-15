@@ -26,24 +26,24 @@ const std::array <std::function <std::string (size_t selected, size_t line)>, 2>
     (
         {bg_color::black, bg_color::blue},  // [selected]
         {{ 
-            {color::green,  color::green},  // playing and next
-            {color::orange, color::orange}  // [line][selected]
+            {color::green,  color::green,  color::green,  color::green},  // (playing | jmp) and next
+            {color::yellow, color::yellow, color::orange, color::orange}  // [line][playing + selected]
         }},
         {{
-            {color::white, color::green, color::orange}, // [selected][playing + next]
-            {color::white, color::green, color::orange}
+            {color::white, color::yellow, color::orange, color::orange, color::green}, // [selected][next + playing + jmp]
+            {color::white, color::yellow, color::orange, color::orange, color::green}
         }}
     ),
     main_column_color // current
     (
         {bg_color::black, bg_color::green},     // [selected]
         {{ 
-            {color::green,  color::dark_red},   // playing and next
-            {color::orange, color::blue}        // [line][selected]
+            {color::green,  color::dark_red, color::green,  color::dark_red},   // (playing | jmp) and next
+            {color::yellow, color::blue,     color::orange, color::blue}        // [line][playing + selected]
         }},
         {{
-            {color::white, color::green,    color::orange}, // [selected][playing + next]
-            {color::black, color::dark_red, color::blue}
+            {color::white, color::yellow, color::orange, color::orange, color::green   }, // [selected][next + playing + jmp]
+            {color::black, color::blue,   color::blue  , color::blue  , color::dark_red}
         }}
     )
 };

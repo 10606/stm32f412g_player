@@ -92,11 +92,6 @@ struct escape_buffer
             finder.status = long_command::escape;
             return 1;
         }
-        if (cmd == 0x9b) // csi
-        {
-            finder.status = long_command::open_sb;
-            return 1;
-        }
         if (finder.status == long_command::escape)
         {
             if (cmd == '[')
