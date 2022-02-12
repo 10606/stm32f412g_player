@@ -26,24 +26,36 @@ const std::array <std::function <std::string (size_t selected, size_t line)>, 2>
     (
         {bg_color::black, bg_color::blue},  // [selected]
         {{ 
-            {color::green,  color::green,  color::green,  color::green},  // (playing | jmp) and next
-            {color::yellow, color::yellow, color::orange, color::orange}  // [line][playing + selected]
+            //      000            001            010            011
+            {color::green,  color::green,  color::green,  color::green},  // (next | jmp) and playing
+            {color::yellow, color::yellow, color::orange, color::orange}  // [line][next + selected]
         }},
         {{
-            {color::white, color::yellow, color::orange, color::orange, color::green}, // [selected][next + playing + jmp]
+            //      000           001            010            011            100
+            {color::white, color::yellow, color::orange, color::orange, color::green}, // [selected][playing + next + jmp]
             {color::white, color::yellow, color::orange, color::orange, color::green}
+        }},
+        {{
+            {color::yellow, color::yellow}, // next and jmp
+            {color::orange, color::orange}  // [line][selected]
         }}
     ),
     main_column_color // current
     (
         {bg_color::black, bg_color::green},     // [selected]
         {{ 
-            {color::green,  color::dark_red, color::green,  color::dark_red},   // (playing | jmp) and next
-            {color::yellow, color::blue,     color::orange, color::blue}        // [line][playing + selected]
+            //      000            001              010            011
+            {color::green,  color::dark_red, color::green,  color::dark_red},   // (next | jmp) and playing
+            {color::yellow, color::blue,     color::orange, color::blue}        // [line][next + selected]
         }},
         {{
-            {color::white, color::yellow, color::orange, color::orange, color::green   }, // [selected][next + playing + jmp]
+            //      000           001            010            011            100
+            {color::white, color::yellow, color::orange, color::orange, color::green   }, // [selected][playing + next + jmp]
             {color::black, color::blue,   color::blue  , color::blue  , color::dark_red}
+        }},
+        {{
+            {color::yellow, color::blue}, // next and jmp
+            {color::orange, color::black}  // [line][selected]
         }}
     )
 };

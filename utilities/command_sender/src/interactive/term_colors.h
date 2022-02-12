@@ -12,11 +12,13 @@ struct main_column_color
     (
         std::array <std::string_view, 2> const & _back_color,
         std::array <std::array <std::string_view, 4>, 2> const & _playing_and_next,
-        std::array <std::array <std::string_view, 5>, 2> const & _playing_or_next
+        std::array <std::array <std::string_view, 5>, 2> const & _playing_or_next,
+        std::array <std::array <std::string_view, 2>, 2> const & _jmp_and_next
     ) :
         back_color(_back_color),
         playing_and_next(_playing_and_next),
-        playing_or_next(_playing_or_next)
+        playing_or_next(_playing_or_next),
+        jmp_and_next(_jmp_and_next)
     {}
 
     std::string operator () (size_t selected, size_t line)
@@ -26,11 +28,16 @@ struct main_column_color
     
         std::string bc = std::string(back_color[selected & 1]);
         
-        size_t playing_next_jmp = get_bits(selected, {3, 2, 1});
+        size_t playing_next_jmp = get_bits(selected, {3, 2, 1}); // playing  next  jmp
+        std::string answer;
+
         if ((playing_next_jmp & 4) && (playing_next_jmp ^ 4)) // playing & (next | jmp)
-            return std::string(playing_and_next[line][get_bits(selected, {0, 2})]) + ';' + bc;
+            answer = playing_and_next[line][get_bits(selected, {0, 2})];
+        else if ((playing_next_jmp & 3) == 3) // next & jmp
+            answer = jmp_and_next[line][selected & 1];
         else
-            return std::string(playing_or_next[selected & 1][playing_next_jmp]) + ';' + bc;
+            answer = playing_or_next[selected & 1][playing_next_jmp];
+        return answer + ';' + bc;
     };
 
 private:
@@ -49,6 +56,7 @@ private:
     std::array <std::string_view, 2> const back_color;
     std::array <std::array <std::string_view, 4>, 2> const playing_and_next; // [line][selected]
     std::array <std::array <std::string_view, 5>, 2> const playing_or_next;  // [selected][playing + next]
+    std::array <std::array <std::string_view, 2>, 2> const jmp_and_next;     // [line][selected]
 };
 
 extern const std::array <std::function <std::string (size_t selected, size_t line)>, 2> main_columns;

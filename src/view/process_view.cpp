@@ -91,16 +91,17 @@ ret_code view::change_song (directions::np::type direction)
         &playlist::prev
     };
     ret_code ret;
-    bool was_fake;
     static playlist backup;
     uint32_t next_pl_index;
+
+    bool dont_use_next_pl = (next_playlist.value.is_fake() ||
+                            direction == directions::np::prev) ||
+                            (!jmp_index.value.is_fake() && jmp_index.value != pl.value);
+
+    audio_ctl->need_redraw |= !audio_ctl->audio_file.is_fake();
     
-    if ((next_playlist.value.is_fake() ||
-         direction == directions::np::prev) ||
-        (!jmp_index.value.is_fake() &&
-         jmp_index.value != pl.value))
+    if (dont_use_next_pl)
     {
-        was_fake = 1;
         ret = backup.clone(pl.value);
         if (ret)
             return ret;
@@ -110,7 +111,6 @@ ret_code view::change_song (directions::np::type direction)
     }
     else
     {
-        was_fake = 0;
         ret = backup.clone(next_playlist.value);
         if (ret)
             return ret;
@@ -121,7 +121,7 @@ ret_code view::change_song (directions::np::type direction)
     ret = open_song_not_found(backup, direction);
     if (ret) 
     {
-        if (was_fake)
+        if (dont_use_next_pl)
         {
             pl.value = std::move(backup);
             return ret;
@@ -135,9 +135,9 @@ ret_code view::change_song (directions::np::type direction)
             return change_song(direction);
         }
     }
-    audio_ctl->need_redraw = 1;
+    audio_ctl->need_redraw |= !audio_ctl->audio_file.is_fake();
 
-    if (!was_fake)
+    if (!dont_use_next_pl)
     {
         if (repeat_counter)
         {
@@ -231,7 +231,9 @@ ret_code view::process_next_prev (directions::np::type direction)
             return change_volume(direction == directions::np::prev? 1 : -1);
             
         case state_song_view_t::seek:
-            return seek(seek_value, direction == directions::np::next? directions::fb::backward : directions::fb::forward);
+            return seek(seek_value, direction == directions::np::next? 
+                                        directions::fb::backward : 
+                                        directions::fb::forward);
 
         case state_song_view_t::next_prev:
             return change_song(direction);
@@ -410,7 +412,7 @@ ret_code view::new_song_or_repeat ()
     }
 
     // play song again
-    audio_ctl->seeked = 1;
+    audio_ctl->seeked |= !audio_ctl->audio_file.is_fake();
     if (audio_ctl->repeat_mode)
     {
         ret_code ret;

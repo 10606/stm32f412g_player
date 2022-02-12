@@ -1,5 +1,6 @@
 #include "view.h"
 
+#include "stm32412g_discovery_audio.h"
 #include "display_song.h"
 #include "display_playlists.h"
 #include "usb_send.h"
@@ -68,6 +69,7 @@ ret_code view::open_song_not_found (playlist const & backup, directions::np::typ
         if ((ret_playlist = (pl.value.*np_playlist[direction])(backup)))
             return ret_playlist;
     }
+    BSP_AUDIO_OUT_SetVolume(audio_ctl->volume);
     return ret_song;
 }
 

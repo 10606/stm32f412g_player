@@ -37,6 +37,8 @@ struct joystick_state_t
 private:
     void check_buttons ();
     bool check_button_state (uint32_t joy_button);
+    
+    static const uint8_t cost_2 = 8;
 };
 extern joystick_state_t joystick_state;
 

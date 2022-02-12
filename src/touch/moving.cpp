@@ -14,24 +14,25 @@ struct offsets
 
 ret_code touch_processing::touch_region (view * vv)
 {
+    static ret_code (view::* const touch_action[2][3]) () = 
+    {{&view::play_pause, &view::toggle_repeat, &view::to_end_and_pause},
+     {&view::process_right, &view::set_jmp_pos, &view::set_next_song}};
+    static const uint32_t inner_size = std::extent_v <decltype(touch_action), 1>;
+
+    uint32_t index = (start.x >= 0)? (start.x / 80) : 0;
+    if (index >= inner_size)
+        index = inner_size - 1;
+
     if (start.y < static_cast <int32_t> (display::offsets::list))
     {
-        if (start.x < 120)
-            return vv->play_pause();
-        else
-            return vv->to_end_and_pause();
+        return (vv->*touch_action[0][index])();
     }
     else
     {
-        if (vv->state != state_t::playlist)
+        if (vv->state == state_t::pl_list)
             return vv->process_right();
         
-        if (start.x < 80)
-            return vv->process_right();
-        else if (start.x < 160)
-            return vv->set_jmp_pos();
-        else
-            return vv->set_next_song();
+        return (vv->*touch_action[1][index])();
     }
 }
 
