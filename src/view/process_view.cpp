@@ -401,9 +401,9 @@ ret_code view::process_center ()
 ret_code view::new_song_or_repeat ()
 {
     if (!audio_ctl->audio_file.is_fake())
-    {
         reuse_mad();
-    }
+    else
+        return 0;
 
     if (audio_ctl->pause_status == pause_status_t::soft_pause)
     {

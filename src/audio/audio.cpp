@@ -105,15 +105,16 @@ void audio_ctl_t::display_time () const
 
 ret_code audio_ctl_t::audio_process ()
 {
-    display_time();
+    bool is_fake = audio_file.is_fake();
+    if (!is_fake)
+        display_time();
     //end of song reached
     if (audio_file.current_position() >= audio_file.size)
     {
         ret_code ret;
-        bool is_fake = audio_file.is_fake();
         if ((ret = viewer.new_song_or_repeat()))
             return ret;
-        need_redraw |= !is_fake || !audio_file.is_fake();
+        need_redraw |= !is_fake;
     }
     next_pcm_part();
     return 0;

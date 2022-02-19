@@ -78,7 +78,7 @@ const std::array  //cmd
     {},
     
     //volume_info
-    {color::white, color::cyan}
+    {color::white, color::yellow}
 }};
 
 void print_color (std::string_view value)
