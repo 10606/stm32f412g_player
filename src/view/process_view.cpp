@@ -405,6 +405,7 @@ ret_code view::new_song_or_repeat ()
     else if (next_playlist.value.is_fake())
         return 0;
 
+    BSP_AUDIO_OUT_SetVolume(audio_ctl->volume);
     if (audio_ctl->pause_status == pause_status_t::soft_pause)
     {
         audio_ctl->pause_status = pause_status_t::pause;
