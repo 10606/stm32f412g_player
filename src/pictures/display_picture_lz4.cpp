@@ -42,28 +42,81 @@ void display_picture
         uint32_t cur_repeat = cur.repeat;
         picture++;
  
-        memcpy(buff + position, picture, 4);
-        if (cur_size > 4)
-            memcpy(buff + position + 4, picture + 4, 12);
+        switch (cur_size)
+        {
+            uint8_t sz1;
+            uint16_t sz2;
+            uint32_t sz4;
+            
+        case 1:
+            memcpy(&sz1, picture, 1);
+            sz2 = (static_cast <uint16_t> (sz1) <<  8) + (sz1);
+            sz4 = (static_cast <uint32_t> (sz2) << 16) + (sz2);
+            switch (cur_repeat / 4)
+            {
+            case 3:
+                memcpy((buff + position + 3 * 4), &sz4, 4);
+            case 2:
+                memcpy((buff + position + 2 * 4), &sz4, 4);
+            case 1:
+                memcpy((buff + position + 1 * 4), &sz4, 4);
+            case 0:
+                memcpy((buff + position + 0 * 4), &sz4, 4);
+            }
+            break;
+            
+        case 2:
+            memcpy(&sz2, picture, 2);
+            sz4 = (sz2 << 16) + (sz2);
+            switch (cur_repeat / 2)
+            {
+            case 7:
+                memcpy((buff + position + 7 * 4), &sz4, 4);
+            case 6:
+                memcpy((buff + position + 6 * 4), &sz4, 4);
+            case 5:
+                memcpy((buff + position + 5 * 4), &sz4, 4);
+            case 4:
+                memcpy((buff + position + 4 * 4), &sz4, 4);
+            case 3:
+                memcpy((buff + position + 3 * 4), &sz4, 4);
+            case 2:
+                memcpy((buff + position + 2 * 4), &sz4, 4);
+            case 1:
+                memcpy((buff + position + 1 * 4), &sz4, 4);
+            case 0:
+                memcpy((buff + position + 0 * 4), &sz4, 4);
+            }
+            break;
+            
+        case 3:
+            memcpy(&sz4, picture, 4);
+            for (size_t i = 0; i != cur_repeat; ++i)
+                memcpy((buff + position + i * 3), &sz4, 4);
+            break;
+            
+        case 4:
+            memcpy(&sz4, picture, 4);
+            for (size_t i = 0; i != cur_repeat; ++i)
+                memcpy((buff + position + i * 4), &sz4, 4);
+            break;
+
+        default:
+            uint8_t values[16];
+            memcpy(values, picture, 16);
+            if (cur_size > 8) [[likely]]
+            {
+                for (uint32_t i = 0; i < cur_repeat; ++i)
+                    memcpy(buff + position + i * cur_size, values, 16);
+            }
+            else
+            {
+                for (uint32_t i = 0; i < cur_repeat; ++i)
+                    memcpy(buff + position + i * cur_size, values, 8);
+            }
+        }
+        
         picture += cur_size;
-        
-        if (cur_size <= 2) 
-        {
-            memcpy(buff + position + cur_size, buff + position, 2);
-            for (uint32_t i = 2; i < cur_repeat; i += 2)
-                memcpy(buff + position + i * cur_size, buff + position, 4);
-        }
-        else if (cur_size > 8) [[likely]]
-        {
-            for (uint32_t i = 1; i < cur_repeat; ++i)
-                memcpy(buff + position + i * cur_size, buff + position, 16);
-        }
-        else
-        {
-            for (uint32_t i = 1; i < cur_repeat; ++i)
-                memcpy(buff + position + i * cur_size, buff + position, 8);
-        }
-        
         position += cur_size * cur_repeat;
         
         if ((position == sizeof(pixel) - 16 * sizeof(uint16_t)) ||
