@@ -139,11 +139,11 @@ ret_code view::change_song (directions::np::type direction)
 
     if (!dont_use_next_pl)
     {
+        repeat_counter--;
         if (repeat_counter)
         {
             next_playlist.value.swap(backup);
             next_playlist.playlist_index = next_pl_index;
-            repeat_counter--;
         }
         else
         {
@@ -177,7 +177,7 @@ ret_code view::set_playing (playing & value, uint32_t & inc_value)
         return 0;
     }
     else
-        inc_value = 0;
+        inc_value = 1;
 
     playlist old_pl(std::move(value.value));
     ret_code ret = plv.value.play(value.value, old_pl);
