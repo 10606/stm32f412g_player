@@ -1,5 +1,6 @@
 #include "convert_custom.h"
 
+#include <algorithm>
 #include <string>
 #include <map>
 #include "char_conversion.h"

@@ -103,6 +103,7 @@ std::string remove_bad (std::string const & value, std::vector <std::string> con
             auto [pos, index] = *it;
             to_remove.erase(it);
             to_remove.insert({value.find(bad[index], pos + 1), index});
+            it = to_remove.begin();
             
             if (pos + bad[index].size() > new_i)
                 new_i = pos + bad[index].size();

@@ -166,18 +166,18 @@ void write_all (std::ostream & out, std::istream & in, std::string const & name)
 
 int main (int argc, char ** argv)
 {
-    if (argc <= 2)
+    if (argc <= 3)
     {
-        std::cout << argv[0] << " <playlist_src> <playlist_dst.plb>" << std::endl;
+        std::cout << argv[0] << " <device_name> <playlist_src> <playlist_dst.plb>" << std::endl;
         return 1;
     }
     
     try
     {
-        std::ifstream playlist_src(argv[1]);
-        std::ofstream playlist_dst(argv[2]);
+        std::ifstream playlist_src(argv[2]);
+        std::ofstream playlist_dst(argv[3]);
         
-        partition_with_FAT = std::ifstream("/dev/mmcblk0");
+        partition_with_FAT = std::ifstream(argv[1]);
         partition_with_FAT.exceptions(std::ifstream::failbit | std::ifstream::badbit | std::ifstream::eofbit);
         
         if (FAT_info.init())
@@ -186,7 +186,7 @@ int main (int argc, char ** argv)
             return 1;
         }
     
-        write_all(playlist_dst, playlist_src, argv[1]);   
+        write_all(playlist_dst, playlist_src, argv[2]);   
     }
     catch (std::exception const & e)
     {
