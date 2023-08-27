@@ -6,7 +6,7 @@
 #include "mad.h"
 #include "FAT.h"
 
-#define mp3_input_buffer_size 1536LU
+#define mp3_input_buffer_size 1536LU * 2
 #define mp3_frame_size 1152LU
 
 typedef struct 

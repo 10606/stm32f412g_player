@@ -40,6 +40,8 @@ ret_code view::open_song_impl ()
     mp3_info old_info = audio_ctl->info;
     if ((ret = open(&FAT_info, &audio_ctl->audio_file, pl.value.path, pl.value.lpl.song.path_len)))
         return ret;
+    if (audio_ctl->audio_file.is_dir)
+        return file_expected_song_found;
     audio_ctl->seeked = 1;
     get_length(&audio_ctl->audio_file, &audio_ctl->info);
     if ((ret = audio_ctl->audio_file.seek(audio_ctl->info.offset)))

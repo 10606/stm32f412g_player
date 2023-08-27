@@ -137,7 +137,12 @@ uint32_t get_pcm_sound (file_descriptor * _file, uint8_t * pbuf, uint32_t NbrOfD
             amount_safe_from_buffer = mp3_input_buffer_size - mp3_frame_size;
         
         if (amount_safe_from_buffer)
-            memmove(mp3_input_buffer.buffer, mad_data.stream.bufend - amount_safe_from_buffer, amount_safe_from_buffer);
+        {
+            mp3_input_buffer_t tmp_buffer;
+            memcpy(tmp_buffer.buffer, mad_data.stream.bufend - amount_safe_from_buffer, amount_safe_from_buffer);
+            memcpy(mp3_input_buffer.buffer, tmp_buffer.buffer, amount_safe_from_buffer);
+            // memmove(mp3_input_buffer.buffer, mad_data.stream.bufend - amount_safe_from_buffer, amount_safe_from_buffer);
+        }
 
         uint32_t rb = get_all_data(_file, mp3_input_buffer.buffer + amount_safe_from_buffer, mp3_input_buffer_size - amount_safe_from_buffer);
         mp3_input_buffer.size = amount_safe_from_buffer + rb;
@@ -153,7 +158,7 @@ uint32_t get_pcm_sound (file_descriptor * _file, uint8_t * pbuf, uint32_t NbrOfD
         mad_stream_buffer(&mad_data.stream, mp3_input_buffer.buffer, rb + amount_safe_from_buffer);
 
         uint32_t tries = 0;
-        while ((frames < NbrOfData) && (tries < 3))
+        while ((frames < NbrOfData) && (tries < 5))
         {
             if (mad_frame_decode(&mad_data.frame, &mad_data.stream)) 
             {

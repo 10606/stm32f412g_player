@@ -4,8 +4,9 @@
 #include <stdint.h>
 #include <stddef.h>
 
-inline constexpr const uint32_t memory_limit = 101;
 typedef uint32_t ret_code;
+inline constexpr const ret_code memory_limit = 101;
+inline constexpr const ret_code file_expected_song_found = 201;
 
 char check_near (uint32_t pos_a, uint32_t pos_b, uint32_t max_pos_a, uint32_t view_pos_a, uint32_t border_pos_a); // b in window a
 void sprint (char * dst, size_t sz, const char * format, uint32_t value); // dst has size [sz + 1]
